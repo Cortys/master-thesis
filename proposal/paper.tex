@@ -1,6 +1,11 @@
+% chktex-file 46
 \documentclass[12pt]{scrartcl}
 
+\PassOptionsToPackage{utf8}{inputenc}
+\usepackage{inputenc}
 \usepackage[american]{babel}
+\usepackage{csquotes}
+\usepackage{microtype}
 
 \usepackage{graphicx}
 \graphicspath{{images/}}
@@ -13,51 +18,118 @@
 \usepackage{geometry}
 % \geometry{a4paper,body={5.8in,9in}}
 \geometry{a4paper}
+\renewcommand{\baselinestretch}{1.1}
+\usepackage{parskip}
+\setlength{\parindent}{0pt}
 
 \usepackage{amsmath, amsfonts, amssymb}
+\usepackage{bm}
 \usepackage{placeins}
 \usepackage{subcaption}
 
 \usepackage{setspace}
 
-\setlength{\parindent}{0pt}
-%
+\usepackage{hyperref}
+
+\usepackage[nameinlink]{cleveref}
+\newcommand{\crefrangeconjunction}{--}
+
+\usepackage[						% use biblatex for bibliography
+	backend=bibtex,					% 	- use biber backend (bibtex replacement) or bibtex
+	style=numeric,					% 	- use alphabetic (or numeric) bib style
+	natbib=true,					% 	- allow natbib commands
+	hyperref=true,					% 	- activate hyperref support
+	backref=true,					% 	- activate backrefs
+	isbn=false,						% 	- don't show isbn tags
+	url=false,						% 	- don't show url tags
+	doi=false,						% 	- don't show doi tags
+	urldate=long,					% 	- display type for dates
+	maxnames=3,%
+	minnames=1,%
+	maxbibnames=5,%
+	minbibnames=3,%
+	maxcitenames=2,%
+	mincitenames=1%
+]{biblatex}
+\bibliography{literature}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% ab hier steht der eigentliche Text:
+
+\newcommand{\thesisTitle}{Learning to Aggregate on Structured Data}
+\newcommand{\thesisSubject}{Master Thesis Proposal \& Work Plan}
+\newcommand{\thesisName}{Clemens Damke}
+\newcommand{\thesisMail}{cdamke@mail.uni-paderborn.de}
+\newcommand{\thesisMatNr}{7011488}
+\hypersetup{% setup the hyperref-package options
+    pdftitle={\thesisTitle},    %   - title (PDF meta)
+    pdfsubject={\thesisSubject},%   - subject (PDF meta)
+    pdfauthor={\thesisName},    %   - author (PDF meta)
+    plainpages=false,           %   -
+    colorlinks=false,           %   - colorize links?
+    pdfborder={0 0 0},          %   -
+    breaklinks=true,            %   - allow line break inside links
+    bookmarksnumbered=true,     %
+    bookmarksopen=true          %
+}
+
 \begin{document}
-\title{Thesis Title}
-\subtitle{Master Thesis Proposal \& Work Plan}
-% bei Masterarbeit ggf. ändern
-\author{Clemens Damke\\ \small{Matriculation Number: 7011488}\\ \small{cdamke@mail.uni-paderborn.de}}
+
+\title{\thesisTitle}
+\subtitle{\thesisSubject}
+\author{{\thesisName}\\\small{Matriculation Number: \thesisMatNr}\\\small{\href{mailto:\thesisMail}{\thesisMail}}}
 \date{\today}
 \maketitle
 
 \section{Motivation}\label{sec:motivation}
 
+Most of the commonly used supervised machine learning techniques assume that instances are represented by $d$-dimensional feature vectors $x \in \mathcal{X} = \mathcal{X}_1 \times \cdots \times \mathcal{X}_d$ for which some target value $y \in \mathcal{Y}$ should be predicted.
+In the regression setting the target domain $\mathcal{Y}$ is continuous, typically $\mathcal{Y} = \mathbb{R}$, whereas $\mathcal{Y}$ is some discrete set of classes in the classification setting.
+
+Since not all data is well-suited for a fixed-dimensional vector representation, approaches that directly consider the structure of the input data might be more appropriate in such cases.
+One such case is the class of so-called \textit{``learning to aggregate''} (LTA) problems as described by \citet{Melnikov2016}.
+There the instances are represented by compositions $\bm{c}$ of constituents $c_i \in \bm{c}$, i.e.\@ variable-size multisets.
+The assumption in LTA problems is that for all constituents $c_i$ a local valuation $y_i \in \mathcal{Y}$ is either given or computable.
+The set of those local valuations should be indicative of the overall valuation $y \in \mathcal{Y}$ of the entire composition $\bm{c}$.
+The goal of LTA is to learn a variadic aggregation function $A: \mathcal{Y}^{*} \to \mathcal{Y}$ that estimates such composite valuations, i.e.\@ $\hat{y} = A(y_1, \dots, y_n)$ for a composition with $n$ constituents.
+Additionally the aggregation function $A$ should be associative and commutative to fit with the multiset-structure of compositions.
 
 
-\section{Task Objectives}\label{sec:task-objectives}
 
-\section{Task Description}\label{sec:task-description}
+\section{Related Work}\label{sec:related-work}
 
-\section{Time-Schedule and Subtasks}\label{sec:schedule-and-subtasks}
+\section{Goals}\label{sec:goals}
 
-% % %
-\begin{figure}[!ht]
-	\centering
-	%\includegraphics[width=.9\textwidth]{timeschedule}
-	\caption{Sketch of the time schedule for the work on the thesis}\label{fig:time-schedule}
-\end{figure}
-% % %
-\section{Initial Document Structure}\label{sec:doc-structure}
+\subsection{Required Goals}\label{sec:goals:req}
+
+\subsection{Optional Goals}\label{sec:goals:opt}
+
+\section{Approach}\label{sec:approach}
+
+\section{Preliminary Document Structure}\label{sec:doc-structure}
+
 \begin{enumerate}
 	\item Introduction
 	\item \dots
 \end{enumerate}
+
+\section{Time-Schedule}\label{sec:schedule}
+
+\begin{figure}[!ht]
+	\centering
+	%\includegraphics[width=.9\textwidth]{timeschedule}
+	\caption{Sketch of the time schedule for the work on the thesis}\label{fig:schedule}
+\end{figure}
+
 % % %
 \newpage
-\bibliography{literature}
-\bibliographystyle{myalphadin}
+{%
+\renewcommand{\bibfont}{\normalfont\small}
+\setlength{\biblabelsep}{5pt}
+\setlength{\bibitemsep}{0.5\baselineskip plus 0.5\baselineskip} % chktex 1
+\setcounter{biburllcpenalty}{9000}
+\setcounter{biburlucpenalty}{9999}
+\printbibliography%
+}
 
 \vspace{6cm}
 
