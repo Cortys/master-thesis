@@ -30,7 +30,6 @@
 \usepackage{setspace}
 
 \usepackage{hyperref}
-
 \usepackage[nameinlink]{cleveref}
 \newcommand{\crefrangeconjunction}{--}
 
@@ -52,6 +51,8 @@
 	mincitenames=1%
 ]{biblatex}
 \bibliography{literature}
+
+\usepackage[inline]{enumitem}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -80,39 +81,65 @@
 \date{\today}
 \maketitle
 
-\section{Motivation}\label{sec:motivation}
+\section{Motivation}%
+\label{sec:motivation}
 
 Most of the commonly used supervised machine learning techniques assume that instances are represented by $d$-dimensional feature vectors $x \in \mathcal{X} = \mathcal{X}_1 \times \cdots \times \mathcal{X}_d$ for which some target value $y \in \mathcal{Y}$ should be predicted.
 In the regression setting the target domain $\mathcal{Y}$ is continuous, typically $\mathcal{Y} = \mathbb{R}$, whereas $\mathcal{Y}$ is some discrete set of classes in the classification setting.
 
 Since not all data is well-suited for a fixed-dimensional vector representation, approaches that directly consider the structure of the input data might be more appropriate in such cases.
-One such case is the class of so-called \textit{``learning to aggregate''} (LTA) problems as described by \citet{Melnikov2016}.
+One such case is the class of so-called \textit{learning to aggregate} (LTA) problems as described by \citet{Melnikov2016}.
 There the instances are represented by compositions $\bm{c}$ of constituents $c_i \in \bm{c}$, i.e.\@ variable-size multisets.
 The assumption in LTA problems is that for all constituents $c_i$ a local valuation $y_i \in \mathcal{Y}$ is either given or computable.
 The set of those local valuations should be indicative of the overall valuation $y \in \mathcal{Y}$ of the entire composition $\bm{c}$.
 The goal of LTA is to learn a variadic aggregation function $A: \mathcal{Y}^{*} \to \mathcal{Y}$ that estimates such composite valuations, i.e.\@ $\hat{y} = A(y_1, \dots, y_n)$ for a composition with $n$ constituents.
 Additionally the aggregation function $A$ should be associative and commutative to fit with the multiset-structure of compositions.
 
+Current LTA approaches only work with multiset inputs.
+In practice there is however often some relational structure among the constituents of a composition.
+This effectively turns LTA into a graph classification or regression problem.
+The overall aim of this thesis is to look into the question of how aggregation function learning methods might be generalized to the graph setting.
+
+\section{Related Work}%
+\label{sec:related-work}
+
+This thesis will be based on two currently mostly unrelated fields of research:
+\begin{enumerate*}
+	\item Aggregation function learning
+	\item Graph classification
+\end{enumerate*}.
+A short overview of the current state-of-the-art approaches in both fields will be given now.
+
+\subsection{Aggregation Function Learning}%
+\label{sec:related-work:lta}
 
 
-\section{Related Work}\label{sec:related-work}
 
-\section{Goals}\label{sec:goals}
+\subsection{Graph Classification}%
+\label{sec:related-work:gc}
 
-\subsection{Required Goals}\label{sec:goals:req}
+\section{Goals}%
+\label{sec:goals}
 
-\subsection{Optional Goals}\label{sec:goals:opt}
+\subsection{Required Goals}%
+\label{sec:goals:req}
 
-\section{Approach}\label{sec:approach}
+\subsection{Optional Goals}%
+\label{sec:goals:opt}
 
-\section{Preliminary Document Structure}\label{sec:doc-structure}
+\section{Approach}%
+\label{sec:approach}
+
+\section{Preliminary Document Structure}%
+\label{sec:doc-structure}
 
 \begin{enumerate}
 	\item Introduction
 	\item \dots
 \end{enumerate}
 
-\section{Time-Schedule}\label{sec:schedule}
+\section{Time-Schedule}%
+\label{sec:schedule}
 
 \begin{figure}[!ht]
 	\centering
