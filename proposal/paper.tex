@@ -105,15 +105,23 @@ The overall aim of this thesis is to look into the question of how aggregation f
 
 This thesis will be based on two currently mostly unrelated fields of research:
 \begin{enumerate*}
-	\item Aggregation function learning
+	\item Learning to Aggregate
 	\item Graph classification
 \end{enumerate*}.
 A short overview of the current state-of-the-art approaches in both fields will be given now.
 
-\subsection{Aggregation Function Learning}%
+\subsection{Learning to Aggregate}%
 \label{sec:related-work:lta}
 
+Two main approaches to represent the aggregation function in LTA problems have been explored.
+The first approach uses so-called uninorms~\cite{Melnikov2016} to do so.
+There the basic idea is to express composite valuations as fuzzy logical assignments $y \in [0, 1]$.
+Such a composite assignment $y$ is modeled as the result of a parameterized logical expression of constituent assignments $y_i \in [0, 1]$.
+As the logical expression that thus effectively aggregates the constituents, a uninorm $U_{\lambda}$ is used.
+Depending on the parameter $\lambda$, a uninorm interpolates between t-norms and t-conorms which correspond to logical conjunction and disjunction respectively.
+\begin{align*}
 
+\end{align*}
 
 \subsection{Graph Classification}%
 \label{sec:related-work:gc}
