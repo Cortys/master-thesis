@@ -48,11 +48,13 @@
 	maxbibnames=5,%
 	minbibnames=3,%
 	maxcitenames=2,%
-	mincitenames=1%
+	mincitenames=1,%
+	sorting=none
 ]{biblatex}
 \bibliography{literature}
 
 \usepackage[inline]{enumitem}
+\usepackage{todonotes}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -90,9 +92,9 @@ In the regression setting the target domain $\mathcal{Y}$ is continuous, typical
 Since not all data is well-suited for a fixed-dimensional vector representation, approaches that directly consider the structure of the input data might be more appropriate in such cases.
 One such case is the class of so-called \textit{learning to aggregate} (LTA) problems as described by \citet{Melnikov2016}.
 There the instances are represented by compositions $\bm{c}$ of constituents $c_i \in \bm{c}$, i.e.\@ variable-size multisets.
-The assumption in LTA problems is that for all constituents $c_i$ a local valuation $y_i \in \mathcal{Y}$ is either given or computable.
-The set of those local valuations should be indicative of the overall valuation $y \in \mathcal{Y}$ of the entire composition $\bm{c}$.
-The goal of LTA is to learn a variadic aggregation function $A: \mathcal{Y}^{*} \to \mathcal{Y}$ that estimates such composite valuations, i.e.\@ $\hat{y} = A(y_1, \dots, y_n)$ for a composition with $n$ constituents.
+The assumption in LTA problems is that for all constituents $c_i$ a local score $y_i \in \mathcal{Y}$ is either given or computable.
+The set of those local scores should be indicative of the overall score $y \in \mathcal{Y}$ of the entire composition $\bm{c}$.
+The goal of LTA is to learn a variadic aggregation function $A: \mathcal{Y}^{*} \to \mathcal{Y}$ that estimates such composite scores, i.e.\@ $\hat{y} = A(y_1, \dots, y_n)$ for a composition with $n$ constituents.
 Additionally the aggregation function $A$ should be associative and commutative to fit with the multiset-structure of compositions.
 
 Current LTA approaches only work with multiset inputs.
@@ -114,17 +116,21 @@ A short overview of the current state-of-the-art approaches in both fields will 
 \label{sec:related-work:lta}
 
 Two main approaches to represent the aggregation function in LTA problems have been explored.
-The first approach uses so-called uninorms~\cite{Melnikov2016} to do so.
-There the basic idea is to express composite valuations as fuzzy logical assignments $y \in [0, 1]$.
+The first approach uses \textit{uninorms}~\cite{Melnikov2016} to do so.
+There the basic idea is to express composite scores as fuzzy truth assignments $y \in [0, 1]$.
 Such a composite assignment $y$ is modeled as the result of a parameterized logical expression of constituent assignments $y_i \in [0, 1]$.
 As the logical expression that thus effectively aggregates the constituents, a uninorm $U_{\lambda}$ is used.
-Depending on the parameter $\lambda$, a uninorm interpolates between t-norms and t-conorms which correspond to logical conjunction and disjunction respectively.
-\begin{align*}
+Depending on the parameter $\lambda$, $U_{\lambda}$ interpolates between t-norms and t-conorms which are continuous generalizations of logical conjunction and disjunction respectively.
+\todo{TODO:\@ Details}
 
-\end{align*}
+Recently \citet{Melnikov2019} have also looked at an alternative class of aggregation function.
+Instead of using fuzzy logic to describe score aggregation, \textit{ordered weighted average} (OWA) operators were used.
+\todo{TODO:\@ Details}
 
 \subsection{Graph Classification}%
 \label{sec:related-work:gc}
+
+
 
 \section{Goals}%
 \label{sec:goals}
