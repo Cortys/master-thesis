@@ -1,10 +1,10 @@
 % Encoding: UTF-8
 
-@Article{Kipf2016,
+@Article{Kipf2017,
   author      = {Thomas N. Kipf and Max Welling},
   title       = {Semi-Supervised Classification with Graph Convolutional Networks},
   journal     = {ICLR},
-  year        = {2016},
+  year        = {2017},
   abstract    = {We present a scalable approach for semi-supervised learning on graph-structured data that is based on an efficient variant of convolutional neural networks which operate directly on graphs. We motivate the choice of our convolutional architecture via a localized first-order approximation of spectral graph convolutions. Our model scales linearly in the number of graph edges and learns hidden layer representations that encode both local graph structure and features of nodes. In a number of experiments on citation networks and on a knowledge graph dataset we demonstrate that our approach outperforms related methods by a significant margin.},
   date        = {2016-09-09},
   eprint      = {1609.02907v4},
@@ -18,7 +18,7 @@
   author        = {Koutra, Danai and Ramdas, Aaditya and Parikh, Ankur and Xiang, Jing},
   title         = {Algorithms for Graph Similarity and Subgraph Matching},
   year          = {2011},
-  __markedentry = {[clemens:6]},
+  __markedentry = {[clemens:]},
   abstract      = {We deal with two independent but related problems, those of graph similarity and subgraph matching, which are both important practical problems useful in several fields of science, engineering and data analysis. For the problem of graph similarity, we develop and test a new framework for solving the problem using belief propagation and related ideas. For the subgraph matching problem, we develop a new algorithm based on existing techniques in the bioinformatics and data mining literature, which uncover periodic or infrequent matchings. We make substantial progress compared to the existing methods for both problems.},
 }
 
@@ -37,6 +37,62 @@
   title   = {Learning to Aggregate: Tackling the Aggregation/Disaggregation Problem for OWA},
   journal = {ACML},
   year    = {2019},
+}
+
+@Article{Narayanan2017,
+  author      = {Annamalai Narayanan and Mahinthan Chandramohan and Rajasekar Venkatesan and Lihui Chen and Yang Liu and Shantanu Jaiswal},
+  title       = {graph2vec: Learning Distributed Representations of Graphs},
+  year        = {2017},
+  abstract    = {Recent works on representation learning for graph structured data predominantly focus on learning distributed representations of graph substructures such as nodes and subgraphs. However, many graph analytics tasks such as graph classification and clustering require representing entire graphs as fixed length feature vectors. While the aforementioned approaches are naturally unequipped to learn such representations, graph kernels remain as the most effective way of obtaining them. However, these graph kernels use handcrafted features (e.g., shortest paths, graphlets, etc.) and hence are hampered by problems such as poor generalization. To address this limitation, in this work, we propose a neural embedding framework named graph2vec to learn data-driven distributed representations of arbitrary sized graphs. graph2vec's embeddings are learnt in an unsupervised manner and are task agnostic. Hence, they could be used for any downstream task such as graph classification, clustering and even seeding supervised representation learning approaches. Our experiments on several benchmark and large real-world datasets show that graph2vec achieves significant improvements in classification and clustering accuracies over substructure representation learning approaches and are competitive with state-of-the-art graph kernels.},
+  date        = {2017-07-17},
+  eprint      = {http://arxiv.org/abs/1707.05005v1},
+  eprintclass = {cs.AI},
+  eprinttype  = {arXiv},
+  file        = {:http\://arxiv.org/pdf/1707.05005v1:PDF},
+  keywords    = {cs.AI, cs.CL, cs.CR, cs.NE, cs.SE},
+}
+
+@Article{Grover2016,
+  author      = {Aditya Grover and Jure Leskovec},
+  title       = {node2vec: Scalable Feature Learning for Networks},
+  year        = {2016},
+  abstract    = {Prediction tasks over nodes and edges in networks require careful effort in engineering features used by learning algorithms. Recent research in the broader field of representation learning has led to significant progress in automating prediction by learning the features themselves. However, present feature learning approaches are not expressive enough to capture the diversity of connectivity patterns observed in networks. Here we propose node2vec, an algorithmic framework for learning continuous feature representations for nodes in networks. In node2vec, we learn a mapping of nodes to a low-dimensional space of features that maximizes the likelihood of preserving network neighborhoods of nodes. We define a flexible notion of a node's network neighborhood and design a biased random walk procedure, which efficiently explores diverse neighborhoods. Our algorithm generalizes prior work which is based on rigid notions of network neighborhoods, and we argue that the added flexibility in exploring neighborhoods is the key to learning richer representations. We demonstrate the efficacy of node2vec over existing state-of-the-art techniques on multi-label classification and link prediction in several real-world networks from diverse domains. Taken together, our work represents a new way for efficiently learning state-of-the-art task-independent representations in complex networks.},
+  date        = {2016-07-03},
+  eprint      = {http://arxiv.org/abs/1607.00653v1},
+  eprintclass = {cs.SI},
+  eprinttype  = {arXiv},
+  file        = {:http\://arxiv.org/pdf/1607.00653v1:PDF},
+  keywords    = {cs.SI, cs.LG, stat.ML},
+}
+
+@InCollection{Adhikari2018,
+  author    = {Bijaya Adhikari and Yao Zhang and Naren Ramakrishnan and B. Aditya Prakash},
+  title     = {Sub2Vec: Feature Learning for Subgraphs},
+  booktitle = {Advances in Knowledge Discovery and Data Mining},
+  publisher = {Springer International Publishing},
+  year      = {2018},
+  pages     = {170--182},
+  doi       = {10.1007/978-3-319-93037-4_14},
+}
+
+@Misc{Shervashidze2011,
+  author        = {Shervashidze, Nino and Schweitzer, Pascal and Leeuwen, Erik Jan Van and Mehlhorn, Kurt and Borgwardt, Karsten M.},
+  title         = {Weisfeiler-Lehman Graph Kernels},
+  year          = {2011},
+  __markedentry = {[clemens:6]},
+  abstract      = {In this article, we propose a family of efficient kernels for large graphs with discrete node labels. Key to our method is a rapid feature extraction scheme based on the Weisfeiler-Lehman test of isomorphism on graphs. It maps the original graph to a sequence of graphs, whose node attributes capture topological and label information. A family of kernels can be defined based on this Weisfeiler-Lehman sequence of graphs, including a highly efficient kernel comparing subtree-like patterns. Its runtime scales only linearly in the number of edges of the graphs and the length of the Weisfeiler-Lehman graph sequence. In our experimental evaluation, our kernels outperform state-of-the-art graph kernels on several graph classification benchmark data sets in terms of accuracy and runtime. Our kernels open the door to large-scale applications of graph kernels in various disciplines such as computational biology and social network analysis. },
+}
+
+@Article{Kondor2016,
+  author      = {Risi Kondor and Horace Pan},
+  title       = {The Multiscale Laplacian Graph Kernel},
+  abstract    = {Many real world graphs, such as the graphs of molecules, exhibit structure at multiple different scales, but most existing kernels between graphs are either purely local or purely global in character. In contrast, by building a hierarchy of nested subgraphs, the Multiscale Laplacian Graph kernels (MLG kernels) that we define in this paper can account for structure at a range of different scales. At the heart of the MLG construction is another new graph kernel, called the Feature Space Laplacian Graph kernel (FLG kernel), which has the property that it can lift a base kernel defined on the vertices of two graphs to a kernel between the graphs. The MLG kernel applies such FLG kernels to subgraphs recursively. To make the MLG kernel computationally feasible, we also introduce a randomized projection procedure, similar to the Nystr\"om method, but for RKHS operators.},
+  date        = {2016-03-20},
+  eprint      = {http://arxiv.org/abs/1603.06186v2},
+  eprintclass = {stat.ML},
+  eprinttype  = {arXiv},
+  file        = {:http\://arxiv.org/pdf/1603.06186v2:PDF},
+  keywords    = {stat.ML},
 }
 
 @Comment{jabref-meta: databaseType:bibtex;}

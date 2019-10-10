@@ -23,7 +23,7 @@
 ## Related Work
 
 - **Graph similarity:**
-  - Overview Paper: [Algorithms for Graph Similarityand Subgraph Matching](https://people.eecs.berkeley.edu/~aramdas/reports/DBreport.pdf)
+  - Overview Paper: [Algorithms for Graph Similarity and Subgraph Matching](https://people.eecs.berkeley.edu/~aramdas/reports/DBreport.pdf)
   - [Overview Slides for Graph Similarity Measures (Zager)](http://www.cs.uoi.gr/~pvassil/downloads/GraphDistance/LauraZager.pdf)
   - [Graph similarity scoring and matching (Zager)](https://www.sciencedirect.com/science/article/pii/S0893965907001012)
 - **Graph Neural Networks:**
