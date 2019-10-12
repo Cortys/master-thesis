@@ -154,8 +154,50 @@ At a high level graph classification methods can be taxonomized into two main fa
 			\item implicitly by using a graph kernel that computes the structural similarity between graphs, e.g.\ the Weisfeiler-Lehman kernel~\cite{Shervashidze2011} or the multiscale Laplacian graph kernel~\cite{Kondor2016}
 		\end{enumerate*}.
 		Graphs can then be classified via any classification algorithm that works with vectors and/or kernels.
-	\item \textbf{Graph neural networks (GNNs):}
+	\item \textbf{Graph neural networks:}
+		An alternative approach is to adapt neural networks to graph inputs.
+		The notion of a \textit{graph neural network} (GNN) was first introduced by \citet{Gori2005}.\@
+		There a message-passing architecture is used to iteratively propagate vertex information to neighbors until a fixed point is reached.
+		This process is computationally expensive.
 
+		Recently the class of \textit{convolutional graph neural networks} (ConvGNNs) gained traction.
+		It generalizes the convolution operator that is used by \textit{convolutional neural networks} (CNNs) to graphs.
+		There are two main variants of ConvGNNs:
+		\begin{enumerate}[label=\textbf{\alph*)}] % chktex 9 chktex 10
+			\item \textbf{Spatial variant:}
+				Standard CNNs use a convolution operator that is applied to a grid graph with diagonal edges.
+				Spatial ConvGNNs directly generalize this idea by defining a more flexible convolution that aggregates the local neighborhood of each vertex.
+				Spatial graph convolution aggregates the direct neighborhood of each vertex where each vertex $v_i$ is typically described by a feature vector $x_i \in \mathbb{R}^k$.
+				This process returns a new aggregate feature vector $x'_i$.
+				By stacking multiple convolution layers, features from indirect neighbors become part of the aggregate.
+				Analogous to how CNNs learn kernel matrices, spatial ConvGNNs learn vertex neighborhood feature aggregation functions.
+				This approach shares similarities with the previously mentioned message-passing architecture~\cite{Gori2005} with the major different being that the number of message-passing, i.e.\ convolution, steps is fixed.
+			\item \textbf{Spectral variant:}
+				Motivated by the theoretical foundation provided by spectral graph theory, spectral ConvGNNs learn a filter function $\hat{g}$ that is applied in the Fourier domain of a graph.
+				Based on the convolutional theorem, a convolution operator can not only be expressed in terms of the neighborhood of vertices but also as a filter on the eigenvectors of a graph's Laplacian.
+				Formally this can be expressed as
+				\begin{align*}
+					g *_G \bm{x} = U \hat{g}(\Lambda) U^{\top} \bm{x}
+				\end{align*}
+				where $\bm{x} \in \mathbb{R}^{n \times k}$ is the matrix of all vertex features and $U \Lambda U^{\top}$ is the eigendecomposition of the graph Laplacian $L_G$.
+				In the previously described spatial ConvGNN variant, $g$ is learned directly in form of the feature aggregation function with a neighborhood locality constraint.
+				In the spectral variant however the Fourier-transformed filter $\hat{g}$ is learned.
+				Intuitively this means that vertex features $x_i$ are not aggregated with the features of their their direct neighborhood but with the features of vertices with which they share certain structural similarities.
+				This allows spectral ConvGNNs to incorporate the global graph structure at the cost of having to perform the computationally expensive decomposition of every input graph's Laplacian.
+
+				To tackle the performance impact of the spectral convolution approach, various simplifications of the filter $\hat{g}$ have been proposed.
+				The so-called \textit{graph convolutional network}~(GCN) does this by reducing the expressivity of the filter.
+				Then $\hat{g}$ can be applied to the Laplacian directly via $g *_G \bm{x} = \hat{g}(L_G) \bm{x}$ which saves the decomposition costs.
+				This simplification of $\hat{g}$ implicitly causes its Fourier inverse $g$ to be locality constrained just like in the spatial ConvGNN variant.
+				Therefore the spectral GCN approach also allows for a spatial/message-passing interpretation.
+				Recently various variants of GCN have been proposed that apply additional approximations to improve performance in certain scenarios.
+		\end{enumerate}
+		After the application of either spatial or spectral graph convolutions, each vertex will have an updated aggregate feature vector.
+		To obtain an aggregate score for the entire graph, a graph pooling layer is applied.
+		A primitive pooling approach is to simply merge the vertex features via a fixed aggregation function like $\min$, $\max$ or $+$.
+		Better results can be obtained by learning the pooling aggregation function.
+		Two notable graph pooling approaches are SortPooling and Self-Attention Pooling.
+		SortPooling works by determining a top-k ordering of the vertices and then aggregates the remaining fixed-size vertex features via a standard multilayer perceptron (MLP).
 \end{enumerate}
 
 \section{Goals}%
