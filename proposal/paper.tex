@@ -130,11 +130,19 @@ There the basic idea is to express composite scores as fuzzy truth assignments $
 Such a composite assignment $y_i$ is modeled as the result of a parameterized logical expression of constituent assignments $y_{i,j} \in [0, 1]$.
 As the logical expression that thus effectively aggregates the constituents, a uninorm $U_{\lambda}$ is used.
 Depending on the parameter $\lambda$, $U_{\lambda}$ interpolates between t-norms and t-conorms which are continuous generalizations of logical conjunction and disjunction respectively.
-\todo{TODO:\@ Details}
 
 Recently \citet{Melnikov2019} have also looked at an alternative class of aggregation function.
 Instead of using fuzzy logic to describe score aggregation, \textit{ordered weighted average} (OWA) operators were used.
-\todo{TODO:\@ Details}
+OWA aggregators work by sorting the input scores and then weighting them based on their sort position, i.e.\ %
+\begin{align*}
+	A_{\lambda}(y_1, \dots, y_n) := \sum_{i = 1}^n \lambda_i y_{\pi(i)},
+\end{align*}
+where $\lambda$ is a weight vector with ${\|\lambda\|}_1 = 1$ and $\pi$ is a sorting permutation of the input scores. % chktex 21
+To deal with varying composite sizes $n$ the weights $\lambda_i$ are interpolated using a \textit{basic unit interval monotone} (BUM) function $q: [0, 1] \to [0, 1]$.
+It is used by normalizing every constituent's position $\pi(i)$ to the unit interval via $\frac{\pi(i)}{n}$.
+The BUM function $q$ is then used to interpolate a weight for any normalized sort position.
+Therefore the learning objective boils down to optimizing the shape of $q$.
+The details of this are left out here.
 
 \subsection{Graph Classification}%
 \label{sec:related-work:gc}
@@ -235,14 +243,37 @@ While the implementation is again not publicly available, the trained model can 
 
 As mentioned in \cref{sec:motivation}, the overall goal of the thesis is to extend the LTA approach described in \cref{sec:related-work:lta} to the graph setting.
 Since this goal strongly overlaps with the work in graph classification described in \cref{sec:related-work:gc}, both branches of research should be combined.
-The practical applications described in \cref{sec:related-work:gr} could be used for comparison and a potential source of a graph regression test dataset.
+The practical applications described in \cref{sec:related-work:gr} could be used for comparison and as a potential source of a graph regression test dataset.
 Now follows a concrete list of required and optional goals that should be achieved.
 
 \subsection{Required Goals}%
 \label{sec:goals:req}
 
+\begin{enumerate}[label=\textbf{\arabic*.}]
+	\item \textbf{Aggregation:}
+		Define a class of aggregation functions that takes vertex scores as its input.
+		It should fulfill the role of the uninorms and OWA functions in the existing LTA papers.
+	\item \textbf{Disaggregation:}
+		Describe how vertex features should be used to compute a constituent score that will be combined by the aggregation function.
+	\item \textbf{Learning:}
+		Combine the chosen aggregation and disaggregation methods into a joint LTA model with a suitable loss function.
+		This model should be optimizable reasonably efficiently on modern hardware.
+	\item \textbf{Implementation:}
+		A reference implementation for the designed LTA model should be developed.
+	\item \textbf{Evaluation:}
+		The reference implementation should be used to evaluate the model on at least one test dataset.
+		Due to the scarcity of graph regression datasets, the used test data might be randomly generated.
+		Generated dataset should be obtained using a variety of representative deterministic graph scoring measures to check which kinds of local and global structural features are learnable;
+		some examples of measures that might be part of a graph scoring functions are the count of $k$-cliques in a graph, the graph diameter, the presence of cycles or various properties of a graph's degree distribution.
+\end{enumerate}
+
 \subsection{Optional Goals}%
 \label{sec:goals:opt}
+
+In addition to the previous goals, the following goals should be pursued if possible:
+\begin{itemize}
+	\item
+\end{itemize}
 
 \section{Approach}%
 \label{sec:approach}
