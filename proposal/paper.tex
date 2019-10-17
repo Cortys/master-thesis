@@ -198,7 +198,13 @@ At a high level graph classification methods can be taxonomized into two main fa
 				Then $\hat{g}$ can be applied to the Laplacian directly via $g *_G \bm{x} = \hat{g}(L_G) \bm{x}$ which saves the decomposition costs.
 				This simplification of $\hat{g}$ implicitly causes its Fourier inverse $g$ to be locality constrained just like in the spatial ConvGNN variant.
 				Therefore the spectral GCN approach also allows for a spatial/message-passing interpretation.
-				Recently various variants of GCNs~\cite{Hamilton2017}\cite{Chen2018}\cite{Chen2017}\cite{Chiang2019} have been proposed that apply additional approximations and sampling methods to improve the runtime as well as the accuracy in certain scenarios.
+				Recently various variants and extensions of GCNs~\cite{Hamilton2017}\cite{Chen2018}\cite{Chen2017}\cite{Chiang2019}\cite{Du2017} have been proposed that apply additional approximations and sampling methods to improve the runtime as well as the accuracy in certain scenarios.
+
+				One notable extension of GCNs are the so-called \textit{adadptive graph convolutional networks} (AGCNs)~\cite{Li2018}.
+				AGCNs do not use a fixed Laplacian $L$ for each input but instead learn a so-called residual Laplacian $L_\mathit{res}$.
+				The residual Laplacian is constructed by learning a vertex similarity kernel $\mathbb{G}_{x_i,x_j}$ which is used to determine the residual edge weights between vertices.
+				By overlaying the learned residual Laplacian $L_\mathit{res}$ on top of the static intrinsic Laplacian $L$, similar nodes with a large spatial distance in $L$ become connected.
+				This can improve the accuracy especially if a locality constrained spectral filter $\hat{g}$ is used.
 		\end{enumerate}
 		After the application of either spatial or spectral graph convolutions, each vertex will have an updated aggregate feature vector.
 		To obtain an aggregate score for the entire graph, a graph pooling layer is applied.
@@ -226,17 +232,29 @@ The generalization of LTA to the graph domain is however better described as a g
 As there currently are relatively few graph regression approaches, only few references can be provided here.
 
 Graph regression problems have for the most part only been discussed in the context of specific domain problems.
-\textit{RASAR}~\cite{Luechtefeld2018} is a graph regression method to predict the toxicity of chemicals as an alternative for animal tests.
-A standard logistic regression model is trained with manually chosen features that are given for the training molecule graphs.
-To predict the toxicity of a new chemical, $k$-means is used to average the features of chemicals with similar molecule graphs in the training set.
-The structural similarity between molecule graphs is measured by the Tanimoto coefficient of their chemical fingerprints.
-Those fingerprints encode the presence or absence of certain meaningful chemical substructures.
-The implementation and used dataset is unfortunately not publicly available because it is part of a commercial product\footnote{ToxTrack Inc., \url{https://toxtrack.com/}}.
+One of those domains is the prediction of chemical toxicity, typically the $\text{LD}_{50}$ or $\text{LC}_{50}$ doses which measure the smallest amount of a given chemical that is lethal for at least $50\%$ of tested subjects.
+The following approaches could serve as inspiration, baselines and/or sources of training data:
+\begin{itemize}
+	\item \textit{RASAR}~\cite{Luechtefeld2018} uses a logistic regression model.
+		It is trained with manually chosen features that are given for training molecule graphs.
+		To predict the toxicity of a new chemical, $k$-means is used to average the features of chemicals with similar molecule graphs in the training set.
+		The structural similarity between molecule graphs is measured by the Tanimoto coefficient of their chemical fingerprints.
+		Those fingerprints encode the presence or absence of certain meaningful chemical substructures.
+		The implementation and used dataset is unfortunately not publicly available because it is part of a commercial product\footnote{ToxTrack Inc., \url{https://toxtrack.com/}}.
+	\item \textit{ProTox}~\cite{Drwal2014}\cite{Banerjee2018} is another toxicity prediction approach.
+		It works similarly to RASAR but leaves out the logistic regression step and instead directly aggregates the toxicity of similar chemicals via $k$-means.
+		ProTox uses the freely available \textit{SuperToxic} dataset~\cite{Schmidt2009}.
+		While the implementation is again not publicly available, the trained model can be freely queried online\footnote{ProTox-II, \url{http://tox.charite.de/protox_II/}}.
+	\item The \textit{Toxicity Estimation Software Tools}~(T.E.S.T.)\footnote{\url{https://www.epa.gov/chemical-research/toxicity-estimation-software-tool-test}} is a free collection of models for toxicity prediction.
+		Like RASAR and ProTox it includes similarity-based prediction models but also linear regression and decision tree models that are trained on vector representations of chemicals.
+		The \textit{ChemIDplus}\footnote{\url{https://chem.nlm.nih.gov/chemidplus/}} database was used for training.
+\end{itemize}
 
-\textit{ProTox}~\cite{Drwal2014}\cite{Banerjee2018} is another toxicity prediction approach.
-It works similarly to RASAR but leaves out the logistic regression step and instead directly aggregates the toxicity of similar chemicals.
-ProTox uses the freely available \textit{SuperToxic} dataset~\cite{Schmidt2009}.
-While the implementation is again not publicly available, the trained model can be freely queried online\footnote{ProTox-II, \url{http://tox.charite.de/protox_II/}}.
+Recently first toxicity prediction approaches using ConvGNNs have been published.
+The previously mentioned AGCN~\cite{Li2018} was in fact evaluated on a discrete toxicity classification problem;
+this could serve as a starting point for a continuous graph regression method.
+\citet{Pope2018} describe how functional groups of toxic chemicals can be learned using GCNs;
+there a functional group refers to a relevant subgraph of a molecule that can be interpreted as a toxicity indicator.
 
 \section{Goals}%
 \label{sec:goals}
@@ -287,11 +305,13 @@ For each of the previous five goal categories, optional additional ideas are lis
 		The chosen approach should ideally align well with the practical constraints of implementation.
 		It should be suitable for an implementation on modern GPUs and/or distributed cluster environments.
 	\item \textbf{Evaluation:}
-		It would be interesting to not only use generated data but also a real dataset for evaluation (see \cref{sec:related-work:gr}).
+		Not only generated data but also real datasets should be used for evaluation (see \cref{sec:related-work:gr}).
 \end{enumerate}
 
 \section{Approach}%
 \label{sec:approach}
+
+
 
 \section{Preliminary Document Structure}%
 \label{sec:doc-structure}
