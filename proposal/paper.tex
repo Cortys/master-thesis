@@ -55,6 +55,14 @@
 
 \usepackage[inline]{enumitem}
 \usepackage{todonotes}
+\usepackage{pgfgantt}
+
+% Colors:
+\definecolor{blau}{HTML}{355FB3}
+\definecolor{rot}{HTML}{B33535}
+\definecolor{gruen}{HTML}{3BB335}
+\definecolor{hellblau}{HTML}{8ea7d7}
+\definecolor{hellgrau}{HTML}{cccccc}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -93,7 +101,7 @@ Since not all data is well-suited for a fixed-dimensional vector representation,
 One such case is the class of so-called \textit{learning to aggregate} (LTA) problems as described by \citet{Melnikov2016}.
 There the instances are represented by compositions $\bm{c}_i$ of constituents $c_{i,j} \in \bm{c}_i$, i.e.\@ variable-size multisets with $n_i = |\bm{c}_i|$.
 The assumption in LTA problems is that for all constituents $c_{i,j}$ a local score $y_{i,j} \in \mathcal{Y}$ is either given or computable.
-The set of those local scores should be indicative of the overall score $y_i \in \mathcal{Y}$ of the entire composition $\bm{c}_i$.
+The set of those local scores should be indicative of the overall score $y_i \in \mathcal{Y}$ of the composition $\bm{c}_i$.
 LTA problems typically require two subproblems to be solved:
 \begin{enumerate}[label=\textbf{\arabic*.}]
 	\item \textbf{Aggregation:}
@@ -131,7 +139,7 @@ Such a composite assignment $y_i$ is modeled as the result of a parameterized lo
 As the logical expression that thus effectively aggregates the constituents, a uninorm $U_{\lambda}$ is used.
 Depending on the parameter $\lambda$, $U_{\lambda}$ interpolates between t-norms and t-conorms which are continuous generalizations of logical conjunction and disjunction respectively.
 
-Recently \citet{Melnikov2019} have also looked at an alternative class of aggregation function.
+Recently \citet{Melnikov2019} have also looked at an alternative class of aggregation functions.
 Instead of using fuzzy logic to describe score aggregation, \textit{ordered weighted average} (OWA) operators were used.
 OWA aggregators work by sorting the input scores and then weighting them based on their sort position, i.e.\ %
 \begin{align*}
@@ -139,8 +147,8 @@ OWA aggregators work by sorting the input scores and then weighting them based o
 \end{align*}
 where $\lambda$ is a weight vector with ${\|\lambda\|}_1 = 1$ and $\pi$ is a sorting permutation of the input scores. % chktex 21
 To deal with varying composite sizes $n$ the weights $\lambda_i$ are interpolated using a \textit{basic unit interval monotone} (BUM) function $q: [0, 1] \to [0, 1]$.
-It is used by normalizing every constituent's position $\pi(i)$ to the unit interval via $\frac{\pi(i)}{n}$.
-The BUM function $q$ is then used to interpolate a weight for any normalized sort position.
+It takes constituent positions that are normalized to the unit interval, i.e.\ $\frac{\pi(i)}{n}$.
+The BUM function $q$ then is then used to interpolate a weight for any normalized sort position via $\lambda_i = q(\frac{\pi(i)}{n}) - q(\frac{\pi(i - 1)}{n})$.
 Therefore the learning objective boils down to optimizing the shape of $q$.
 The details of this are left out here.
 
@@ -148,8 +156,8 @@ The details of this are left out here.
 \label{sec:related-work:gc}
 
 As previously mentioned, the addition of relations between constituents turns LTA into a graph regression problem.
-Most of the recent research in the field of learning from graph structured data however focused on the closely related graph classification problem.
-Since many ideas from the classification setting are also useful in the regression setting, a brief overview of those ideas is given.
+Most of the recent research in the field of learning from graph structured data has however focused on the closely related graph classification problem.
+Since many ideas from the classification setting are also useful in the regression setting, a brief overview of those ideas is given first.
 
 At a high level graph classification methods can be taxonomized into two main families:
 \begin{enumerate}[label=\textbf{\arabic*.}]
@@ -173,9 +181,9 @@ At a high level graph classification methods can be taxonomized into two main fa
 		There are two main variants of ConvGNNs:
 		\begin{enumerate}[label=\textbf{\alph*)}] % chktex 9 chktex 10
 			\item \textbf{Spatial variant:}
-				Standard CNNs use a convolution operator that is applied to a grid graph with diagonal edges.
-				Spatial ConvGNNs~\cite{Micheli2009} directly generalize this idea by defining a more flexible convolution that aggregates the local neighborhood of each vertex.
-				Spatial graph convolution aggregates the direct neighborhood of each vertex where each vertex $v_i$ is typically described by a feature vector $x_i \in \mathbb{R}^d$.
+				Standard CNNs use a convolution operator that is typically applied to a grid graph of pixels with added diagonal edges.
+				Spatial ConvGNNs~\cite{Micheli2009} directly generalize this idea by defining a more flexible convolution that works with arbitrary graph structures.
+				Spatial graph convolution aggregates the direct neighborhood of a vertex $v_i$, where $v_i$ is typically described by a feature vector $x_i \in \mathbb{R}^d$.
 				This process returns a new aggregate feature vector $x'_i$.
 				By stacking multiple convolution layers, features from indirect neighbors become part of the aggregate.
 				Analogous to how CNNs learn kernel matrices, spatial ConvGNNs learn vertex neighborhood feature aggregation functions.
@@ -184,10 +192,12 @@ At a high level graph classification methods can be taxonomized into two main fa
 				Motivated by the theoretical foundation provided by spectral graph theory~\cite{Shuman2013}, spectral ConvGNNs~\cite{Bruna2013} learn a filter function $\hat{g}$ that is applied in the Fourier domain of a graph.
 				Based on the convolutional theorem, a convolution operator can not only be expressed in terms of the neighborhood of vertices but also as a filter on the eigenvectors of a graph's Laplacian.
 				Formally this can be expressed as
-				\begin{align*}
-					g *_G \bm{x} = U \hat{g}(\Lambda) U^{\top} \bm{x}
-				\end{align*}
-				where $\bm{x} \in \mathbb{R}^{n \times k}$ is the matrix of all vertex features and $U \Lambda U^{\top}$ is the eigendecomposition of the graph Laplacian $L_G$.
+				\begin{align}
+					g *_G \bm{x} = U \hat{g}(\Lambda) U^{\top} \bm{x}\label{eq:related-work:conv-filter}
+				\end{align}
+				where $\bm{x} \in \mathbb{R}^{n \times k}$ is the matrix of all vertex features and $U \Lambda U^{\top}$ is the eigendecomposition of the graph Laplacian $L_G$\footnote{
+					To see the connection to the convolutional theorem, note that $\mathcal{F} = U$ and $\mathcal{F}^{-1} = U^{\top}$ in \cref{eq:related-work:conv-filter} with $\mathcal{F}$ denoting the graph Fourier transform.
+				}.
 				In the previously described spatial ConvGNN variant, $g$ is learned directly in form of the feature aggregation function with a neighborhood locality constraint.
 				In the spectral variant however the Fourier-transformed filter $\hat{g}$ is learned.
 				Intuitively this means that vertex features $x_i$ are not aggregated with the features of their their direct neighborhood but with the features of vertices with which they share certain structural similarities.
@@ -197,13 +207,13 @@ At a high level graph classification methods can be taxonomized into two main fa
 				The so-called \textit{graph convolutional network}~(GCN)~\cite{Kipf2017} does this by reducing the expressivity of the filter.
 				Then $\hat{g}$ can be applied to the Laplacian directly via $g *_G \bm{x} = \hat{g}(L_G) \bm{x}$ which saves the decomposition costs.
 				This simplification of $\hat{g}$ implicitly causes its Fourier inverse $g$ to be locality constrained just like in the spatial ConvGNN variant.
-				Therefore the spectral GCN approach also allows for a spatial/message-passing interpretation.
+				Hence the spectral GCN approach also allows for a spatial/message-passing interpretation.
 				Recently various variants and extensions of GCNs~\cite{Hamilton2017}\cite{Chen2018}\cite{Chen2017}\cite{Chiang2019}\cite{Du2017} have been proposed that apply additional approximations and sampling methods to improve the runtime as well as the accuracy in certain scenarios.
 
 				One notable extension of GCNs are the so-called \textit{adadptive graph convolutional networks} (AGCNs)~\cite{Li2018}.
 				AGCNs do not use a fixed Laplacian $L$ for each input but instead learn a so-called residual Laplacian $L_\mathit{res}$.
-				The residual Laplacian is constructed by learning a vertex similarity kernel $\mathbb{G}_{x_i,x_j}$ which is used to determine the residual edge weights between vertices.
-				By overlaying the learned residual Laplacian $L_\mathit{res}$ on top of the static intrinsic Laplacian $L$, similar nodes with a large spatial distance in $L$ become connected.
+				The residual Laplacian is constructed by learning a vertex similarity kernel $\mathbb{G}_{x_i,x_j}$ which is used to determine edge weights between vertices.
+				By overlaying the learned residual Laplacian $L_\mathit{res}$ on top of the given intrinsic Laplacian $L$, similar nodes with a large spatial distance in $L$ become connected.
 				This can improve the accuracy especially if a locality constrained spectral filter $\hat{g}$ is used.
 		\end{enumerate}
 		After the application of either spatial or spectral graph convolutions, each vertex will have an updated aggregate feature vector.
@@ -260,8 +270,8 @@ there a functional group refers to a relevant subgraph of a molecule that can be
 \label{sec:goals}
 
 As mentioned in \cref{sec:motivation}, the overall goal of the thesis is to extend the LTA approach described in \cref{sec:related-work:lta} to the graph setting.
-Since this goal strongly overlaps with the work in graph classification described in \cref{sec:related-work:gc}, both branches of research should be combined.
-The practical applications described in \cref{sec:related-work:gr} could be used for comparison and as a potential source of a graph regression test dataset.
+Since this goal strongly overlaps with the work on graph classification described in \cref{sec:related-work:gc}, both branches of research should be combined.
+The practical applications described in \cref{sec:related-work:gr} could be used for comparison and as a potential source of graph regression training/test datasets.
 Now follows a concrete list of required and optional goals that should be achieved.
 
 \subsection{Required Goals}%
@@ -279,8 +289,8 @@ Now follows a concrete list of required and optional goals that should be achiev
 		A reference implementation for the designed LTA model should be developed.
 	\item \textbf{Evaluation:}
 		The reference implementation should be used to evaluate the model on at least one test dataset.
-		Due to the scarcity of graph regression datasets, the used test data might be randomly generated.
-		Generated dataset should be obtained using a variety of representative deterministic graph scoring measures to check which kinds of local and global structural features are learnable;
+		Due to the relative scarcity of different graph regression datasets, the used test data might also be randomly generated.
+		A generated dataset should be obtained using a variety of representative deterministic graph scoring measures to check which kinds of local and global structural features are learnable;
 		some examples of measures that might be part of a graph scoring functions are the count of $k$-cliques in a graph, the graph diameter, the presence of cycles or various properties of a graph's degree distribution.
 		The results should be compared with the results of at least one other approach for learning graph scores, e.g.\ a ConvCNN with a fixed aggregation function instead of a learned one.
 \end{enumerate}
@@ -288,13 +298,13 @@ Now follows a concrete list of required and optional goals that should be achiev
 \subsection{Optional Goals}%
 \label{sec:goals:opt}
 
-If possible, the previous goals could be extended.
+If time permits, the previous goals can be extended.
 For each of the previous five goal categories, optional additional ideas are listed below.
 \begin{enumerate}[label=\textbf{\arabic*.}]
 	\item \textbf{Aggregation:}
 		Multiple classes of aggregation functions could be considered and compared.
 	\item \textbf{Disaggregation:}
-		As describen in \cref{sec:related-work:gc} there are multiple methods to learn vertex scores.
+		As described in \cref{sec:related-work:gc} there are multiple methods to learn vertex scores.
 		Depending on the chosen overall approach, a few of those methods might be suitable to be combined with an aggregation function learner.
 		Those suitable combinations could be evaluated and compared.
 	\item \textbf{Learning:}
@@ -305,21 +315,61 @@ For each of the previous five goal categories, optional additional ideas are lis
 		The chosen approach should ideally align well with the practical constraints of implementation.
 		It should be suitable for an implementation on modern GPUs and/or distributed cluster environments.
 	\item \textbf{Evaluation:}
-		Not only generated data but also real datasets should be used for evaluation (see \cref{sec:related-work:gr}).
+		If possible, real datasets should be used for evaluation (see \cref{sec:related-work:gr}) as an alternative or in addition to generated data.
+		Aspects like runtime performance and scalability could also be evaluated.
 \end{enumerate}
 
 \section{Approach}%
 \label{sec:approach}
 
+As described in \cref{sec:motivation}, to extend LTA to graph inputs the aggregation and disaggregation problems have to be solved.
+Since the various approaches to learn vertex features described in \cref{sec:related-work:gc} can already be interpreted as solutions for the disaggregation problem, only a compatible vertex score aggregation function learning method has to be developed.
+This corresponds to learning a pooling function in ConvGNNs.
+The previously mentioned SortPooling and Self-Attention Pooling methods already do this in the classification setting.
+A method for the regression setting has to be found.
 
+To do so, training and test data is needed in the first step.
+Therefore one or multiple of the chemical toxicity datasets mentioned in \cref{sec:related-work:gr} should be prepared for the regression pipeline.
+This includes the following tasks:
+\begin{enumerate*}
+	\item The toxicity data has to be read from various formats (CSV, JSON or XML from a REST-API, chemical SD files, etc.),
+	\item serialized SMILES strings of molecular structure need to be translated into adjacency matrices\footnote{e.g.\ using RDKit (\url{https://github.com/rdkit/rdkit}), pysmiles (\url{https://github.com/pckroon/pysmiles}) or Open Babel (\url{http://openbabel.org})} and
+	\item the various units of measurement for toxicity need to be normalized.
+\end{enumerate*}
+In case the toxicity data turns out to be unsuitable, an artificial dataset might alternatively have to be generated as described in \cref{sec:goals:req}.
+Whether this is necessary will only become apparent after the first evaluations which could show that the chosen approach is completely ill suited to the toxicity prediction task.
+
+In the next step the development of a vertex aggregation method can begin.
+For the disaggregation problem the open source reference implementation of GCNs\footnote{\url{https://github.com/tkipf/gcn}} or more generally the Graph Nets library\footnote{\url{https://github.com/deepmind/graph_nets}} for TensorFlow might be useful.
+The development should start by building a simple ConvGNN with a fixed aggregation function.
+Then an aggregation function learner can be added.
+Since the existing GNN tools and reference implementations are mostly available in Python, the implementation part of this thesis should probably also use this language.
+
+Lastly the chosen method should be evaluated using the dataset that was chosen in the first step.
+The results on the toxicity dataset should be compared with the results of selected approaches from \cref{sec:related-work:gr}.
+Additionally the learned aggregation functions should be compared with na{\"\i}ve aggregation functions like $\min$, $\max$ or $\text{avg}$ since those aggregation functions are typically used in the pooling layer of current ConvGNN approaches.
 
 \section{Preliminary Document Structure}%
 \label{sec:doc-structure}
 
 \begin{enumerate}
 	\item Introduction
-	\item
+	\item Previous Work
+		\begin{enumerate}[label*=\arabic*.]
+			\item Learning to Aggregate
+			\item Convolutional Graph Neural Networks
+		\end{enumerate}
+	\item Learning to Aggregate Graphs
+	\begin{enumerate}[label*=\arabic*.]
+		\item A Vertex Aggregation Function Learner
+		\item Compatible Disaggregation Methods
+	\end{enumerate}
 	\item Evaluation
+		\begin{enumerate}[label*=\arabic*.]
+			\item Learning Characteristics of Generated Graphs
+			\item Learning Chemical Toxicity
+			\item Scalability
+		\end{enumerate}
 	\item Conclusion
 	\item Literature
 	\item Appendix
@@ -330,7 +380,69 @@ For each of the previous five goal categories, optional additional ideas are lis
 
 \begin{figure}[!ht]
 	\centering
-	%\includegraphics[width=.9\textwidth]{timeschedule}
+	\begin{ganttchart}[
+		x unit = 0.55cm,
+		y unit title = 0.6cm,
+		y unit chart = 0.7cm,
+		vgrid,
+		canvas/.style = {
+			draw = none
+		},
+		title label font = \sffamily,
+		title height = 1,
+		title/.style = {
+			draw = none,
+			fill = none
+		},
+		group label font = \sffamily\bfseries,
+		group label node/.append style = {
+			left = 0.2cm
+		},
+		group/.append style = {
+			fill = blau,
+			draw = none
+		},
+		group peaks tip position = 0,
+		bar label font = \sffamily\bfseries,
+		bar label node/.append style = {
+			left = 0.2cm
+		},
+		bar/.append style = {
+			fill = blau,
+			draw = none
+		}
+	]{1}{20}
+		\gantttitle{week}{20} \\
+		\gantttitlelist{1,...,20}{1} \\ % ignore triple dots: chktex 11
+
+		\ganttgroup{Implementation}{1}{11} \\
+		\ganttbar[bar label font = \sffamily, bar/.append style = {fill = hellblau}]
+			{Data Preparation}{1}{1} \\
+		\ganttbar[bar label font = \sffamily, bar/.append style = {fill = hellblau}]
+			{Basic ConvGNN}{2}{4} \\
+		\ganttbar[bar label font = \sffamily, bar/.append style = {fill = hellblau}]
+			{Aggregation Learner}{5}{8} \\
+			\ganttbar[bar label font = \sffamily, bar/.append style = {fill = hellgrau}]
+				{Buffer}{9}{9} \\
+		\ganttbar[bar label font = \sffamily, bar/.append style = {fill = hellblau}]
+			{Evaluation}{10}{11} \\
+
+		\ganttgroup{Writing}{2}{19} \\
+		\ganttbar[bar label font = \sffamily, bar/.append style = {fill = hellblau}]
+			{Previous Work}{2}{5} \\
+		\ganttbar[bar label font = \sffamily, bar/.append style = {fill = hellblau}]
+			{L.t.A. Graphs}{6}{10} \\
+		\ganttbar[bar label font = \sffamily, bar/.append style = {fill = hellblau}]
+			{Evaluation}{11}{13} \\
+		\ganttbar[bar label font = \sffamily, bar/.append style = {fill = hellblau}]
+			{Conclusion}{14}{14} \\
+		\ganttbar[bar label font = \sffamily, bar/.append style = {fill = hellgrau}]
+			{Buffer}{15}{17} \\
+		\ganttbar[bar label font = \sffamily, bar/.append style = {fill = hellblau}]
+			{Corrections}{18}{19} \\
+
+		\ganttbar{Presentation}{19}{20}
+	\end{ganttchart}
 	\caption{Sketch of the time schedule for the work on the thesis}\label{fig:schedule}
 \end{figure}
 
