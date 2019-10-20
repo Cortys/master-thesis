@@ -147,8 +147,8 @@ OWA aggregators work by sorting the input scores and then weighting them based o
 \end{align*}
 where $\lambda$ is a weight vector with ${\|\lambda\|}_1 = 1$ and $\pi$ is a sorting permutation of the input scores. % chktex 21
 To deal with varying composite sizes $n$ the weights $\lambda_i$ are interpolated using a \textit{basic unit interval monotone} (BUM) function $q: [0, 1] \to [0, 1]$.
-It takes constituent positions that are normalized to the unit interval, i.e.\ $\frac{\pi(i)}{n}$.
-The BUM function $q$ then is then used to interpolate a weight for any normalized sort position via $\lambda_i = q(\frac{\pi(i)}{n}) - q(\frac{\pi(i - 1)}{n})$.
+It takes constituent positions that are normalized to the unit interval, i.e.\ $\frac{i}{n}$.
+The BUM function $q$ then is then used to interpolate a weight for any normalized sort position via $\lambda_i = q(\frac{i}{n}) - q(\frac{i - 1}{n})$.
 Therefore the learning objective boils down to optimizing the shape of $q$.
 The details of this are left out here.
 
@@ -218,7 +218,7 @@ At a high level graph classification methods can be taxonomized into two main fa
 		\end{enumerate}
 		After the application of either spatial or spectral graph convolutions, each vertex will have an updated aggregate feature vector.
 		To obtain an aggregate score for the entire graph, a graph pooling layer is applied.
-		A primitive pooling approach is to simply merge the vertex features via a fixed aggregation function like $\min$, $\max$ or $+$.
+		A primitive pooling approach is to simply merge the vertex features via a fixed aggregation function like $\min$, $\max$ or $\text{avg}$.
 		Better results can be obtained by learning the pooling aggregation function.
 		Two notable graph pooling approaches are \textit{SortPooling}~\cite{Zhang2018} and \textit{Self-Attention Pooling}~\cite{Lee2019}.
 		\begin{enumerate}
@@ -289,7 +289,7 @@ Now follows a concrete list of required and optional goals that should be achiev
 		A reference implementation for the designed LTA model should be developed.
 	\item \textbf{Evaluation:}
 		The reference implementation should be used to evaluate the model on at least one test dataset.
-		Due to the relative scarcity of different graph regression datasets, the used test data might also be randomly generated.
+		Due to the relative scarcity of different graph regression datasets, the used dataset might also be synthetically generated.
 		A generated dataset should be obtained using a variety of representative deterministic graph scoring measures to check which kinds of local and global structural features are learnable;
 		some examples of measures that might be part of a graph scoring functions are the count of $k$-cliques in a graph, the graph diameter, the presence of cycles or various properties of a graph's degree distribution.
 		The results should be compared with the results of at least one other approach for learning graph scores, e.g.\ a ConvCNN with a fixed aggregation function instead of a learned one.
@@ -345,7 +345,7 @@ The development should start by building a simple ConvGNN with a fixed aggregati
 Then an aggregation function learner can be added.
 Since the existing GNN tools and reference implementations are mostly available in Python, the implementation part of this thesis should probably also use this language.
 
-Lastly the chosen method should be evaluated using the dataset that was chosen in the first step.
+Lastly the developed method should be evaluated using the dataset that was chosen in the first step.
 The results on the toxicity dataset should be compared with the results of selected approaches from \cref{sec:related-work:gr}.
 Additionally the learned aggregation functions should be compared with na{\"\i}ve aggregation functions like $\min$, $\max$ or $\text{avg}$ since those aggregation functions are typically used in the pooling layer of current ConvGNN approaches.
 
