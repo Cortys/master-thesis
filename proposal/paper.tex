@@ -137,7 +137,7 @@ The first approach uses \textit{uninorms}~\cite{Melnikov2016} to do so.
 There the basic idea is to express composite scores as fuzzy truth assignments $y_i \in [0, 1]$.
 Such a composite assignment $y_i$ is modeled as the result of a parameterized logical expression of constituent assignments $y_{i,j} \in [0, 1]$.
 As the logical expression that thus effectively aggregates the constituents, a uninorm $U_{\lambda}$ is used.
-Depending on the parameter $\lambda$, $U_{\lambda}$ interpolates between t-norms and t-conorms which are continuous generalizations of logical conjunction and disjunction respectively.
+Depending on the parameter $\lambda$, $U_{\lambda}$ combines t-norms and t-conorms which are continuous generalizations of logical conjunction and disjunction respectively.
 
 Recently \citet{Melnikov2019} have also looked at an alternative class of aggregation functions.
 Instead of using fuzzy logic to describe score aggregation, \textit{ordered weighted average} (OWA) operators were used.
@@ -152,8 +152,8 @@ The BUM function $q$ then is then used to interpolate a weight for any normalize
 Therefore the learning objective boils down to optimizing the shape of $q$.
 The details of this are left out here.
 
-\subsection{Graph Classification}%
-\label{sec:related-work:gc}
+\subsection{Graph Classification and Regression}%
+\label{sec:related-work:gcr}
 
 As previously mentioned, the addition of relations between constituents turns LTA into a graph regression problem.
 Most of the recent research in the field of learning from graph structured data has however focused on the closely related graph classification problem.
@@ -216,6 +216,20 @@ At a high level graph classification methods can be taxonomized into two main fa
 				By overlaying the learned residual Laplacian $L_\mathit{res}$ on top of the given intrinsic Laplacian $L$, similar nodes with a large spatial distance in $L$ become connected.
 				This can improve the accuracy especially if a locality constrained spectral filter $\hat{g}$ is used.
 		\end{enumerate}
+
+		The just described ConvGNN approaches generally assume that an input consists of an undirected graph with positive real edge weights.
+		Those approaches are not directly applicable in scenarios with multiple edge types, i.e.\ multi-relational scenarios.
+		One class of spatial multi-relational GNN methods was proposed by \citet{Battaglia2018}.
+		There a shared function $\phi^e$ is used to describe how a vertex feature vector $v_i$ is transformed as it passes through an edge with features $e_{ij} \in \mathbb{R}^p$.
+		In a uni-relational spatial GNN with $e_{ij} \in \mathbb{R}^{1}$, typically $\phi^e(e_{ij}, v_i) = e_k \cdot v_i$ is used.
+		In the multi-relational setting, $\phi^e$ can instead be learned via a standard \textit{multilayer perceptron} (MLP).
+		An alternative spectral multi-relational ConvGNN approach was proposed by \citet{Gong2018}.
+		Their so-called \textit{edge enhanced graph neural network} (EGNN) essentially models each relation as a separate graph with its own Laplacian.
+		A convolutional filter $g$ is shared across all relations and used to convolve the input signal separately via each relation's Laplacian.
+		To share vertex features across relations, the separately convolved signals of all relations are then concatenated.
+		Those concatenated vertex features are used as the input signal of the next layer.
+
+		This concludes the short overview of approaches to learn vertex feature vectors via ConvGNNs.
 		After the application of either spatial or spectral graph convolutions, each vertex will have an updated aggregate feature vector.
 		To obtain an aggregate score for the entire graph, a graph pooling layer is applied.
 		A primitive pooling approach is to simply merge the vertex features via a fixed aggregation function like $\min$, $\max$ or $\text{avg}$.
@@ -225,7 +239,7 @@ At a high level graph classification methods can be taxonomized into two main fa
 			\item SortPooling assumes that the vertex feature vectors are obtained using a stack of spectral convolution layers that learn filters on the random walk Laplacian $L = I - D^{-1} A$.
 				This assumption makes it possible to interpret the outputs of the graph convolution layers as a continuous generalization of \textit{Weisfeiler-Lehman} (WL) colors.
 				WL colors are lexicographically sortable signatures that encode the structural role of vertices; they can be used for efficient graph isomorphism falsification~\cite{Weisfeiler1968}.
-				Using this interpretation of the vertex feature vectors, SortPooling determines a top-$k$ ranking of the vertices' WL colors and then aggregates the thus selected fixed-size vertex feature subset via a standard \textit{multilayer perceptron} (MLP).
+				Using this interpretation of the vertex feature vectors, SortPooling determines a top-$k$ ranking of the vertices' WL colors and then aggregates the thus selected fixed-size vertex feature subset via a MLP.\@
 			\item Self-Attention Pooling adds an additional graph convolution layer after an arbitrary ConvGNN.\@
 				The added layer takes the aggregated vertex feature vectors as input and outputs a score for each vertex.
 				This score is used to determine a top-$k$ vertex ranking.
@@ -234,15 +248,24 @@ At a high level graph classification methods can be taxonomized into two main fa
 		\end{enumerate}
 \end{enumerate}
 
-\subsection{Graph Regression}%
-\label{sec:related-work:gr}
+While all of the previously mentioned problems were evaluated on graph classification problems, they can naturally be extended to regression tasks.
+In the case of ConvGNNs for example, the described pooling layers already produce continuous outputs.
 
-An overview of the recent work regarding graph classification was just given.
-The generalization of LTA to the graph domain is however better described as a graph regression problem since the predicted composite scores are continuous.
-As there currently are relatively few graph regression approaches, only few references can be provided here.
+The pooling aggregation functions used in ConvGNNs are however typically not part of the learning objective.
+This shows the fundamental methodological difference between GNNs and LTA.\@
+A GNN uses the relational structure of its input to try to determine meaningful feature representations or scores for each vertex.
+Those vertex scores are then combined using a simple aggregation function.
+LTA on the other hand currently does not use any relational structure and therefore computes vertex/constituent scores independently.
+Those comparatively less meaningful local scores are then combined using a more expressive learned aggregation function.
+Generally speaking current GNN approaches focus on the disaggregation problem while LTA approaches focus on the aggregation problem.
+The described Self-Attention Pooling~\cite{Lee2019} can be seen as an exception to this generalization since it learns an aggregation function in form of the self-attention vertex weights.
+
+\subsection{Molecular Analysis Problems and Datasets}%
+\label{sec:related-work:tox}
 
 Graph regression problems have for the most part only been discussed in the context of specific domain problems.
 One of those domains is the prediction of chemical toxicity, typically the $\text{LD}_{50}$ or $\text{LC}_{50}$ doses which measure the smallest amount of a given chemical that is lethal for at least $50\%$ of tested subjects.
+Another regression task from the domain of molecular analysis is the prediction of compound solubility.
 The following approaches could serve as inspiration, baselines and/or sources of training data:
 \begin{itemize}
 	\item \textit{RASAR}~\cite{Luechtefeld2018} uses a logistic regression model.
@@ -253,25 +276,29 @@ The following approaches could serve as inspiration, baselines and/or sources of
 		The implementation and used dataset is unfortunately not publicly available because it is part of a commercial product\footnote{ToxTrack Inc., \url{https://toxtrack.com/}}.
 	\item \textit{ProTox}~\cite{Drwal2014}\cite{Banerjee2018} is another toxicity prediction approach.
 		It works similarly to RASAR but leaves out the logistic regression step and instead directly aggregates the toxicity of similar chemicals via $k$-means.
-		ProTox uses the freely available \textit{SuperToxic} dataset~\cite{Schmidt2009}.
+		ProTox uses the freely available \textit{SuperToxic} dataset~\cite{Schmidt2009} which contains 13400 molecules with known $\text{LD}_{50}$ values.
 		While the implementation is again not publicly available, the trained model can be freely queried online\footnote{ProTox-II, \url{http://tox.charite.de/protox_II/}}.
 	\item The \textit{Toxicity Estimation Software Tools}~(T.E.S.T.)\footnote{\url{https://www.epa.gov/chemical-research/toxicity-estimation-software-tool-test}} is a free collection of models for toxicity prediction.
 		Like RASAR and ProTox it includes similarity-based prediction models but also linear regression and decision tree models that are trained on vector representations of chemicals.
-		The \textit{ChemIDplus}\footnote{\url{https://chem.nlm.nih.gov/chemidplus/}} database was used for training.
+		The publicly available \textit{ChemIDplus}\footnote{\url{https://chem.nlm.nih.gov/chemidplus/}} database was used for training.
+		It contains 28023 and 13541 molecules with known oral $\text{LD}_{50}$ values for rats and mice respectively.
+		Additionally about 1000 molecules with known $\text{LC}_{50}$ values are available for both species.
+	\item Recently first toxicity prediction approaches using ConvGNNs have been published.
+		The previously mentioned AGCN~\cite{Li2018} was in fact evaluated on a discrete toxicity classification problem;
+		this could serve as a starting point for a continuous graph regression method.
+		\citet{Pope2018} describe how functional groups of toxic chemicals can be learned using GCNs;
+		there a functional group refers to a relevant subgraph of a molecule that can be interpreted as a toxicity indicator.
+	\item The previously described EGNN method~\cite{Gong2018} for multi-relational graphs was evaluated on a compound solubility prediction task.
+		For this the Lipophilicity~\cite{Wu2017} and FreeSolv~\cite{Mobley2014} datasets were used.
+		They contain 4200 and 642 labeled molecular graphs respectively.
 \end{itemize}
-
-Recently first toxicity prediction approaches using ConvGNNs have been published.
-The previously mentioned AGCN~\cite{Li2018} was in fact evaluated on a discrete toxicity classification problem;
-this could serve as a starting point for a continuous graph regression method.
-\citet{Pope2018} describe how functional groups of toxic chemicals can be learned using GCNs;
-there a functional group refers to a relevant subgraph of a molecule that can be interpreted as a toxicity indicator.
 
 \section{Goals}%
 \label{sec:goals}
 
 As mentioned in \cref{sec:motivation}, the overall goal of the thesis is to extend the LTA approach described in \cref{sec:related-work:lta} to the graph setting.
-Since this goal strongly overlaps with the work on graph classification described in \cref{sec:related-work:gc}, both branches of research should be combined.
-The practical applications described in \cref{sec:related-work:gr} could be used for comparison and as a potential source of graph regression training/test datasets.
+Since this goal strongly overlaps with the work on graph classification described in \cref{sec:related-work:gcr}, both branches of research should be combined.
+The practical applications described in \cref{sec:related-work:tox} could be used for comparison and as a potential source of graph regression training/test datasets.
 Now follows a concrete list of required and optional goals that should be achieved.
 
 \subsection{Required Goals}%
@@ -304,7 +331,7 @@ For each of the previous five goal categories, optional additional ideas are lis
 	\item \textbf{Aggregation:}
 		Multiple classes of aggregation functions could be considered and compared.
 	\item \textbf{Disaggregation:}
-		As described in \cref{sec:related-work:gc} there are multiple methods to learn vertex scores.
+		As described in \cref{sec:related-work:gcr} there are multiple methods to learn vertex scores.
 		Depending on the chosen overall approach, a few of those methods might be suitable to be combined with an aggregation function learner.
 		Those suitable combinations could be evaluated and compared.
 	\item \textbf{Learning:}
@@ -315,7 +342,7 @@ For each of the previous five goal categories, optional additional ideas are lis
 		The chosen approach should ideally align well with the practical constraints of implementation.
 		It should be suitable for an implementation on modern GPUs and/or distributed cluster environments.
 	\item \textbf{Evaluation:}
-		If possible, real datasets should be used for evaluation (see \cref{sec:related-work:gr}) as an alternative or in addition to generated data.
+		If possible, real datasets should be used for evaluation (see \cref{sec:related-work:tox}) as an alternative or in addition to generated data.
 		Aspects like runtime performance and scalability could also be evaluated.
 \end{enumerate}
 
@@ -323,13 +350,13 @@ For each of the previous five goal categories, optional additional ideas are lis
 \label{sec:approach}
 
 As described in \cref{sec:motivation}, to extend LTA to graph inputs the aggregation and disaggregation problems have to be solved.
-Since the various approaches to learn vertex features described in \cref{sec:related-work:gc} can already be interpreted as solutions for the disaggregation problem, only a compatible vertex score aggregation function learning method has to be developed.
+Since the various approaches to learn vertex features described in \cref{sec:related-work:gcr} can already be interpreted as solutions for the disaggregation problem, only a compatible vertex score aggregation function learning method has to be developed.
 This corresponds to learning a pooling function in ConvGNNs.
 The previously mentioned SortPooling and Self-Attention Pooling methods already do this in the classification setting.
 A method for the regression setting has to be found.
 
 To do so, training and test data is needed in the first step.
-Therefore one or multiple of the chemical toxicity datasets mentioned in \cref{sec:related-work:gr} should be prepared for the regression pipeline.
+Therefore one or multiple of the chemical toxicity datasets mentioned in \cref{sec:related-work:tox} should be prepared for the regression pipeline.
 This includes the following tasks:
 \begin{enumerate*}
 	\item The toxicity data has to be read from various formats (CSV, JSON or XML from a REST-API, chemical SD files, etc.),
@@ -346,7 +373,7 @@ Then an aggregation function learner can be added.
 Since the existing GNN tools and reference implementations are mostly available in Python, the implementation part of this thesis should probably also use this language.
 
 Lastly the developed method should be evaluated using the dataset that was chosen in the first step.
-The results on the toxicity dataset should be compared with the results of selected approaches from \cref{sec:related-work:gr}.
+The results on the toxicity dataset should be compared with the results of selected approaches from \cref{sec:related-work:tox}.
 Additionally the learned aggregation functions should be compared with na{\"\i}ve aggregation functions like $\min$, $\max$ or $\text{avg}$ since those aggregation functions are typically used in the pooling layer of current ConvGNN approaches.
 
 \section{Preliminary Document Structure}%
@@ -457,7 +484,7 @@ Additionally the learned aggregation functions should be compared with na{\"\i}v
 \printbibliography%
 }
 
-\vspace{6cm}
+\null\vfill
 
 \begin{center}
 	\begin{tabular}{l p{0.1\textwidth} r}
