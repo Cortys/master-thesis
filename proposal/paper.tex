@@ -220,6 +220,7 @@ At a high level graph classification methods can be taxonomized into two main fa
 		The just described ConvGNN approaches generally assume that an input consists of an undirected graph with positive real edge weights.
 		Those approaches are not directly applicable in scenarios with multiple edge types, i.e.\ multi-relational scenarios.
 		One class of spatial multi-relational GNN methods was proposed by \citet{Battaglia2018}.
+		They describe a general framework for the construction of GNNs; for simplicity only the class message-passing variants is mentioned here.
 		There a shared function $\phi^e$ is used to describe how a vertex feature vector $v_i$ is transformed as it passes through an edge with features $e_{ij} \in \mathbb{R}^p$.
 		In a uni-relational spatial GNN with $e_{ij} \in \mathbb{R}^{1}$, typically $\phi^e(e_{ij}, v_i) = e_k \cdot v_i$ is used.
 		In the multi-relational setting, $\phi^e$ can instead be learned via a standard \textit{multilayer perceptron} (MLP).
@@ -289,92 +290,91 @@ The following approaches could serve as inspiration, baselines and/or sources of
 		\citet{Pope2018} describe how functional groups of toxic chemicals can be learned using GCNs;
 		there a functional group refers to a relevant subgraph of a molecule that can be interpreted as a toxicity indicator.
 	\item The previously described EGNN method~\cite{Gong2018} for multi-relational graphs was evaluated on a compound solubility prediction task.
-		For this the Lipophilicity~\cite{Wu2017} and FreeSolv~\cite{Mobley2014} datasets were used.
+		For this the Lipophil\-icity~\cite{Wu2017} and FreeSolv~\cite{Mobley2014} datasets were used.
 		They contain 4200 and 642 labeled molecular graphs respectively.
 \end{itemize}
 
-\section{Goals}%
-\label{sec:goals}
+\section{Research Question}%
+\label{sec:question}
 
-As mentioned in \cref{sec:motivation}, the overall goal of the thesis is to extend the LTA approach described in \cref{sec:related-work:lta} to the graph setting.
-Since this goal strongly overlaps with the work on graph classification described in \cref{sec:related-work:gcr}, both branches of research should be combined.
-The practical applications described in \cref{sec:related-work:tox} could be used for comparison and as a potential source of graph regression training/test datasets.
-Now follows a concrete list of required and optional goals that should be achieved.
+\todo[inline,color=green]{Since the final research question is not yet fixed, I only sketched out the main candidates.}
 
-\subsection{Required Goals}%
-\label{sec:goals:req}
+\todo[inline]{Candidate 1: Comparison of LTA and GNNs}
+As described, current graph classification and regression approaches mostly use simple fixed aggregation functions like $\min$, $\max$ or $\text{avg}$.
+Self-Attention Pooling~\cite{Lee2019} is a notable exception that learns the weights for a weighted average that is computed over convolved vertex features.
+An open question for research is whether more complex aggregation functions are able to outperform simple aggregation functions in the graph setting.
+\todo[inline,color=green]{Not sure how to approach this yet.}
 
-\begin{enumerate}[label=\textbf{\arabic*.}]
-	\item \textbf{Aggregation:}
-		Define a class of aggregation functions that takes vertex scores as its input.
-		It should fulfill the role of the uninorms and OWA functions in the existing LTA papers (see \cref{sec:related-work:lta}).
-	\item \textbf{Disaggregation:}
-		Describe how vertex features should be used to compute a constituent score that will be combined by the aggregation function.
-	\item \textbf{Learning:}
-		Combine the chosen aggregation and disaggregation methods into a joint LTA model with a suitable loss function.
-	\item \textbf{Implementation:}
-		A reference implementation for the designed LTA model should be developed.
-	\item \textbf{Evaluation:}
-		The reference implementation should be used to evaluate the model on at least one test dataset.
-		Due to the relative scarcity of different graph regression datasets, the used dataset might also be synthetically generated.
-		A generated dataset should be obtained using a variety of representative deterministic graph scoring measures to check which kinds of local and global structural features are learnable;
-		some examples of measures that might be part of a graph scoring functions are the count of $k$-cliques in a graph, the graph diameter, the presence of cycles or various properties of a graph's degree distribution.
-		The results should be compared with the results of at least one other approach for learning graph scores, e.g.\ a ConvCNN with a fixed aggregation function instead of a learned one.
+\todo[inline]{Candidate 2: Structural Restrictions}
+The previously described graph classification and regression methods assume that arbitrary graphs are provided as input.
+The question this thesis aims to answer is whether a restriction of the input graph structure makes it possible to use a more specialized method that outperforms the more general approaches.
+Possible restrictions to look at could for example be vertex degree or tree structure constraints.\todo[inline,color=green]{
+	I suspect that such restrictions will mostly improve upon runtime (either automatically because most GNN methods depend on $\mathcal{O}(\left|E\right|)$ or because expensive matrix multiplications can be replaced).
+	Those runtime savings might then of course be translated into regression performance improvements, e.g.\ maybe by using a deeper model.
+	As we discussed a restriction to tree structures may make hierarchical aggregation functions feasible but as I understand those can in principle be expressed via a message-passing GNN as well~\cite{Battaglia2018}.
+}
+
+\todo[inline]{Candidate 3: Multi-relational ConvGNNs}
+As mentioned in \cref{sec:related-work:gcr}, most ConvGNN variants are not directly applicable to multi-relational inputs.
+Two more flexible approaches were described:
+\begin{enumerate}
+	\item The general graph network framework described by \citet{Battaglia2018} that can be interpreted as a spatial message-passing approach.
+		They share information across relations via an arbitrary learned function $\phi^e(e_{ij}, e_i)$.
+	\item EGNNs~\cite{Gong2018}, a spectral ConvGNN variant.
+		They share information across relations by concatenating vertex features that are separately convolved in each relation's graph.
 \end{enumerate}
-
-\subsection{Optional Goals}%
-\label{sec:goals:opt}
-
-If time permits, the previous goals can be extended.
-For each of the previous five goal categories, optional additional ideas are listed below.
-\begin{enumerate}[label=\textbf{\arabic*.}]
-	\item \textbf{Aggregation:}
-		Multiple classes of aggregation functions could be considered and compared.
-	\item \textbf{Disaggregation:}
-		As described in \cref{sec:related-work:gcr} there are multiple methods to learn vertex scores.
-		Depending on the chosen overall approach, a few of those methods might be suitable to be combined with an aggregation function learner.
-		Those suitable combinations could be evaluated and compared.
-	\item \textbf{Learning:}
-		The joint model of aggregation and disaggregation function learning can most likely be optimized using various algorithms.
-		Those algorithms could be compared.
-		In case their runtime performance is impractical in certain situations, approximations and simplifications of the model could be considered.
-	\item \textbf{Implementation:}
-		The chosen approach should ideally align well with the practical constraints of implementation.
-		It should be suitable for an implementation on modern GPUs and/or distributed cluster environments.
-	\item \textbf{Evaluation:}
-		If possible, real datasets should be used for evaluation (see \cref{sec:related-work:tox}) as an alternative or in addition to generated data.
-		Aspects like runtime performance and scalability could also be evaluated.
-\end{enumerate}
+The first approach does not discuss which specific choice of edge propagation function $\phi^e$ is suitable for a multi-relational regression problem like those described in \cref{sec:related-work:tox}.
+In the second approach the concatenation operator implicitly acts as the edge propagation function.
+As we will see in \cref{sec:approach}, this assumes that every relation shares information with the other relations in the same way.
+Currently there are no approaches that explicitly model the correlation structure between relations, i.e.\ if and how information propagates from one relation to another.
+The research question for this thesis is to find out how a model that incorporates cross-relational correlations might look like and to compare it theoretically and empirically with another multi-relational method like the EGNN.\@
 
 \section{Approach}%
 \label{sec:approach}
 
-As described in \cref{sec:motivation}, to extend LTA to graph inputs the aggregation and disaggregation problems have to be solved.
-Since the various approaches to learn vertex features described in \cref{sec:related-work:gcr} can already be interpreted as solutions for the disaggregation problem, only a compatible vertex score aggregation function learning method has to be developed.
-This corresponds to learning a pooling function in ConvGNNs.
-The previously mentioned SortPooling and Self-Attention Pooling methods already do this in the classification setting.
-A method for the regression setting has to be found.
+\todo[inline,color=green]{As discussed on Monday, I added a rough overview of the formal background for candidate 3.}
+A possible approach to define a multi-relational ConvGNN is to directly extend an existing method, e.g.\ GCNs~\cite{Kipf2017}, from the one-dimensional to the multi-dimensional setting.
+Typically a graph is modeled via a symmetric adjacency matrix $E \in \mathbb{R}^{N \times N}$ with non-negative edge weights $e_{ij} = e_{ji} \in \mathbb{R}$.
+An edge weight $e_{ij}$ can be interpreted as a member of the multiplicative group on $\mathbb{R}$ and encodes a spatial signal strength scaling operation between the vertices $i$ and $j$.
+If we now go from a single relation to $M$ relations, the operator encoded by an edge can be generalized from $e_{ij} \in \mathbb{R}^{1 \times 1}$ to $\bm{e}_{ij} \in \mathbb{R}^{M \times M}$.
+The non-negativity constraint $e_{ij} \geq 0$ on the edge weights then generalizes to a positive semidefiniteness constraint $\bm{e}_{ij} \succeq 0$ on the edge matrices; therefore $\bm{e}_{ij}$ is symmetric.
+$\bm{e}_{ijkl} = \bm{e}_{ijlk} = \bm{e}_{jikl} = \bm{e}_{jilk} \in \mathbb{R}$ describes the connection strength between the signals of the relations $k$ and $l$ at vertex $i$ and the signals of the same relations at vertex $j$.
 
-To do so, training and test data is needed in the first step.
-Therefore one or multiple of the chemical toxicity datasets mentioned in \cref{sec:related-work:tox} should be prepared for the regression pipeline.
-This includes the following tasks:
-\begin{enumerate*}
-	\item The toxicity data has to be read from various formats (CSV, JSON or XML from a REST-API, chemical SD files, etc.),
-	\item serialized SMILES strings of molecular structure need to be translated into adjacency matrices\footnote{e.g.\ using RDKit (\url{https://github.com/rdkit/rdkit}), pysmiles (\url{https://github.com/pckroon/pysmiles}) or Open Babel (\url{http://openbabel.org})} and
-	\item the various units of measurement for toxicity need to be normalized.
-\end{enumerate*}
-In case the toxicity data turns out to be unsuitable, an artificial dataset might alternatively have to be generated as described in \cref{sec:goals:req}.
-Whether this is necessary will only become apparent after the first evaluations which could show that the chosen approach is completely ill suited to the toxicity prediction task.
+Using multi-dimensional edge operators as described above turns $E \in \mathbb{R}^{(N \cdot M) \times (N \cdot M)} \equiv {(\mathbb{R}^{M \times M})}^{N \times N} \equiv \mathbb{R}^{N \times N} \otimes \mathbb{R}^{M \times M}$ into a $(2,2)$-tensor.
+The notion of a one-dimensional graph signal $x \in \mathbb{R}^{N}$ then generalizes to $x \in \mathbb{R}^{N \cdot M} \equiv {(\mathbb{R}^M)}^N \equiv \mathbb{R}^N \otimes \mathbb{R}^M$, a $(2, 0)$-tensor that describes the signal strength of each relation at each vertex.
 
-In the next step the development of a vertex aggregation method can begin.
-For the disaggregation problem the open source reference implementation of GCNs\footnote{\url{https://github.com/tkipf/gcn}} or more generally the Graph Nets library\footnote{\url{https://github.com/deepmind/graph_nets}} for TensorFlow might be useful.
-The development should start by building a simple ConvGNN with a fixed aggregation function.
-Then an aggregation function learner can be added.
-Since the existing GNN tools and reference implementations are mostly available in Python, the implementation part of this thesis should probably also use this language.
+Another way to look at the resulting adjacency structure is as a linear operator $E: \mathbb{R}^{N \cdot M} \to \mathbb{R}^{N \cdot M}$ that acts on the $N$-dimensional module over the division ring $R$ of positive semidefinite real $M \times M$ matrices.\todo{TODO:\@ Formalize the inverse and missing covariant factor.}
 
-Lastly the developed method should be evaluated using the dataset that was chosen in the first step.
-The results on the toxicity dataset should be compared with the results of selected approaches from \cref{sec:related-work:tox}.
-Additionally the learned aggregation functions should be compared with na{\"\i}ve aggregation functions like $\min$, $\max$ or $\text{avg}$ since those aggregation functions are typically used in the pooling layer of current ConvGNN approaches.
+To motivate a ConvGNN on this more abstract definition of $E$ we first define the multi-relational combinatorial Laplacian $\mathcal{L} := D - E$ via $D_{ii} := \sum \bm{e}_{ii}$ and $D_{ij} := \bm{0}$ for $i \neq j$, i.e.\ $D$ is a block matrix with summed $M \times M$ blocks on its diagonal and zeros everywhere else.
+The normalized multi-relational Laplacian can then be defined as $L := I - D^{-\frac{1}{2}} E D^{-\frac{1}{2}}$ using the fact that all $D_{ii}$ are elements of the division ring $R$.
+A spectral filter $\hat{g}$ can therefore be learned for $L$, analogous to GCNs~\cite{Kipf2017}.
+
+The main remaining question now is how the entries of the edge operators $\bm{e}_{ij} \in \mathbb{R}^{M \times M}$ are determined.
+In uni-relational methods the scalar edge weight $e_{ij} \in \mathbb{R}$ is typically assumed to be given for each input.
+In the multi-relational setting we can assume that a scalar connection strength is given for each relation, i.e.\ the self-correlations $\bm{e}_{ijkk} \in \mathbb{R}$ on the diagonal are known.
+The off-diagonal entries of an edge operator however represent the cross-relational correlations and cannot be assumed to be known.
+If we set the off-diagonal entries to zero, i.e.\ $\forall i, j, k, l: k \neq l \rightarrow e_{ijkl} = 0$, all relations would be assumed to be uncorrelated and $M$ spectral filters would be learned independently on the graphs that are described by the relations.\todo{TODO:\@ Add a formal proof?}
+
+Since we cannot generally assume that all relations are uncorrelated, a \textit{relational correlation kernel} $r$ has to be learned together with the spectral filter $\hat{g}$.
+$r$ should describe how strong one relation is correlated to another and is used to compute off-diagonal edge operator entries.
+
+The previously mentioned EGNNs~\cite{Gong2018} can in fact be interpreted using the notion of edge operators.
+They implicitly assume that the rows in all $e_{ij}$ are equal, i.e.\ the off-diagonal entries are set to\todo{TODO:\@ Explain this.}
+\begin{align*}
+	\begin{pmatrix}
+		\bm{e}_{ij11} & & \\
+		& \ddots & \\
+		& & \bm{e}_{ijMM}
+	\end{pmatrix} \rightarrow \begin{pmatrix}
+		\bm{e}_{ij11} & \cdots & \bm{e}_{ijMM} \\
+		\vdots & \vdots & \vdots \\
+		\bm{e}_{ij11} & \cdots & \bm{e}_{ijMM}
+	\end{pmatrix}\text{.}
+\end{align*}
+A more flexible correlation structure can potentially yield an improvement over the current multi-relational approaches.
+
+One problem that arises from the described approach is that the adjacency tensor $E$ is changed after each change of $r$ and therefore $\mathcal{L}$ needs to be renormalized after every training step.
+This can potentially incur a significant performance cost and should be mitigated by employing results from perturbation theory.\todo{TODO:\@ Elaborate.}
 
 \section{Preliminary Document Structure}%
 \label{sec:doc-structure}
