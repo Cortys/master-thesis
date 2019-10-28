@@ -8,7 +8,7 @@
 \usepackage{microtype}
 
 \usepackage{graphicx}
-\graphicspath{{images/}}
+\graphicspath{{gfx/}}
 
 \usepackage{paralist}
 \usepackage{csquotes}
@@ -294,87 +294,62 @@ The following approaches could serve as inspiration, baselines and/or sources of
 		They contain 4200 and 642 labeled molecular graphs respectively.
 \end{itemize}
 
-\section{Research Question}%
+\section{Research Questions}%
 \label{sec:question}
 
-\todo[inline,color=green]{Since the final research question is not yet fixed, I only sketched out the main candidates.}
+When looking only at the input and output of the described LTA and graph methods, they share certain similarities.
+Both take a variable size and permutation invariant set of constituents/vertices as input and compute an aggregate class or score from it.
+There is however a difference between LTA and the described graph methods in the way aggregate scores are computed.
 
-\todo[inline]{Candidate 1: Comparison of LTA and GNNs}
-As described, current graph classification and regression approaches mostly use simple fixed aggregation functions like $\min$, $\max$ or $\text{avg}$.
-Self-Attention Pooling~\cite{Lee2019} is a notable exception that learns the weights for a weighted average that is computed over convolved vertex features.
-An open question for research is whether more complex aggregation functions are able to outperform simple aggregation functions in the graph setting.
-\todo[inline,color=green]{Not sure how to approach this yet.}
+LTA approaches are based on the assumption that a composite score can be modeled as an aggregate of constituent scores where constituent and composite scores are required to be from the same domain, e.g.\ $\mathcal{Y} = [0, 1]$.
+One consequence of this assumption is that an aggregate score is explainable by looking at the constituents and their associated scores.
 
-\todo[inline]{Candidate 2: Structural Restrictions}
-The previously described graph classification and regression methods assume that arbitrary graphs are provided as input.
-The question this thesis aims to answer is whether a restriction of the input graph structure makes it possible to use a more specialized method that outperforms the more general approaches.
-Possible restrictions to look at could for example be vertex degree or tree structure constraints.\todo[inline,color=green]{
-	I suspect that such restrictions will mostly improve upon runtime (either automatically because most GNN methods depend on $\mathcal{O}(\left|E\right|)$ or because expensive matrix multiplications can be replaced).
-	Those runtime savings might then of course be translated into regression performance improvements, e.g.\ maybe by using a deeper model.
-	As we discussed a restriction to tree structures may make hierarchical aggregation functions feasible but as I understand those can in principle be expressed via a message-passing GNN as well~\cite{Battaglia2018}.
-}
+A graph classification or regression method on the other hand does not necessarily output explainable classes or scores.
+ConvGNNs for example perform multiple neighborhood feature aggregations around each vertex and then combine the aggregated vertex features into a final output using either a fixed aggregation function (e.g.\ $\min$, $\max$ or $\text{avg}$) or a standard predictor that gets a fixed-size top-$k$ ranking of the vertex features.
+A given aggregate score is generally not explained by the presence or absence of certain constituents.
 
-\todo[inline]{Candidate 3: Multi-relational ConvGNNs}
-As mentioned in \cref{sec:related-work:gcr}, most ConvGNN variants are not directly applicable to multi-relational inputs.
-Two more flexible approaches were described:
+Intuitively the difference between LTA and current graph methods can be formulated as \textit{first evaluate, then aggregate} versus \textit{first aggregate, then evaluate}, see \cref{fig:gnnvslta}.
+This general difference is however not a strict separator of LTA and current graph methods.
+As described by \citet{Pope2018} for example, relevant subgraphs with a high influence on the output of a ConvGNN can be identified and interpreted similarly to LTA constituents.
+The line between both approaches is therefore blurry.
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.9\linewidth]{GNNvsLTA.pdf}
+	\caption{Intuition for the difference between ConvGNNs and LTA methods.}\label{fig:gnnvslta}
+\end{figure}
+
+To address this, the thesis should try to answer three central questions:
 \begin{enumerate}
-	\item The general graph network framework described by \citet{Battaglia2018} that can be interpreted as a spatial message-passing approach.
-		They share information across relations via an arbitrary learned function $\phi^e(e_{ij}, e_i)$.
-	\item EGNNs~\cite{Gong2018}, a spectral ConvGNN variant.
-		They share information across relations by concatenating vertex features that are separately convolved in each relation's graph.
+	\item \textit{What are the essential characteristics of a Learning to Aggregate method?}
+		Those characteristics should formally capture the differences and similarities between LTA and convolutional or kernel based graph methods.
+		Currently there is no comprehensive formulation of the relation between both fields of research;
+		this should be addressed by the first question.
+	\item \textit{How could a Learning to Aggregate method, that has the previously defined characteristics, look like for graph inputs?}
+		Currently LTA has only been applied to sets of constituents and not yet to graph structured data;
+		this should be addressed by the second question.
+	\item \textit{What are the assumptions of graph LTA methods and under which circumstances are they applicable?}
+		This aims to clarify in which kinds of scenarios the use of LTA is justified and expected to improve results compared to more general methods.
 \end{enumerate}
-The first approach does not discuss which specific choice of edge propagation function $\phi^e$ is suitable for a multi-relational regression problem like those described in \cref{sec:related-work:tox}.
-In the second approach the concatenation operator implicitly acts as the edge propagation function.
-As we will see in \cref{sec:approach}, this assumes that every relation shares information with the other relations in the same way.
-Currently there are no approaches that explicitly model the correlation structure between relations, i.e.\ if and how information propagates from one relation to another.
-The research question for this thesis is to find out how a model that incorporates cross-relational correlations might look like and to compare it theoretically and empirically with another multi-relational method like the EGNN.\@
 
 \section{Approach}%
 \label{sec:approach}
 
-\todo[inline,color=green]{As discussed on Monday, I added a rough overview of the formal background for candidate 3.}
-A possible approach to define a multi-relational ConvGNN is to directly extend an existing method, e.g.\ GCNs~\cite{Kipf2017}, from the one-dimensional to the multi-dimensional setting.
-Typically a graph is modeled via a symmetric adjacency matrix $E \in \mathbb{R}^{N \times N}$ with non-negative edge weights $e_{ij} = e_{ji} \in \mathbb{R}$.
-An edge weight $e_{ij}$ can be interpreted as a member of the multiplicative group on $\mathbb{R}$ and encodes a spatial signal strength scaling operation between the vertices $i$ and $j$.
-If we now go from a single relation to $M$ relations, the operator encoded by an edge can be generalized from $e_{ij} \in \mathbb{R}^{1 \times 1}$ to $\bm{e}_{ij} \in \mathbb{R}^{M \times M}$.
-The non-negativity constraint $e_{ij} \geq 0$ on the edge weights then generalizes to a positive semidefiniteness constraint $\bm{e}_{ij} \succeq 0$ on the edge matrices; therefore $\bm{e}_{ij}$ is symmetric.
-$\bm{e}_{ijkl} = \bm{e}_{ijlk} = \bm{e}_{jikl} = \bm{e}_{jilk} \in \mathbb{R}$ describes the connection strength between the signals of the relations $k$ and $l$ at vertex $i$ and the signals of the same relations at vertex $j$.
+To answer the three research questions, the following approach will be taken.
+First the notion of composites and constituents should be generalized based on the definitions found in the previous works on LTA~\cite{Melnikov2016}\cite{Melnikov2019}, so that they are also applicable to graph inputs.
+Next the notion of an aggregation function has to be defined and distinguished from the more general concept of an evaluation function (compare \cref{fig:gnnvslta}).
 
-Using multi-dimensional edge operators as described above turns $E \in \mathbb{R}^{(N \cdot M) \times (N \cdot M)} \equiv {(\mathbb{R}^{M \times M})}^{N \times N} \equiv \mathbb{R}^{N \times N} \otimes \mathbb{R}^{M \times M}$ into a $(2,2)$-tensor.
-The notion of a one-dimensional graph signal $x \in \mathbb{R}^{N}$ then generalizes to $x \in \mathbb{R}^{N \cdot M} \equiv {(\mathbb{R}^M)}^N \equiv \mathbb{R}^N \otimes \mathbb{R}^M$, a $(2, 0)$-tensor that describes the signal strength of each relation at each vertex.
+The resulting general definition of LTA methods should then be used for a comparison with a representative selection of existing graph methods (see \cref{sec:related-work:gcr}).
+It should be stated how both fields of research are related and under which circumstances a graph method can be interpreted as an LTA method.
+When formulating a graph method from the LTA perspective, it must be explicitly stated how the constituents and the aggregation function looks like.
+Depending on the graph method a constituent could consist of a single vertex but could also represent a certain subgraph or characteristic graph pattern.
 
-Another way to look at the resulting adjacency structure is as a linear operator $E: \mathbb{R}^{N \cdot M} \to \mathbb{R}^{N \cdot M}$ that acts on the $N$-dimensional module over the division ring $R$ of positive semidefinite real $M \times M$ matrices.\todo{TODO:\@ Formalize the inverse and missing covariant factor.}
+The comparison between LTA and existing graph methods should serve as an overview of the state-of-the-art in graph classification and regression from the perspective of LTA.\@
+Based on this comparison, a specific graph LTA method or class of graph LTA methods should be developed.
+Depending on the interpretability of existing graph methods as LTA methods, the developed method will potentially be based on those existing methods.
 
-To motivate a ConvGNN on this more abstract definition of $E$ we first define the multi-relational combinatorial Laplacian $\mathcal{L} := D - E$ via $D_{ii} := \sum \bm{e}_{ii}$ and $D_{ij} := \bm{0}$ for $i \neq j$, i.e.\ $D$ is a block matrix with summed $M \times M$ blocks on its diagonal and zeros everywhere else.
-The normalized multi-relational Laplacian can then be defined as $L := I - D^{-\frac{1}{2}} E D^{-\frac{1}{2}}$ using the fact that all $D_{ii}$ are elements of the division ring $R$.
-A spectral filter $\hat{g}$ can therefore be learned for $L$, analogous to GCNs~\cite{Kipf2017}.
-
-The main remaining question now is how the entries of the edge operators $\bm{e}_{ij} \in \mathbb{R}^{M \times M}$ are determined.
-In uni-relational methods the scalar edge weight $e_{ij} \in \mathbb{R}$ is typically assumed to be given for each input.
-In the multi-relational setting we can assume that a scalar connection strength is given for each relation, i.e.\ the self-correlations $\bm{e}_{ijkk} \in \mathbb{R}$ on the diagonal are known.
-The off-diagonal entries of an edge operator however represent the cross-relational correlations and cannot be assumed to be known.
-If we set the off-diagonal entries to zero, i.e.\ $\forall i, j, k, l: k \neq l \rightarrow e_{ijkl} = 0$, all relations would be assumed to be uncorrelated and $M$ spectral filters would be learned independently on the graphs that are described by the relations.\todo{TODO:\@ Add a formal proof?}
-
-Since we cannot generally assume that all relations are uncorrelated, a \textit{relational correlation kernel} $r$ has to be learned together with the spectral filter $\hat{g}$.
-$r$ should describe how strong one relation is correlated to another and is used to compute off-diagonal edge operator entries.
-
-The previously mentioned EGNNs~\cite{Gong2018} can in fact be interpreted using the notion of edge operators.
-They implicitly assume that the rows in all $e_{ij}$ are equal, i.e.\ the off-diagonal entries are set to\todo{TODO:\@ Explain this.}
-\begin{align*}
-	\begin{pmatrix}
-		\bm{e}_{ij11} & & \\
-		& \ddots & \\
-		& & \bm{e}_{ijMM}
-	\end{pmatrix} \rightarrow \begin{pmatrix}
-		\bm{e}_{ij11} & \cdots & \bm{e}_{ijMM} \\
-		\vdots & \vdots & \vdots \\
-		\bm{e}_{ij11} & \cdots & \bm{e}_{ijMM}
-	\end{pmatrix}\text{.}
-\end{align*}
-A more flexible correlation structure can potentially yield an improvement over the current multi-relational approaches.
-
-One problem that arises from the described approach is that the adjacency tensor $E$ is changed after each change of $r$ and therefore $\mathcal{L}$ needs to be renormalized after every training step.
-This can potentially incur a significant performance cost and should be mitigated by employing results from perturbation theory.\todo{TODO:\@ Elaborate.}
+Finally the proposed graph LTA method should be evaluated.
+For this synthetically generated data or some of the datasets listed in \cref{sec:related-work:tox} could be used.
+If time permits, a comparison between the developed graph LTA method and other graph methods should be conducted to empirically demonstrate the potential advantages and disadvantages of the LTA assumptions.
 
 \section{Preliminary Document Structure}%
 \label{sec:doc-structure}
@@ -386,17 +361,13 @@ This can potentially incur a significant performance cost and should be mitigate
 			\item Learning to Aggregate
 			\item Convolutional Graph Neural Networks
 		\end{enumerate}
-	\item Learning to Aggregate Graphs
+	\item Learning to Aggregate on Graphs
 	\begin{enumerate}[label*=\arabic*.]
-		\item A Vertex Aggregation Function Learner
-		\item Compatible Disaggregation Methods
+		\item Characteristics of LTA methods
+		\item An LTA perspective on GNNs
+		\item A Graph LTA Method
 	\end{enumerate}
 	\item Evaluation
-		\begin{enumerate}[label*=\arabic*.]
-			\item Learning Characteristics of Generated Graphs
-			\item Learning Chemical Toxicity
-			\item Scalability
-		\end{enumerate}
 	\item Conclusion
 	\item Literature
 	\item Appendix
@@ -442,23 +413,21 @@ This can potentially incur a significant performance cost and should be mitigate
 		\gantttitle{week}{20} \\
 		\gantttitlelist{1,...,20}{1} \\ % ignore triple dots: chktex 11
 
-		\ganttgroup{Implementation}{1}{11} \\
+		\ganttgroup{Implementation}{2}{12} \\
 		\ganttbar[bar label font = \sffamily, bar/.append style = {fill = hellblau}]
-			{Data Preparation}{1}{1} \\
+			{Data Preparation}{2}{2} \\
 		\ganttbar[bar label font = \sffamily, bar/.append style = {fill = hellblau}]
-			{Basic ConvGNN}{2}{4} \\
-		\ganttbar[bar label font = \sffamily, bar/.append style = {fill = hellblau}]
-			{Aggregation Learner}{5}{8} \\
+			{Graph LTA}{3}{8} \\
 			\ganttbar[bar label font = \sffamily, bar/.append style = {fill = hellgrau}]
-				{Buffer}{9}{9} \\
+				{Buffer}{9}{10} \\
 		\ganttbar[bar label font = \sffamily, bar/.append style = {fill = hellblau}]
-			{Evaluation}{10}{11} \\
+			{Evaluation}{11}{12} \\
 
-		\ganttgroup{Writing}{2}{19} \\
+		\ganttgroup{Writing}{1}{19} \\
 		\ganttbar[bar label font = \sffamily, bar/.append style = {fill = hellblau}]
-			{Previous Work}{2}{5} \\
+			{Previous Work}{1}{4} \\
 		\ganttbar[bar label font = \sffamily, bar/.append style = {fill = hellblau}]
-			{L.t.A. Graphs}{6}{10} \\
+			{Graph LTA}{5}{10} \\
 		\ganttbar[bar label font = \sffamily, bar/.append style = {fill = hellblau}]
 			{Evaluation}{11}{13} \\
 		\ganttbar[bar label font = \sffamily, bar/.append style = {fill = hellblau}]
