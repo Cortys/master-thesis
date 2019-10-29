@@ -1,0 +1,92 @@
+% !TEX root = ../main.tex
+%
+% ------------------------------------  --> cover title page
+\begin{titlepage}
+	\pdfbookmark[0]{Cover}{Cover}
+	\sffamily\
+	\flushright\
+	\hfill
+	\vfill
+	{\color{ctcolortitle}\LARGE\thesisTitle\ \par}
+	\rule[5pt]{\textwidth}{.4pt} \par
+	{\Large\thesisName}
+	\vfill
+	\textit{\large\thesisDate}
+\end{titlepage}
+
+
+% ------------------------------------  --> main title page
+\begin{titlepage}
+	\pdfbookmark[0]{Titlepage}{Titlepage}
+	\sffamily\
+
+	\begin{figure}
+	\begin{minipage}[t]{8.5cm}
+	\includegraphics[height=1.8cm]{gfx/upb_1E}\\
+	\textsf{\small{\hspace*{1.3cm}Department of Electrical Engineering,\\
+	\hspace*{1.3cm}Computer Science and Mathematics\\
+%		\hspace*{1.3cm}Institute of Computer Science\\
+		\hspace*{1.3cm}Warburger Straße 100 \\
+		\hspace*{1.3cm}33098 Paderborn
+		}}
+	\end{minipage}
+	\hfill
+	\begin{minipage}[t]{5cm}
+	\includegraphics[height=1.8cm]{gfx/is-logo-klein}\\
+	\textsf{%Institute of Computer Science\\
+	\hspace*{0.1cm}\small{Intelligent Systems Group (ISG)}
+	}
+	\end{minipage}
+	\end{figure}
+
+	\centering
+
+	\vfill
+	{\large \thesisSubject} \\[5mm]
+	{\LARGE \color{ctcolortitle}\textbf{\thesisTitle} \\[10mm]}
+	{\Large \thesisName} \\
+
+	\vfill
+	\begin{minipage}[t]{.27\textwidth}
+		\raggedleft\
+		\textit{1. Corrector}
+	\end{minipage}
+	\hspace*{15pt}
+	\begin{minipage}[t]{.65\textwidth}
+		{\Large \thesisFirstReviewer} \\
+	  	{\small \thesisFirstReviewerDepartment} \\[-1mm]
+		{\small \thesisFirstReviewerUniversity}
+	\end{minipage} \\[5mm]
+	\begin{minipage}[t]{.27\textwidth}
+		\raggedleft\
+		\textit{2. Corrector}
+	\end{minipage}
+	\hspace*{15pt}
+	\begin{minipage}[t]{.65\textwidth}
+		{\Large \thesisSecondReviewer} \\
+	  	{\small \thesisSecondReviewerDepartment} \\[-1mm]
+		{\small \thesisSecondReviewerUniversity}
+	\end{minipage} \\[15mm]
+
+	\thesisDate\\ % chktex 21
+
+\end{titlepage}
+
+
+% ------------------------------------  --> lower title back for single page layout
+\hfill
+\vfill
+{
+	\small
+	\textbf{\thesisName} \\
+	\textit{\thesisTitle} \\
+	\thesisSubject, \thesisDate\\ % chktex 21
+	Correctors: \thesisFirstReviewer\ and \thesisSecondReviewer\\ % chktex 21
+	Supervisor: \thesisSupervisor\\[1.5em] % chktex 21
+	\textbf{\thesisUniversity} \\
+	\textit{\thesisUniversityGroup} \\
+	\thesisUniversityInstitute\\ % chktex 21
+	\thesisUniversityDepartment\\ % chktex 21
+	\thesisUniversityStreetAddress\\ % chktex 21
+	\thesisUniversityPostalCode\ \thesisUniversityCity\
+}

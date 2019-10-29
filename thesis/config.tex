@@ -1,0 +1,134 @@
+% !TEX root = main.tex
+% chktex-file 46
+
+% **************************************************
+% Files' Character Encoding
+% **************************************************
+\PassOptionsToPackage{utf8}{inputenc}
+\usepackage{inputenc}
+\usepackage[ngerman,english]{babel}
+
+% **************************************************
+% Information and Commands for Reuse
+% **************************************************
+\newcommand{\thesisTitle}{Learning to Aggregate on Structured Data}
+\newcommand{\thesisName}{Clemens Damke}
+\newcommand{\thesisMatNr}{7011488}
+\newcommand{\thesisSubject}{Master Thesis}
+\newcommand{\thesisDate}{\today}
+\newcommand{\thesisVersion}{Draft}
+
+\newcommand{\thesisFirstReviewer}{Prof.~Dr.~Eyke Hüllermeier}
+\newcommand{\thesisFirstReviewerUniversity}{\pt_redect{Paderborn University}}
+\newcommand{\thesisFirstReviewerDepartment}{Intelligent Systems and Machine Learning Group (ISG)}
+
+\newcommand{\thesisSecondReviewer}{Prof.~Dr.~Axel-Cyrille Ngonga Ngomo}
+\newcommand{\thesisSecondReviewerUniversity}{\pt_redect{Paderborn University}}
+\newcommand{\thesisSecondReviewerDepartment}{Data Science Group (DICE)}
+
+\newcommand{\thesisSupervisor}{Vitalik Melnikov}
+
+\newcommand{\thesisUniversity}{Paderborn University}
+\newcommand{\thesisUniversityDepartment}{Department of Electrical Engineering, Computer Science and Mathematics}
+\newcommand{\thesisUniversityInstitute}{Heinz Nixdorf Institute}
+\newcommand{\thesisUniversityGroup}{Intelligent Systems and Machine Learning Group (ISG)}
+\newcommand{\thesisUniversityStreetAddress}{Warburger Straße 100}
+\newcommand{\thesisUniversityPostalCode}{33098}
+\newcommand{\thesisUniversityCity}{Paderborn}
+
+
+% **************************************************
+% Debug LaTeX Information
+% **************************************************
+%\listfiles
+
+
+% **************************************************
+% Load and Configure Packages
+% **************************************************
+
+% Colors:
+\usepackage[usenames, dvipsnames, svgnames, table]{xcolor}
+
+\definecolor{t_blue}{HTML}{355fb3}
+\definecolor{t_red}{HTML}{b33535}
+\definecolor{t_green}{HTML}{3bb335}
+\definecolor{t_darkblue}{HTML}{1e3666}
+\definecolor{t_lightblue}{HTML}{8ea7d7}
+
+% Code snippets:
+\usepackage{minted}
+\usepackage{etoolbox,xpatch}
+\makeatletter
+\AtBeginEnvironment{minted}{\dontdofcolorbox}
+\def\dontdofcolorbox{\renewcommand\fcolorbox[4][]{##4}}
+\xpatchcmd{\inputminted}{\minted@fvset}{\minted@fvset\dontdofcolorbox}{}{}
+\makeatother
+\setminted{
+	fontsize=\footnotesize,
+	numbers=left,
+	tabsize=4,
+	breaklines=true
+}
+
+\PassOptionsToPackage{% setup clean thesis style
+    figuresep=space,
+    sansserif=false,
+    hangfigurecaption=false,
+    hangsection=true,
+    hangsubsection=true,
+    colorize=full,
+    colortheme=custom,
+	colormain=t_darkblue,
+	coloraccessory=t_blue,
+    bibsys=bibtex,
+    bibfile=literature,
+    bibstyle=alphabetic,
+    wrapfooter=false,
+}{cleanthesis}
+\usepackage{cleanthesis}
+
+\usepackage{cleveref}
+
+\usepackage{mathtools}
+\newcommand\numberthis{\addtocounter{equation}{1}\tag{\theequation}}
+
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{arrows,positioning}
+\usetikzlibrary{calc}
+\newcommand{\tikzmark}[1]{\tikz[overlay,remember picture] \node (#1) {};} % chktex 1
+
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
+\pgfplotsset{compat=1.14}
+\usepgfplotslibrary{dateplot, statistics}
+\pgfplotsset{
+    cycle list={t_blue\\t_red\\t_green\\},
+}
+
+\usepackage{listings}
+\lstset{basicstyle=\ttfamily,breaklines=true}
+
+\usepackage{tasks}
+\settasks{counter-format=tsk[1].}
+
+\usepackage{stmaryrd}
+\usepackage{multicol}
+\usepackage{pbox}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{csvsimple}
+\usepackage{siunitx}
+
+\hypersetup{% setup the hyperref-package options
+    pdftitle={\thesisTitle},    %   - title (PDF meta)
+    pdfsubject={\thesisSubject},%   - subject (PDF meta)
+    pdfauthor={\thesisName},    %   - author (PDF meta)
+    plainpages=false,           %   -
+    colorlinks=false,           %   - colorize links?
+    pdfborder={0 0 0},          %   -
+    breaklinks=true,            %   - allow line break inside links
+    bookmarksnumbered=true,     %
+    bookmarksopen=true          %
+}
