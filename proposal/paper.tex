@@ -199,9 +199,9 @@ At a high level graph classification methods can be taxonomized into two main fa
 					To see the connection to the convolutional theorem, note that $\mathcal{F} = U$ and $\mathcal{F}^{-1} = U^{\top}$ in \cref{eq:related-work:conv-filter} with $\mathcal{F}$ denoting the graph Fourier transform.
 				}.
 				In the previously described spatial ConvGNN variant, $g$ is learned directly in form of the feature aggregation function with a neighborhood locality constraint.
-				In the spectral variant however the Fourier-transformed filter $\hat{g}$ is learned.
+				In the spectral variant however, the Fourier-transformed filter $\hat{g}$ is learned.
 				Intuitively this means that vertex features $x_i$ are not aggregated with the features of their their direct neighborhood but with the features of vertices with which they share certain structural similarities.
-				This allows spectral ConvGNNs to incorporate the global graph structure at the cost of having to perform the computationally expensive decomposition of every input graph's Laplacian.
+				This allows spectral ConvGNNs to incorporate the global graph structure at the cost of having to perform the computationally expensive eigendecomposition of every input graph's Laplacian.
 
 				To tackle the performance impact of the spectral convolution approach, various simplifications of the filter $\hat{g}$ have been proposed.
 				The so-called \textit{graph convolutional network}~(GCN)~\cite{Kipf2017} does this by reducing the expressivity of the filter.
@@ -220,7 +220,7 @@ At a high level graph classification methods can be taxonomized into two main fa
 		The just described ConvGNN approaches generally assume that an input consists of an undirected graph with positive real edge weights.
 		Those approaches are not directly applicable in scenarios with multiple edge types, i.e.\ multi-relational scenarios.
 		One class of spatial multi-relational GNN methods was proposed by \citet{Battaglia2018}.
-		They describe a general framework for the construction of GNNs; for simplicity only the class message-passing variants is mentioned here.
+		They describe a general framework for the construction of GNNs; for simplicity only the class of message-passing variants is mentioned here.
 		There a shared function $\phi^e$ is used to describe how a vertex feature vector $v_i$ is transformed as it passes through an edge with features $e_{ij} \in \mathbb{R}^p$.
 		In a uni-relational spatial GNN with $e_{ij} \in \mathbb{R}^{1}$, typically $\phi^e(e_{ij}, v_i) = e_k \cdot v_i$ is used.
 		In the multi-relational setting, $\phi^e$ can instead be learned via a standard \textit{multilayer perceptron} (MLP).
@@ -308,7 +308,7 @@ A graph classification or regression method on the other hand does not necessari
 ConvGNNs for example perform multiple neighborhood feature aggregations around each vertex and then combine the aggregated vertex features into a final output using either a fixed aggregation function (e.g.\ $\min$, $\max$ or $\text{avg}$) or a standard predictor that gets a fixed-size top-$k$ ranking of the vertex features.
 A given aggregate score is generally not explained by the presence or absence of certain constituents.
 
-Intuitively the difference between LTA and current graph methods can be formulated as \textit{first evaluate, then aggregate} versus \textit{first aggregate, then evaluate}, see \cref{fig:gnnvslta}.
+Intuitively the difference between LTA and current graph methods can be formulated as \textit{first evaluate, then aggregate} versus \textit{first aggregate, then evaluate} (see \cref{fig:gnnvslta}).
 This general difference is however not a strict separator of LTA and current graph methods.
 As described by \citet{Pope2018} for example, relevant subgraphs with a high influence on the output of a ConvGNN can be identified and interpreted similarly to LTA constituents.
 The line between both approaches is therefore blurry.
@@ -321,11 +321,11 @@ The line between both approaches is therefore blurry.
 To address this, the thesis should try to answer three central questions:
 \begin{enumerate}
 	\item \textit{What are the essential characteristics of a Learning to Aggregate method?}
-		Those characteristics should formally capture the differences and similarities between LTA and convolutional or kernel based graph methods.
+		Those characteristics should formally capture the differences and similarities between LTA and convolutional or kernel-based graph methods.
 		Currently there is no comprehensive formulation of the relation between both fields of research;
 		this should be addressed by the first question.
 	\item \textit{How could a Learning to Aggregate method, that has the previously defined characteristics, look like for graph inputs?}
-		Currently LTA has only been applied to sets of constituents and not yet to graph structured data;
+		Currently LTA has only been applied to multisets of constituents and not yet to graph structured data;
 		this should be addressed by the second question.
 	\item \textit{What are the assumptions of graph LTA methods and under which circumstances are they applicable?}
 		This aims to clarify in which kinds of scenarios the use of LTA is justified and expected to improve results compared to more general methods.
@@ -339,8 +339,8 @@ First the notion of composites and constituents should be generalized based on t
 Next the notion of an aggregation function has to be defined and distinguished from the more general concept of an evaluation function (compare \cref{fig:gnnvslta}).
 
 The resulting general definition of LTA methods should then be used for a comparison with a representative selection of existing graph methods (see \cref{sec:related-work:gcr}).
-It should be stated how both fields of research are related and under which circumstances a graph method can be interpreted as an LTA method.
-When formulating a graph method from the LTA perspective, it must be explicitly stated how the constituents and the aggregation function looks like.
+It should be stated how both fields of research are related and under which circumstances a graph method can also be interpreted as an LTA method.
+When formulating a graph method from the LTA perspective, it must be explicitly stated how the constituents and the aggregation function look like.
 Depending on the graph method a constituent could consist of a single vertex but could also represent a certain subgraph or characteristic graph pattern.
 
 The comparison between LTA and existing graph methods should serve as an overview of the state-of-the-art in graph classification and regression from the perspective of LTA.\@
@@ -348,8 +348,9 @@ Based on this comparison, a specific graph LTA method or class of graph LTA meth
 Depending on the interpretability of existing graph methods as LTA methods, the developed method will potentially be based on those existing methods.
 
 Finally the proposed graph LTA method should be evaluated.
-For this synthetically generated data or some of the datasets listed in \cref{sec:related-work:tox} could be used.
-If time permits, a comparison between the developed graph LTA method and other graph methods should be conducted to empirically demonstrate the potential advantages and disadvantages of the LTA assumptions.
+Synthetically generated data or some of the datasets listed in \cref{sec:related-work:tox} could be used for this.
+Alternatively the sentiment analysis problem from \textit{natural language processing} (NLP) could be used by interpreting the dependency parse graph of a text as the input and the text's sentiment as its aggregate score.
+If time permits, a comparison between the developed graph LTA method and other graph methods should be conducted to demonstrate the potential advantages and disadvantages of the LTA assumptions.
 
 \section{Preliminary Document Structure}%
 \label{sec:doc-structure}
