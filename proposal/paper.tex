@@ -146,7 +146,7 @@ OWA aggregators work by sorting the input scores and then weighting them based o
 	A_{\lambda}(y_1, \dots, y_n) := \sum_{i = 1}^n \lambda_i y_{\pi(i)},
 \end{align*}
 where $\lambda$ is a weight vector with ${\|\lambda\|}_1 = 1$ and $\pi$ is a sorting permutation of the input scores. % chktex 21
-To deal with varying composite sizes $n$ the weights $\lambda_i$ are interpolated using a \textit{basic unit interval monotone} (BUM) function $q: [0, 1] \to [0, 1]$.
+To deal with varying composition sizes $n$ the weights $\lambda_i$ are interpolated using a \textit{basic unit interval monotone} (BUM) function $q: [0, 1] \to [0, 1]$.
 It takes constituent positions that are normalized to the unit interval, i.e.\ $\frac{i}{n}$.
 The BUM function $q$ then is then used to interpolate a weight for any normalized sort position via $\lambda_i = q(\frac{i}{n}) - q(\frac{i - 1}{n})$.
 Therefore the learning objective boils down to optimizing the shape of $q$.
@@ -297,7 +297,7 @@ The following approaches could serve as inspiration, baselines and/or sources of
 \section{Research Questions}%
 \label{sec:question}
 
-When looking only at the input and output of the described LTA and graph methods, they share certain similarities.
+The described LTA and graph methods are related via their input and output types:
 Both take a variable size and permutation invariant set of constituents/vertices as input and compute an aggregate class or score from it.
 There is however a difference between LTA and the described graph methods in the way aggregate scores are computed.
 
@@ -335,7 +335,7 @@ To address this, the thesis should try to answer three central questions:
 \label{sec:approach}
 
 To answer the three research questions, the following approach will be taken.
-First the notion of composites and constituents should be generalized based on the definitions found in the previous works on LTA~\cite{Melnikov2016}\cite{Melnikov2019}, so that they are also applicable to graph inputs.
+First the notion of compositions and constituents should be generalized based on the definitions found in the previous works on LTA~\cite{Melnikov2016}\cite{Melnikov2019}, so that they are also applicable to graph inputs.
 Next the notion of an aggregation function has to be defined and distinguished from the more general concept of an evaluation function (compare \cref{fig:gnnvslta}).
 
 The resulting general definition of LTA methods should then be used for a comparison with a representative selection of existing graph methods (see \cref{sec:related-work:gcr}).
@@ -348,8 +348,9 @@ Based on this comparison, a specific graph LTA method or class of graph LTA meth
 Depending on the interpretability of existing graph methods as LTA methods, the developed method will potentially be based on those existing methods.
 
 Finally the proposed graph LTA method should be evaluated.
-Synthetically generated data or some of the datasets listed in \cref{sec:related-work:tox} could be used for this.
-Alternatively the sentiment analysis problem from \textit{natural language processing} (NLP) could be used by interpreting the dependency parse graph of a text as the input and the text's sentiment as its aggregate score.
+To do so a domain problem has to be found that matches the LTA assumption that composite scores can be expressed as aggregations of local scores.
+Synthetically generated data or some of the datasets listed in \cref{sec:related-work:tox} could be considered here.
+The sentiment analysis problem from \textit{natural language processing} (NLP) could be an alternative candidate by interpreting the dependency parse graph of a text as the input and the text's sentiment as its aggregate score.
 If time permits, a comparison between the developed graph LTA method and other graph methods should be conducted to demonstrate the potential advantages and disadvantages of the LTA assumptions.
 
 \section{Preliminary Document Structure}%
