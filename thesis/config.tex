@@ -97,7 +97,6 @@
 \usepackage{tikz}
 \usetikzlibrary{arrows,positioning}
 \usetikzlibrary{calc}
-\newcommand{\tikzmark}[1]{\tikz[overlay,remember picture] \node (#1) {};} % chktex 1
 
 \usepackage{pgfplots}
 \usepackage{pgfplotstable}
@@ -112,6 +111,12 @@
 
 \usepackage{tasks}
 \settasks{counter-format=tsk[1].}
+
+\usepackage{acro}
+\acsetup{first-long-format=\slshape} % chktex 6
+\acsetup{single}
+\acsetup{use-barriers}
+\acsetup{reset-at-barriers}
 
 \usepackage{stmaryrd}
 \usepackage{multicol}
@@ -132,3 +137,7 @@
     bookmarksnumbered=true,     %
     bookmarksopen=true          %
 }
+
+% Custom commands:
+\newcommand{\tikzmark}[1]{\tikz[overlay,remember picture] \node (#1) {};} % chktex 1
+\newcommand{\dac}[3]{\DeclareAcronym{#1}{short = #2, long = #3}}
