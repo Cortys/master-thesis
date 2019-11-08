@@ -23,12 +23,40 @@ Three common types of graph~\ac{ml} problems are
 		In this final problem type a single global class or continuous value has to be predicted for an input graph.
 		The canonical example for this is the prediction of properties of molecule graphs, e.g.\ the toxicity or solubility of a chemical.
 \end{enumerate}
-In this thesis we will focus on the last problem type, graph classification and regression.
+In this thesis we will focus on the last problem type, \ac{gcr}.
 A \ac{ml} method for this problem has to accept graphs of varying size and should be permutation invariant wrt.\ the vertices.
-Those requirements are not met by most of the commonly used learners that only accept fixed-size feature vectors as their input, e.g.\ \acp{lm}, \acp{svm} or \acp{mlp}.
+Those requirements are not met by the commonly used learners that only accept fixed-size feature vectors as their input, e.g.\ \acp{lm}, \acp{svm} or \acp{mlp}.
+
+A \ac{gcr} method has to account for two central aspects of the problem:
+\begin{enumerate*}
+	\item Local structural analysis and
+	\item global aggregation
+\end{enumerate*}.
+The first aspect is about the extraction of relevant features of substructures of the input graph.
+The latter is about the way in which the local features are combined into a final class or regression value.
+The existing \ac{gcr} methods are mostly motivated by local structural graph analysis.
+The aspect of global aggregation on the other hand is less emphasized by those methods.
+
+There is however a separate branch of research that specifically looks at the problem of learning aggregation functions, called \ac{lta}.
+Current \ac{lta} approaches explicitly learn an aggregation functions for sets which can be interpreted as graphs without edges.
+The motivation for this thesis is to generalize \ac{lta} from sets to arbitrary graphs.
+The overall goal is to combine the aggregation learning perspective with existing \ac{gcr} methods.
 
 \section{Goals}%
 \label{sec:intro:goals}
+
+To extend \ac{lta} to graphs, three goals have to be achieved:
+\begin{enumerate}[label=\textbf{\arabic*.}]
+	\item \textbf{Formalization of \ac{lta}:}
+		Before \ac{lta} can be extended, its essential characteristics have to be defined.
+		Those characteristics should provide the terminology to formally capture the differences and similarities between \ac{lta} and existing \ac{gcr} methods.
+	\item \textbf{Give an \ac{lta} interpretation of \ac{gcr} methods:}
+		Using the \ac{lta} formalization, representative \ac{gcr} approaches should be stated in terms of an \ac{lta} method.
+		Currently there is no comprehensive formulation of the relation between both fields of research;
+		this is addressed by the the second goal.
+	\item \textbf{Define an \ac{lta} method for graphs:}
+
+\end{enumerate}
 
 \section{Structure}%
 \label{sec:intro:structure}
