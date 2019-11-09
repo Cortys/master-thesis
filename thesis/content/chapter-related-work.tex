@@ -3,17 +3,66 @@
 \chapter{Related Work}%
 \label{sec:related}
 
+Before combining \ac{lta} and \ac{gcr} as described in \cref{sec:intro:goals}, we first give an overview of the state-of-the-art in both fields of research.
+First the existing \ac{lta} methods for unstructured set inputs are described.
+Then we will look at the two main families of \ac{gcr} methods:
+\begin{enumerate*}
+	\item Vector representation methods
+	\item Graph neural networks
+\end{enumerate*}.
+
 \section{Learning to Aggregate}%
 \label{sec:related:lta}
 
-\section{Graph Kernels}%
-\label{sec:related:gk}
+The class of \ac{lta} problems was first described by \citet{Melnikov2016}.
+There an input instance is understood as a composition $\bm{c}_i$ of so-called constituents $c_{i, j} \in \bm{c}_i$, i.e.\ as a variable-size multiset with $n_i = |\bm{c}_i|$.
+The assumption in \ac{lta} problems is that for all constituents $c_{i,j}$ a local score $y_{i,j} \in \mathcal{Y}$ is either given or computable.
+The set of those local scores should be indicative of the overall score $y_i \in \mathcal{Y}$ of the composition $\bm{c}_i$.
+\ac{lta} problems typically require two subproblems to be solved:
+\begin{enumerate}[label=\textbf{\arabic*.}]
+	\item \textbf{Aggregation:}
+		A variadic aggregation function $A: \mathcal{Y}^{*} \to \mathcal{Y}$ that estimates composite scores has to be learned, i.e.\@ $y_i \approx \hat{y}_i = A(y_{i,1}, \dots, y_{i,n_i})$.
+		Typically the aggregation function $A$ should be associative and commutative to fit with the multiset-structure of compositions.
+	\item \textbf{Disaggregation:}
+		In case the constituent scores $y_{i,j}$ are not given, they have to be derived from a constituent representation, e.g.\ a vector $x_{i,j} \in \mathcal{X}$.
+		To learn this derivation function $f: \mathcal{X} \to \mathcal{Y}$, only the constituent vectors ${\{x_{i,j}\}}_{j = 1}^{n_i}$ and the composite score $y_i$ is given.
+		Thus the constituent scores $y_{i,j}$ need to be \textit{disaggregated} from $y_i$ in order to learn $f$.
+\end{enumerate}
+Overall \ac{lta} can be understood as the joint problem of learning the aggregation function $A$ and the local score derivation function $f$.
+Two main approaches to represent the aggregation function in \ac{lta} problems have been explored.
 
-\section{Graph Neural Networks}%
-\label{sec:related:gnn}
+\paragraph{Uninorm-Aggregation}
+The first approach uses \textit{uninorms}~\cite{Melnikov2016} to do so.
+There the basic idea is to express composite scores as fuzzy truth assignments $y_i \in [0, 1]$.
+Such a composite assignment $y_i$ is modeled as the result of a parameterized logical expression of constituent assignments $y_{i,j} \in [0, 1]$.
+As the logical expression that thus effectively aggregates the constituents, a uninorm $U_{\lambda}$ is used.
+Depending on the parameter $\lambda$, $U_{\lambda}$ combines t-norms and t-conorms which are continuous generalizations of logical conjunction and disjunction respectively.
 
-\subsection{Spatial GNNs}%
-\label{sec:related:gnn:spatial}
+\paragraph{OWA-Aggregation}
+Recently \citet{Melnikov2019} have also looked at an alternative class of aggregation functions.
+Instead of using fuzzy logic to describe score aggregation, \textit{ordered weighted average} (OWA) operators were used.
+OWA aggregators work by sorting the input scores and then weighting them based on their sort position, i.e.\ %
+\begin{align*}
+	A_{\lambda}(y_1, \dots, y_n) := \sum_{i = 1}^n \lambda_i y_{\pi(i)},
+\end{align*}
+where $\lambda$ is a weight vector with ${\|\lambda\|}_1 = 1$ and $\pi$ is a sorting permutation of the input scores. % chktex 21
+To deal with varying composition sizes $n$ the weights $\lambda_i$ are interpolated using a \textit{basic unit interval monotone} (BUM) function $q: [0, 1] \to [0, 1]$.
+It takes constituent positions that are normalized to the unit interval, i.e.\ $\frac{i}{n}$.
+The BUM function $q$ then is then used to interpolate a weight for any normalized sort position via $\lambda_i = q(\frac{i}{n}) - q(\frac{i - 1}{n})$.
+Therefore the learning objective boils down to optimizing the shape of $q$.
 
-\subsection{Spectral GNNs}%
-\label{sec:related:gnn:spectral}
+\section{Graph Regression and Classification}%
+\label{sec:related:gcr}
+
+\subsection{Graph Embeddings}%
+\label{sec:related:gcr:embed}
+
+\subsection{Graph Kernels}%
+\label{sec:related:gcr:kernel}
+
+\subsection{Graph Neural Networks}%
+\label{sec:related:gcr:nn}
+
+\subsubsection{Spatial GNNs}
+
+\subsubsection{Spectral GNNs}
