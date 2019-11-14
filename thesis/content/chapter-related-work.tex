@@ -122,7 +122,8 @@ $U_\lambda$ therefore smoothly interpolates between a conjunctive and disjunctiv
 Since t-norms and t-conorms are commutative and associative they can also be applied to non-empty sets of arbitrary size, i.e. $T(\{ y_1, \dots, y_n \}) = T(y_1, T(\{ y_2, \dots, y_n \}))$ with fixpoint $T(\{ y \}) = y$.
 Using this extension, a uninorm $U_\lambda$ can be applied to sets which turns it into a parameterized aggregation function $\mathcal{A}_\lambda: {[0, 1]}^* \to [0, 1]$.
 In this simple model the \ac{lta} aggregation problem boils down to the optimization of $\lambda$.
-The \ac{lta} disaggregation problem was not considered in the uninorm approach~\cite{Melnikov2016}, i.e.\ the constituent scores ${\{ y_i \}}_{c_i \in \bm{c}}$ are assumed to be given.
+The \ac{lta} disaggregation problem is solved by jointly optimizing a \ac{lm}, i.e.\ the constituent scores ${\{ y_i \in [0, 1] \}}_{c_i \in \bm{c}}$ are described by $y_i = {\left( 1 + \exp(-\theta^\top x_i) \right)}^{-1}$.
+Overall an \ac{lta} model is therefore described by the uninorm parameter $\lambda$ and the regression coefficients $\theta$.
 
 \subsection{\acs*{owa}-Aggregation}%
 \label{sec:related:lta:owa}
@@ -146,7 +147,20 @@ The \ac{bum} function $q$ is then used to interpolate a weight for any normalize
 Because $q$ is monotone with $q(0) = 0$ and $q(1) = 1$, it always holds that ${\|\lambda\|}_1 = q(1) - q(0) = 1$. % chktex 21
 Using this model, the aggregation problem boils down to optimizing the shape of $q$.
 
-In the described \ac{owa} approach~\citet{Melnikov2019} the \ac{bum} function $q$ is modeled as a piecewise linear spline.
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.75\linewidth]{gfx/related-work/bum.pdf}
+	\caption[Illustration of how a \ac{bum} function is described as a linear spline and its relation to the \ac{owa} weights.]{
+		Illustration of how \textcolor{t_blue}{$a$} describes \textcolor{t_blue}{$q$} and its relation to \textcolor{t_red}{$\lambda$} ($n = 4$, $m = 7$).
+	}\label{fig:related:bum}
+\end{figure}
+In the \ac{owa} approach the \ac{bum} function $q$ is modeled as a piecewise linear spline.
+This spline is described by $m+1$ points ${\left\{ \left( \frac{j}{m}, a_j \right) \right\}}_{j = 0}^{m}$, the so-called knots of the spline. % chktex 21
+The curve of $q$ is obtained by linearly interpolating between neighboring knots as shown in \cref{fig:related:bum}.
+If $0 = a_0 \leq a_1 \leq \cdots \leq a_m = 1$, $q$ is a \ac{bum} function.
+The \ac{lta} aggregation problem is therefore solved by optimizing $a \in \mathbb{R}^{m + 1}$ under this constraint.
+The disaggregation problem is tackled by adding the scores $(y_1, \dots, y_M) \in \mathbb{R}^M$ to the learnable parameters of the model where $M$ is assumed to be the finite number of constituents.
+Currently the \ac{owa} approach requires all possible constituents to be part of the training dataset since it does not consider constituent features $x_i$ to predict the scores of unseen constituents.
 
 \section{Graph Regression and Classification}%
 \label{sec:related:gcr}

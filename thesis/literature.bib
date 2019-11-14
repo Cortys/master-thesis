@@ -31,13 +31,6 @@
   doi       = {10.1007/978-3-319-46227-1_47},
 }
 
-@Article{Melnikov2019,
-  author  = {Vitalik Melnikov and Eyke Hüllermeier},
-  title   = {Learning to Aggregate: Tackling the Aggregation/Disaggregation Problem for OWA},
-  journal = {ACML},
-  year    = {2019},
-}
-
 @Article{Narayanan2017,
   author      = {Annamalai Narayanan and Mahinthan Chandramohan and Rajasekar Venkatesan and Lihui Chen and Yang Liu and Shantanu Jaiswal},
   title       = {graph2vec: Learning Distributed Representations of Graphs},
@@ -366,6 +359,23 @@
   eprinttype  = {arXiv},
   file        = {:http\://arxiv.org/pdf/1703.00564v3:PDF},
   keywords    = {cs.LG, physics.chem-ph, stat.ML},
+}
+
+@InProceedings{Melnikov2019,
+  author    = {Melnikov, Vitalik and H{\"u}llermeier, Eyke},
+  title     = {Learning to Aggregate: Tackling the Aggregation/Disaggregation Problem for OWA},
+  booktitle = {Proceedings of The Eleventh Asian Conference on Machine Learning},
+  year      = {2019},
+  editor    = {Lee, Wee Sun and Suzuki, Taiji},
+  volume    = {101},
+  series    = {Proceedings of Machine Learning Research},
+  pages     = {1110--1125},
+  address   = {Nagoya, Japan},
+  month     = {17--19 Nov},
+  publisher = {PMLR},
+  abstract  = {The problem of “learning to aggregate” (LTA) has recently been introduced as a novel machine learning setting, in which instances are represented in the form of a composition of a (variable) number on constituents. Such compositions are associated with an evaluation, which is the target of the prediction task, and which can presumably be modeled in the form of a suitable aggregation of the properties of its constituents. An especially interesting class of LTA problems arises when the evaluations of the constituents are not available at training time, and instead ought to be learned simultaneously with the aggregation function. This scenario is referred to as the “aggregation/disaggregation problem”. In this paper, we tackle this problem for an interesting type of aggregation function, namely the Ordered Weighted Averaging (OWA) operator. In particular, we provide an algorithm for learning the OWA parameters together with local utility scores of the constituents, and evaluate this algorithm in a case study on predicting the performance of classifier ensembles.},
+  pdf       = {http://proceedings.mlr.press/v101/melnikov19a/melnikov19a.pdf},
+  url       = {http://proceedings.mlr.press/v101/melnikov19a.html},
 }
 
 @Comment{jabref-meta: databaseType:bibtex;}
