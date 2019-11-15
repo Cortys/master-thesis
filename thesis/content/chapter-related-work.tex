@@ -5,11 +5,7 @@
 
 Before combining \ac{lta} and \ac{gcr} as described in \cref{sec:intro:goals}, we first give an overview of the state-of-the-art in both fields of research.
 First the existing \ac{lta} methods for unstructured set inputs are described.
-Then we will look at the two main families of \ac{gcr} methods:
-\begin{enumerate*}
-	\item Vector representation methods
-	\item Graph neural networks
-\end{enumerate*}.
+Then we will look at the current approaches to tackle the \ac{gcr} problem.
 
 \section{Learning to Aggregate}%
 \label{sec:related:lta}
@@ -46,7 +42,7 @@ As the logical expression that thus effectively aggregates the constituents, a u
 Depending on the parameter $\lambda \in [0, 1]$, $U_{\lambda}$ combines a t-norm $T$ and a t-conorm $S$ which are continuous generalizations of logical conjunction and disjunction respectively.
 One popular choice of norms are the so-called Łukasiewicz norms:
 \begin{align}
-	\text{t-norm } T(a, b) &:= \max \{ 0, a + b - 1 \}, \quad\text{t-conorm } S(a, b) := \min \{ a + b, 1 \} \nonumber \\
+	\text{t-norm } T(a, b) &:= \max \{ 0, a + b - 1 \}, \quad\text{t-conorm } S(a, b) := \min \{ a + b, 1 \}, \nonumber \\
 	\text{uninorm } U_\lambda(a, b) &:= \begin{cases}
 		\lambda T\left(\frac{a}{\lambda}, \frac{b}{\lambda}\right) & \text{if } a, b \in [0, \lambda] \\
 		\lambda + (1 - \lambda) S\left(\frac{a - \lambda}{1 - \lambda}, \frac{b - \lambda}{1 - \lambda}\right) & \text{if } a, b \in [\lambda, 1] \\
@@ -131,9 +127,9 @@ Overall an \ac{lta} model is therefore described by the uninorm parameter $\lamb
 Recently \citet{Melnikov2019} have looked at an alternative class of aggregation functions.
 Instead of using fuzzy logic to describe score aggregation, \ac{owa} operators were used.
 \ac{owa} aggregators work by sorting the input scores and then weighting them based on their sort position, i.e.\ %
-\begin{align*}
+\begin{align}
 	\mathcal{A}_{\lambda}(y_1, \dots, y_n) := \sum_{i = 1}^n \lambda_i y_{\pi(i)},
-\end{align*}
+\end{align}
 where $\lambda \in \mathbb{R}^n$ is a weight vector with ${\|\lambda\|}_1 = 1$ and $\pi$ is a sorting permutation of the input scores with $y_i < y_j \Rightarrow \pi(i) < \pi(j)$. % chktex 21
 Depending on the choice of the vector $\lambda$, the \ac{owa} function $\mathcal{A}_\lambda$ can express common aggregation functions like
 $\min$ (if $\lambda = (1, 0, \dots, 0)$),
@@ -159,14 +155,33 @@ This spline is described by $m+1$ points ${\left\{ \left( \frac{j}{m}, a_j \righ
 The curve of $q$ is obtained by linearly interpolating between neighboring knots as shown in \cref{fig:related:bum}.
 If $0 = a_0 \leq a_1 \leq \cdots \leq a_m = 1$, $q$ is a \ac{bum} function.
 The \ac{lta} aggregation problem is therefore solved by optimizing $a \in \mathbb{R}^{m + 1}$ under this constraint.
-The disaggregation problem is tackled by adding the scores $(y_1, \dots, y_M) \in \mathbb{R}^M$ to the learnable parameters of the model where $M$ is assumed to be the finite number of constituents.
-Currently the \ac{owa} approach requires all possible constituents to be part of the training dataset since it does not consider constituent features $x_i$ to predict the scores of unseen constituents.
+The disaggregation problem is tackled by adding the scores $y_1, \dots, y_M \in \mathbb{R}$ to the learnable parameters of the model where $M$ is assumed to be the finite number of constituents.
+Currently the \ac{owa} approach requires all possible constituents to be part of the training dataset since it does not consider constituent features $x_i \in \mathcal{X}$ to predict the scores of previously unseen constituents.
 
 \section{Graph Regression and Classification}%
 \label{sec:related:gcr}
 
-\subsection{Graph Embeddings}%
+The existing approaches to tackle the \ac{gcr} problem can be categorized into three main families:
+\begin{enumerate*}
+	\item Explicit graph embeddings,
+	\item Graph kernels and
+	\item Graph neural networks
+\end{enumerate*}.
+We will now look at the characteristics of those families and give an overview of specific methods.
+
+\subsection{Explicit Graph Embeddings}%
 \label{sec:related:gcr:embed}
+
+The basic idea of graph embedding approaches is to map a graph $G$ to some finite vector space $\mathbb{R}^d$.
+By embedding a graph any classification or regression algorithm that works with vectors can then be applied.
+There are three main types of graph embedding approaches.
+
+\paragraph{Fingerprint embeddings}
+
+\paragraph{Unsupervised embeddings}
+
+\paragraph{Supervised embeddings}
+
 
 \subsection{Graph Kernels}%
 \label{sec:related:gcr:kernel}
