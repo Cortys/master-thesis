@@ -1,6 +1,6 @@
 [submodule "implementation/libs/gcn"]
 	path = implementation/libs/gcn
-	url = https://github.com/tkipf/gcn
+	url = https://github.com/Cortys/gcn
 [submodule "implementation/libs/sagpool"]
 	path = implementation/libs/sagpool
-	url = https://github.com/inyeoplee77/SAGPool
+	url = https://github.com/Cortys/SAGPool

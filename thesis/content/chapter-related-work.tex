@@ -4,8 +4,12 @@
 \label{sec:related}
 
 Before combining \ac{lta} and \ac{gcr} as described in \cref{sec:intro:goals}, we first give an overview of the state-of-the-art in both fields of research.
-First the existing \ac{lta} methods for unstructured set inputs are described.
-Then we will look at the current approaches to tackle the \ac{gcr} problem.
+This is done in three steps:
+\begin{enumerate}
+	\item We begin with an overview of the existing \ac{lta} methods for set inputs.
+	\item Before the existing \ac{gcr} methods are described, we look at the graph theoretical fundamentals on which those methods are based.
+	\item Using the previously introduced fundamentals, the current approaches to tackle the \ac{gcr} problem are then described.
+\end{enumerate}
 
 \section{Learning to Aggregate}%
 \label{sec:related:lta}
@@ -158,6 +162,15 @@ The \ac{lta} aggregation problem is therefore solved by optimizing $a \in \mathb
 The disaggregation problem is tackled by adding the scores $y_1, \dots, y_M \in \mathbb{R}$ to the learnable parameters of the model where $M$ is assumed to be the finite number of constituents.
 Currently the \ac{owa} approach requires all possible constituents to be part of the training dataset since it does not consider constituent features $x_i \in \mathcal{X}$ to predict the scores of previously unseen constituents.
 
+\section{Graph Theoretical Fundamentals}%
+\label{sec:related:theory}
+
+\subsection{Graph Isomorphism Checks}%
+\label{sec:related:theory:wl}
+
+\subsection{Spectral Graph Theory}%
+\label{sec:related:theory:spectral}
+
 \section{Graph Regression and Classification}%
 \label{sec:related:gcr}
 
@@ -172,18 +185,24 @@ We will now look at the characteristics of those families and give an overview o
 \subsection{Explicit Graph Embeddings}%
 \label{sec:related:gcr:embed}
 
-The basic idea of graph embedding approaches is to map a graph $G$ to some finite vector space $\mathbb{R}^d$.
+The basic idea of graph embedding approaches is to map a graph $G$ to some finite vector space $\mathcal{X} = \mathbb{R}^d$.
 By embedding a graph any classification or regression algorithm that works with vectors can then be applied.
-There are three main types of graph embedding approaches.
+There are three main types of explicit graph embedding approaches.
 
-\paragraph{Fingerprint embeddings}
+\subsubsection{Fingerprint embeddings}
+The first works on graph embeddings were motivated by the study of chemical structures~\cite{Adamson1973}\cite{Willett1986}.
+There a molecule can be interpreted as a labeled graph for which the \ac{gcr} problem corresponds to the prediction of some chemical property, e.g.\ toxicity or solubility.
+Fingerprint embeddings try to find a fixed set of subgraphs $S_1, \dots, S_d$ in an input graph.
+The embedding of the input graph $G$ is a binary vector $x \in {\{0, 1\}}^d$ with $x_i = \mathds{1}[\text{$S_i$ is subgraph of $G$}]$, where $\mathds{1}$ denotes the indicator function.
+This simple approach requires a careful choice of subgraphs by domain experts but can still be competitive with the other more recent approaches we will look at next.
+Fingerprint embeddings are for example used in multiple state-of-the-art toxicity prediction tools like RASAR~\cite{Luechtefeld2018}\cite{ToxTrack}, ProTox~\cite{Drwal2014}\cite{Banerjee2018}\cite{ProTox} or the \ac{toxTest}~\cite{TEST}.
 
-\paragraph{Unsupervised embeddings}
+\subsubsection{Unsupervised embeddings}
+While fingerprint embeddings use a fixed set of subgraphs to characterize a given graph, unsupervised embedding methods determine relevant substructures dynamically.
+One such method is \texttt{graph2vec}~\cite{Narayanan2017} which is based on the \texttt{doc2vec}~\cite{Le2014} document embedding method from \ac{nlp}.
+\texttt{graph2vec} takes a set of graphs $\mathbb{G} = \{ G_1, \dots, G_N \}$ as input and finds an embedding $\varphi: \mathbb{G} \to \mathbb{R}^d$ in which graphs that share isomorphic subgraphs are mapped closer to each other than those that do not.
 
-\paragraph{Supervised embeddings}
-
-
-\subsection{Graph Kernels}%
+\subsection{Implicit Graph Embeddings via Kernels}%
 \label{sec:related:gcr:kernel}
 
 \subsection{Graph Neural Networks}%
