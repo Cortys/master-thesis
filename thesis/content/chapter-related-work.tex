@@ -177,32 +177,82 @@ Currently the \ac{owa} approach requires all possible constituents to be part of
 The existing approaches to tackle the \ac{gcr} problem can be categorized into three main families:
 \begin{enumerate*}
 	\item Explicit graph embeddings,
-	\item Graph kernels and
-	\item Graph neural networks
+	\item graph kernels and
+	\item graph neural networks
 \end{enumerate*}.
 We will now look at the characteristics of those families and give an overview of specific methods.
 
 \subsection{Explicit Graph Embeddings}%
 \label{sec:related:gcr:embed}
 
-The basic idea of graph embedding approaches is to map a graph $G$ to some finite vector space $\mathcal{X} = \mathbb{R}^d$.
-By embedding a graph any classification or regression algorithm that works with vectors can then be applied.
-There are three main types of explicit graph embedding approaches.
+The basic idea of explicit graph embedding approaches is to map a graph $G \in \mathbb{G}$ to some vector in a finite vector space $\mathcal{X} = \mathbb{R}^d$.
+A function $f: \mathbb{G} \to \mathcal{X}$ is called a \textit{graph embedding function}.
+By embedding a graph into $\mathcal{X}$, any classification or regression algorithm that works with vectors can then be applied to solve the \ac{gcr} problem.
+
+The so-called vertex embedding problem is closely related to the graph embedding problem.
+As the name suggests, a \textit{vertex embedding function} $f_G: V \to \mathcal{X}$ maps all vertices $v \in V$ of a graph $G$ into $\mathcal{X}$.
+The embedding vector $f_G(v)$ ideally encodes relevant information about a vertex and its structural position in $G$.
+It can be used to solve the vertex classification and regression problem via arbitrary \ac{ml} methods for vectors.
+We will now look at three main families of explicit graph and vertex embedding approaches.
 
 \subsubsection{Fingerprint embeddings}
+
 The first works on graph embeddings were motivated by the study of chemical structures~\cite{Adamson1973}\cite{Willett1986}.
 There a molecule can be interpreted as a labeled graph for which the \ac{gcr} problem corresponds to the prediction of some chemical property, e.g.\ toxicity or solubility.
-Fingerprint embeddings try to find a fixed set of subgraphs $S_1, \dots, S_d$ in an input graph.
-The embedding of the input graph $G$ is a binary vector $x \in {\{0, 1\}}^d$ with $x_i = \mathds{1}[\text{$S_i$ is subgraph of $G$}]$, where $\mathds{1}$ denotes the indicator function.
-This simple approach requires a careful choice of subgraphs by domain experts but can still be competitive with the other more recent approaches we will look at next.
+So-called \textit{fingerprint embeddings} try to match a fixed set of subgraphs $S_1, \dots, S_d$ to the input graph.
+The embedding of a graph $G$ is a binary vector $f(G) = x \in {\{0, 1\}}^d$ with $x_i = \mathds{1}[\text{$S_i$ is subgraph of $G$}]$, where $\mathds{1}$ denotes the indicator function.
+This simple approach usually requires a careful choice of subgraphs but can still be competitive with the other more recent approaches we will look at in the following sections.
 Fingerprint embeddings are for example used in multiple state-of-the-art toxicity prediction tools like RASAR~\cite{Luechtefeld2018}\cite{ToxTrack}, ProTox~\cite{Drwal2014}\cite{Banerjee2018}\cite{ProTox} or the \ac{toxTest}~\cite{TEST}.
 
-\subsubsection{Unsupervised embeddings}
-While fingerprint embeddings use a fixed set of subgraphs to characterize a given graph, unsupervised embedding methods determine relevant substructures dynamically.
-One such method is \texttt{graph2vec}~\cite{Narayanan2017} which is based on the \texttt{doc2vec}~\cite{Le2014} document embedding method from \ac{nlp}.
-\texttt{graph2vec} takes a set of graphs $\mathbb{G} = \{ G_1, \dots, G_N \}$ as input and finds an embedding $\varphi: \mathbb{G} \to \mathbb{R}^d$ in which graphs that share isomorphic subgraphs are mapped closer to each other than those that do not.
+\subsubsection{Matrix factorization embeddings}
 
-\subsection{Implicit Graph Embeddings via Kernels}%
+\subsubsection{Skip-gram inspired embeddings}
+
+Skip-gram embeddings were introduced by \citeauthor{Mikolov2013} as part of the well-known \texttt{word2vec}~\cite{Mikolov2013} word embedding method from \ac{nlp}.
+While a fingerprint embedding explicitly assigns an interpretation to each embedding dimension (i.e.\ to each standard basis vector), a skip-gram embedding only optimizes the distance between embedding vectors based on the similarity of the embedded instances without providing an interpretation of the embedding dimensions.
+
+\paragraph{word2vec}
+Let us first look at the \texttt{word2vec} skip-gram method.
+It gets a sequence of words $(w_0, \dots, w_n)$ as input and outputs embedding vectors $f(w_0), \dots, f(w_n) \in \mathbb{R}^d$.
+To do this the context $C_k(w_i) = \{ w_{i-k}, \dots, w_{i + k} \}$ is computed for all words where $w_i$ is the so-called \textit{context root}.
+The word contexts are then used to optimize the following log-likelihood objective:
+\begin{gather}
+	\max_{f, f_C} \sum_{i = 1}^n \log P(C_k(w_i) | w_i)\ =\ \max_{f, f_C} \sum_{i = 1}^n \smashoperator[r]{\sum_{w_j \in C_k(w_i)}}\, \left[ {f(w_i)}^\top f_C(w_j) - \log Z_{w_i} \right] \label{eq:related:gcr:embed:word2vec}\\
+	\text{with } P(C_k(w_i) | w_i) := \prod_{\mathclap{w_j \in C_k(w_i)}}\, \overbrace{\frac{\exp\left({f(w_i)}^\top f_C(w_j)\right)}{Z_{w_i}}}^{P(w_j | w_i)}
+	\text{ and } Z_{w_i} := \sum_{j = 1}^n \exp\left({f(w_i)}^\top f_C(w_j)\right) \nonumber
+\end{gather}
+\texttt{word2vec} essentially uses an expectation maximization scheme to maximize the probabilities $P(w_j | w_i)$ of observing the context words $w_j \in C_k(w_i)$ of all words $w_i$.
+Those probabilities are described by the overlap of the embeddings $f(w_i)$ of words $w_i$ and the embeddings $f_C(w_j)$ of their context words $w_j$.
+Intuitively this means that words with similar contexts will be mapped close to each other in the embedding space.
+Note that \texttt{word2vec} actually finds two embeddings $f(w)$ and $f_C(w)$ for each word of which only the first is returned.
+The two embeddings represent two different perspectives on words: $f$ describes a word $w_i$ as the root of a context $C_k(w_i)$, $f_C$ on the other hand describes a word $w_j$ as part of a context $C_k(w_i) \ni w_j$.
+
+\paragraph{Vertex embeddings}
+Skip-gram embeddings can be  na{\"\i}vely extended to graphs by realizing that \texttt{word2vec} effectively already is a vertex embedding method for linear graphs in which $C_k(v)$ is simply the $k$-neighborhood of the vertex/word $v$.
+The problem with this na{\"\i}ve extension is that the sizes of $k$-neighborhoods in arbitrary graphs can be much larger and often tend to grow exponentially with $k$.
+To deal with this computational problem the so-called DeepWalk~\cite{Perozzi2014} and \texttt{node2vec}~\cite{Grover2016} methods perform random walks of fixed length to effectively take samples from the neighborhood of vertices.
+Both methods only differ in the transition matrix that is used for the random walk.
+Another difference of DeekWalk and \texttt{node2vec} compared to \texttt{word2vec} is the so-called \textit{feature space symmetry} which states that the context root interpretation ($f$) of a vertex should be symmetric to its context element interpretation ($f_C$), i.e.\ $f = f_C$.
+The combination of random walk context sampling and and the feature space symmetry assumption can be used to compute vertex embeddings even for very large graphs.
+
+\paragraph{Graph embeddings}
+Skip-gram methods can not only be used for vertex embeddings but also to embed entire graphs.
+One way to do this is via the \texttt{graph2vec}~\cite{Narayanan2017} method.
+It is inspired by \texttt{doc2vec}~\cite{Le2014} which in turn is based on \texttt{word2vec}.
+\texttt{graph2vec} gets a set of graphs $\mathbb{G} = \{ G_1, \dots G_N \}$ as input and outputs graph embeddings $f(G_1), \dots, f(G_N)$.
+While in \texttt{word2vec} every word can be a context root as well as a context element, \texttt{graph2vec} uses the graphs $\mathbb{G}$ as context roots.
+The context $C_k(G_i)$ of a graph $G_i = (\mathcal{V}_i, \mathcal{E}_i)$ is defined as
+\begin{equation}
+	C_k(G_i) := \bigcup_{l = 0}^k {\left\{ {\textrm{WL}_l(G_i)}_j \right\}}_{v_j \in \mathcal{V}_i} % chktex 21
+	\text{ with } \textrm{WL}_l(G) := \text{\acs{wl} colors after $l$ iter.\ on $G$.}
+\end{equation}
+Intuitively this context can be understood as the set of isomorphically distinct subgraphs of $G_i$ with diameter $\leq 2k$.
+Since \ac{wl} is used to identify isomorphic subgraphs, \texttt{graph2vec} can only be applied to graphs with discrete vertex labels.
+Using the previous definitions, the context root embedding function has the signature $f: \mathbb{G} \to \mathbb{R}^d$ while the context element embedding function is of type $f_C: \bigcup_{G_i \in \mathbb{G}} C_k(G_i) \to \mathbb{R}^d$.
+To find those embeddings the \texttt{word2vec} objective from \cref{eq:related:gcr:embed:word2vec} is reused.
+Analogous to \texttt{word2vec}, \texttt{graph2vec} therefore embeds graphs that share isomorphic subgraphs close to each other, whereas graphs that do not share substructures tend to be embedded further away from each other.
+
+\subsection{Graph Kernels}%
 \label{sec:related:gcr:kernel}
 
 \subsection{Graph Neural Networks}%
