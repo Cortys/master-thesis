@@ -54,9 +54,12 @@ embedding
   laplacian factorization
   proximity matrix factorization
 kernel
-  wl
-  shortest path
-  graphlet
+  r-conv introduction
+  neighborhood aggregation: wl
+  matching: optimal assignment
+  subgraph: (vertex label), graphlet
+  walks: shortest path, direct product kernel
+  continuous label: graphinvariant
 deep learning
   neural network (take from proposal)
     spatial

@@ -244,14 +244,18 @@ The context $C_k(G_i)$ of a graph $G_i = (\mathcal{V}_i, \mathcal{E}_i)$ is defi
 	C_k(G_i) := \bigcup_{\mathclap{v_j \in \mathcal{V}_i}}\, {\left\{ {\textrm{WL}_l(G_i)}_j \right\}}_{l = 0}^k % chktex 21
 	\text{ with } \textrm{WL}_l(G) := \text{\acs{wl} colors after $l$ iter.\ on $G$.}
 \end{equation}
-Intuitively this context can be understood as the set of isomorphically distinct subgraphs of $G_i$ with diameter $\leq 2k$.
-Since \ac{wl} is used to identify isomorphic subgraphs, \texttt{graph2vec} can only be applied to graphs with discrete vertex labels.
+Intuitively this context can be understood as the set of \acs{wl}-distinguishable subgraphs of $G_i$ with diameter $\leq 2k$.
+Since \ac{wl} is used to identify distinct subgraphs, \texttt{graph2vec} can only be applied to graphs with discrete vertex labels.
 Using the previous definitions, the context root embedding function has the signature $f: \mathbb{G} \to \mathbb{R}^d$ while the context element embedding function is of type $f_C: \bigcup_{G_i \in \mathbb{G}} C_k(G_i) \to \mathbb{R}^d$.
 To find those embeddings the \texttt{word2vec} objective from \cref{eq:related:gcr:embed:word2vec} is reused.
-Analogous to \texttt{word2vec}, \texttt{graph2vec} therefore embeds graphs that share isomorphic subgraphs close to each other, whereas graphs that do not share substructures tend to be embedded further away from each other.
+Analogous to \texttt{word2vec}, \texttt{graph2vec} therefore embeds graphs that share subgraphs close to each other, whereas graphs that do not share substructures tend to be embedded further away from each other.
 
 \subsection{Graph Kernels}%
 \label{sec:related:gcr:kernel}
+
+Instead of explicity mapping a graph or vertices into a vector space, one can also do so implicity by employing the kernel trick.
+There is a large variety of so-called \acp{gk} to do this.
+\acp{gk} can be used in combination with any kernel method to solve the \ac{gcr} problem.
 
 \subsection{Graph Neural Networks}%
 \label{sec:related:gcr:nn}
