@@ -2,6 +2,9 @@ FROM tensorflow/tensorflow:2.0.0-gpu-py3-jupyter
 
 RUN pip3 install jupyter_kernel_gateway jupyterlab
 
+ADD requirements.txt requirements.txt
+RUN pip3 install -r requirements.txt
+
 WORKDIR /ltag
 
 CMD ["bash", "-c", "source /etc/bash.bashrc && jupyter lab --notebook-dir=/ltag --ip 0.0.0.0 --no-browser --allow-root"]
