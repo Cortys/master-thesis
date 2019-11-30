@@ -4,29 +4,38 @@ from __future__ import absolute_import, division, print_function,\
 import tensorflow as tf
 from tensorflow import keras
 import numpy as np
+from datetime import datetime
 import networkx as nx
 import matplotlib.pyplot as plt
 
 import ltag.datasets.synthetic as synthetic
 import ltag.models as models
 
+log_dir = "../logs"
+
 ds = synthetic.loop_dataset(1000).batch(30)
 
-model = models.EFGCN()
+model = models.LTA_GCN()
 model.summary()
 
-model.compile(optimizer=keras.optimizers.Adam(0.01),
-              loss="mse", metrics=["mae"])
+model.get_weights()
+
+model.compile(optimizer=keras.optimizers.Adam(0.01), loss="mse", metrics=["mae"])
 
 ds.element_spec, model.input_shape, model.output_shape
 
-model.predict(ds)[100]
+model.predict(ds)
 
 list(ds.take(1))[0][0][0].shape
 list(ds.take(1))[0][1].shape
 
-hist = model.fit(ds, epochs=10)
+def train():
+  t = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+  tb_callback = keras.callbacks.TensorBoard(
+    log_dir=f"{log_dir}/{t}/",
+    histogram_freq=1,
+    write_images=True)
+  model.fit(ds, epochs=10, callbacks=[tb_callback])
 
-plt.plot(hist.history["loss"])
-plt.title("Loss")
-plt.show()
+
+train()

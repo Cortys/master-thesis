@@ -13,6 +13,18 @@ def EFGCN(in_dim=1, hidden_dim=10, out_dim=1):
 
   h_1 = EFGCNLayer(hidden_dim)(inputs)
   h_2 = EFGCNLayer(out_dim)(h_1)
-  y = h_2[0]
+  Y = h_2[0]
 
-  return keras.Model(inputs=inputs, outputs=y, name="EFGCN")
+  return keras.Model(inputs=inputs, outputs=Y, name="EFGCN")
+
+def LTA_GCN(in_dim=1, hidden_dim=1, out_dim=1):
+  efgcn = EFGCN(in_dim, hidden_dim, out_dim)
+
+  X = keras.Input(shape=(None, in_dim), name="X")
+  A = keras.Input(shape=(None, None), name="A")
+  inputs = (X, A)
+
+  Y = efgcn((X, A))
+  y = tf.reduce_mean(Y, 1)
+
+  return keras.Model(inputs=inputs, outputs=y, name="LTA_GCN")
