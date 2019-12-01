@@ -70,7 +70,7 @@ def loop_graph(loop_count, loop_sizes, loop_scores):
   g = nx.Graph()
   i = 0
   x = []
-  y = 12
+  y = 0.0
   sizes_count = len(loop_sizes)
 
   for _ in range(loop_count):
@@ -80,11 +80,12 @@ def loop_graph(loop_count, loop_sizes, loop_scores):
     nodes = range(i, i + size)
     i += size
     x += [[1]] * size
-    # y += score
+    y += score
 
     nx.add_cycle(g, nodes)
 
   adj = nx.to_numpy_array(g)
+  y /= loop_count
 
   return np.array(x), adj, [y]
 

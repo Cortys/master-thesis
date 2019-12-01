@@ -13,7 +13,7 @@ import ltag.models as models
 
 log_dir = "../logs"
 
-ds = synthetic.loop_dataset(1000).batch(30)
+ds = synthetic.loop_dataset(1000).batch(50)
 
 model = models.LTA_GCN()
 model.summary()
@@ -35,7 +35,8 @@ def train():
     log_dir=f"{log_dir}/{t}/",
     histogram_freq=1,
     write_images=True)
-  model.fit(ds, epochs=10, callbacks=[tb_callback])
+
+  model.fit(ds, epochs=30, callbacks=[tb_callback])
 
 
 train()
