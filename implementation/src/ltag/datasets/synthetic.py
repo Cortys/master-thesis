@@ -6,6 +6,9 @@ import networkx as nx
 
 from ltag.datasets.utils import tf_dataset_generator
 
+def unzip(tuples):
+  return list(zip(*tuples))
+
 # Dumbbell:
 def dumbbell_graph(n, m, crossing_prob):
   g = nx.Graph()
@@ -94,8 +97,59 @@ def loop_dataset(
   N, loop_counts=default_loop_counts, loop_sizes=default_loop_sizes,
   loop_scores=default_loop_scores):
 
-  x, adjs, y = list(zip(*[
+  x, adjs, y = unzip([
     loop_graph(np.random.choice(loop_counts), loop_sizes, loop_scores)
-    for _ in range(N)]))
+    for _ in range(N)])
+
+  return np.array(x), np.array(adjs), np.array(y)
+
+
+# Triangles:
+def triangle_graph(a=1, b=1, mix=1):
+  g = nx.Graph()
+  i = 0
+  x = []
+  ab_split = a * 3
+  e = np.eye(2)
+
+  for _ in range(a + b):
+    t = range(i, i + 3)
+
+    nx.add_cycle(g, t)
+    x += [e[0], e[0], e[0]] if i < ab_split else [e[1], e[1], e[1]]
+    i += 3
+
+  if a <= b:
+    pairing_count = a
+    pairing_a = 0
+    pairing_b = ab_split
+  else:
+    pairing_count = b
+    pairing_a = ab_split
+    pairing_b = 0
+
+  for j in range(pairing_count):
+    g.add_edge(pairing_a + j * 3, pairing_b + j * 3)
+    g.add_edge(pairing_a + j * 3 + 1, pairing_b + j * 3 + 1)
+    g.add_edge(pairing_a + j * 3 + 2, pairing_b + j * 3 + 2)
+
+  for _ in range(mix):
+    nx.add_cycle(g, range(i, i + 3))
+    x += [e[0], e[0], e[1]]
+    i += 3
+
+  y = (a - b) / max(a + b, 1)
+
+  return np.array(x), nx.to_numpy_array(g), y
+
+@tf_dataset_generator
+def triangle_dataset():
+  configs = [
+    [1, 1, 1], [1, 0, 0], [0, 1, 0], [0, 0, 1],
+    [0, 0, 3], [3, 2, 1], [2, 3, 1]] #, [10, 5, 3], [4, 7, 2]]
+
+  # configs = [[1, 1, 0], [1, 0, 0], [0, 1, 0]]
+
+  x, adjs, y = unzip([triangle_graph(*config) for config in configs])
 
   return np.array(x), np.array(adjs), np.array(y)

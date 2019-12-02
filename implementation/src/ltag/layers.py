@@ -40,6 +40,6 @@ class EFGCNLayer(keras.layers.Layer):
     XW = tf.linalg.matmul(X, self.W)
     XWA = tf.linalg.matmul(A_norm, XW)
 
-    X_out = tf.nn.leaky_relu(XWA + self.bias)
+    X_out = tf.nn.tanh(XWA + self.bias)
 
     return X_out, A

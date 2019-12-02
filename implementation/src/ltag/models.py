@@ -22,9 +22,10 @@ def LTA_GCN(in_dim=1, hidden_dim=1, out_dim=1):
 
   X = keras.Input(shape=(None, in_dim), name="X")
   A = keras.Input(shape=(None, None), name="A")
-  inputs = (X, A)
+  n = keras.Input(shape=(), name="n")
+  inputs = (X, A, n)
 
   Y = efgcn((X, A))
-  y = tf.reduce_mean(Y, 1)
+  y = tf.transpose(tf.math.divide_no_nan(tf.transpose(tf.reduce_sum(Y, 1)), n))
 
   return keras.Model(inputs=inputs, outputs=y, name="LTA_GCN")

@@ -10,24 +10,23 @@ import matplotlib.pyplot as plt
 
 import ltag.datasets.synthetic as synthetic
 import ltag.models as models
+import ltag.datasets.utils as ds_utils
 
 log_dir = "../logs"
 
-ds = synthetic.loop_dataset(1000).batch(50)
+ds_raw = synthetic.triangle_dataset()
 
-model = models.LTA_GCN()
-model.summary()
+ds_utils.draw_from_ds(ds_raw, 0)
+
+ds = ds_raw.batch(50)
+
+model = models.LTA_GCN(2, 2)
+
+model.compile(optimizer=keras.optimizers.Adam(0.1), loss="mse", metrics=["mae"])
 
 model.get_weights()
 
-model.compile(optimizer=keras.optimizers.Adam(0.01), loss="mse", metrics=["mae"])
-
-ds.element_spec, model.input_shape, model.output_shape
-
-model.predict(ds)
-
-list(ds.take(1))[0][0][0].shape
-list(ds.take(1))[0][1].shape
+list(ds)
 
 def train():
   t = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -36,7 +35,8 @@ def train():
     histogram_freq=1,
     write_images=True)
 
-  model.fit(ds, epochs=30, callbacks=[tb_callback])
+  model.fit(ds, epochs=50, callbacks=[tb_callback])
 
 
 train()
+model.predict(ds), np.array(list(map(lambda x: x[1].numpy(), list(ds_raw))))

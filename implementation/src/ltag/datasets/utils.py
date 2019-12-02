@@ -9,7 +9,8 @@ def to_tf(x, adjs, y):
   return tf.data.Dataset.from_tensor_slices((
     (
       tf.cast(tf.ragged.constant(x).to_tensor(), tf.float32),
-      tf.cast(tf.ragged.constant(adjs).to_tensor(), tf.float32)
+      tf.cast(tf.ragged.constant(adjs).to_tensor(), tf.float32),
+      tf.cast(tf.constant([s.shape[0] for s in x]), tf.float32)
     ),
     tf.cast(tf.constant(y), tf.float32)
   ))
@@ -23,5 +24,24 @@ def tf_dataset_generator(f):
 def draw_graph(x, adj, y):
   plt.figure()
   plt.title('Label: {}'.format(y))
-  nx.draw_spring(nx.from_numpy_array(adj))
+
+  g = nx.from_numpy_array(adj)
+
+  nx.relabel_nodes(g, dict([
+    (i, str(x[i]))
+    for i in range(x.shape[0])
+  ]))
+
+  nx.draw_spring(g, with_labels=True)
   plt.show()
+
+def draw_from_ds(ds, i):
+  (x, adj, n), y = list(ds)[i]
+  x = x.numpy()
+  adj = adj.numpy()
+  y = y.numpy()
+
+  x = x[:n, :]
+  adj = adj[:n, :n]
+
+  draw_graph(x, adj, y)
