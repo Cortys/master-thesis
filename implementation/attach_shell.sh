@@ -2,7 +2,7 @@
 
 USER="-u $(id -u):$(id -g)"
 
-if [ $1 == "root" ]; then
+if [ "$1" == "root" ]; then
 	USER="-u 0:0"
 fi
 
