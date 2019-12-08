@@ -1,1 +1,2 @@
 networkx==2.4
+funcy==1.14

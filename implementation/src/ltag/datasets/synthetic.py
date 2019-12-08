@@ -144,12 +144,34 @@ def triangle_graph(a=1, b=1, mix=1):
 
 @tf_dataset_generator
 def triangle_dataset():
-  configs = [
-    [1, 1, 1], [1, 0, 0], [0, 1, 0], [0, 0, 1],
-    [0, 0, 3], [3, 2, 1], [2, 3, 1]] #, [10, 5, 3], [4, 7, 2]]
+  # configs = [
+  #   [1, 1, 1], [1, 0, 0], [0, 1, 0], [0, 0, 1],
+  #   [0, 0, 3], [3, 2, 1], [2, 3, 1]]
 
-  # configs = [[1, 1, 0], [1, 0, 0], [0, 1, 0]]
+  configs = [
+    [i, j, 0]
+    for i in range(0, 10)
+    for j in range(0, 10)
+    # for k in range(0, 10)
+  ]
 
   x, adjs, y = unzip([triangle_graph(*config) for config in configs])
+
+  return np.array(x), np.array(adjs), np.array(y)
+
+@tf_dataset_generator
+def twothree_dataset():
+  g2 = nx.Graph()
+  g2.add_edge(0, 1)
+
+  g3 = nx.Graph()
+  nx.add_cycle(g3, range(3))
+
+  x, adjs, y = unzip([
+    [np.array([[1], [1]]), nx.to_numpy_array(g2), -1],
+    [np.array([[1], [1], [1]]), nx.to_numpy_array(g3), 1],
+  ])
+
+  print(x, adjs, y)
 
   return np.array(x), np.array(adjs), np.array(y)
