@@ -5,19 +5,27 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 import networkx as nx
 
-def to_tf(x, adjs, y):
+def to_tf(x, adjs, y, ragged=False):
+  x_in = x
+  x = tf.ragged.constant(x)
+  adjs = tf.ragged.constant(adjs)
+
+  if not ragged:
+    x = x.to_tensor()
+    adjs = adjs.to_tensor()
+
   return tf.data.Dataset.from_tensor_slices((
     (
-      tf.cast(tf.ragged.constant(x).to_tensor(), tf.float32),
-      tf.cast(tf.ragged.constant(adjs).to_tensor(), tf.float32),
-      tf.cast(tf.constant([s.shape[0] for s in x]), tf.float32)
+      tf.cast(x, tf.float32),
+      tf.cast(adjs, tf.float32),
+      tf.constant([s.shape[0] for s in x_in], dtype=tf.int32)
     ),
     tf.cast(tf.constant(y), tf.float32)
   ))
 
 def tf_dataset_generator(f):
-  def w(*args):
-    return to_tf(*f(*args))
+  def w(*args, ragged=False):
+    return to_tf(*f(*args), ragged=ragged)
 
   return w
 

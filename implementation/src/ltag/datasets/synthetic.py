@@ -172,6 +172,4 @@ def twothree_dataset():
     [np.array([[1], [1], [1]]), nx.to_numpy_array(g3), 1],
   ])
 
-  print(x, adjs, y)
-
   return np.array(x), np.array(adjs), np.array(y)

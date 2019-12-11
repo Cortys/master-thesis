@@ -13,6 +13,7 @@ class EFGCNLayer(keras.layers.Layer):
     k_dim=0, k_act="sigmoid",
     normalize_adj=True):
     super(EFGCNLayer, self).__init__()
+
     self.num_outputs = num_outputs
     self.act = keras.activations.get(act)
     self.k_dim = k_dim
@@ -30,7 +31,7 @@ class EFGCNLayer(keras.layers.Layer):
     return base_config
 
   def build(self, input_shape):
-    X_shape, A_shape = input_shape
+    X_shape, A_shape, n_shape = input_shape
 
     vert_dim = X_shape[-1]
 
@@ -50,7 +51,7 @@ class EFGCNLayer(keras.layers.Layer):
         trainable=True, initializer=tf.initializers.Zeros)
 
   def call(self, input):
-    X, A = input
+    X, A, n = input
 
     X_dim = tf.shape(X)
     Id = tf.eye(X_dim[-2], batch_shape=X_dim[:-2])
@@ -70,10 +71,51 @@ class EFGCNLayer(keras.layers.Layer):
 
     X_out = self.act(XWA)
 
+    return X_out, A, n
 
-    XW = tf.linalg.matmul(X, self.W)
-    XWA = tf.linalg.matmul(A_norm, XW)
 
-    X_out = tf.nn.tanh(XWA + self.bias)
+class EF2GCNLayer(keras.layers.Layer):
+  def __init__(
+    self, num_outputs,
+    act="relu",
+    normalize_adj=True):
+    super(EF2GCNLayer, self).__init__()
+    self.num_outputs = num_outputs
+    self.act = keras.activations.get(act)
+    self.normalize_adj = normalize_adj
+
+  def get_config(self):
+    base_config = super(EFGCNLayer, self).get_config()
+    base_config["num_outputs"] = self.num_outputs
+    base_config["act"] = keras.activations.serialize(self.act)
+    base_config["normalize_adj"] = self.normalize_adj
+
+    return base_config
+
+  def build(self, input_shape):
+    X_shape, A_shape = input_shape
+    vert_dim = X_shape[-1]
+
+    self.W = self.add_weight(
+      "W", shape=[vert_dim, self.num_outputs],
+      trainable=True, initializer=tf.initializers.GlorotUniform)
+    self.W_bias = self.add_weight(
+      "W_bias", shape=[self.num_outputs],
+      trainable=True, initializer=tf.initializers.Zeros)
+
+  def call(self, input):
+    X, A, n = input
+
+    A_dim = tf.shape(A)
+    Id = tf.eye(A_dim[-2], batch_shape=A_dim[:-2])
+    AI = A + Id
+
+    if self.normalize_adj:
+      AI = ops.normalize_mat(AI)
+
+    XW = tf.nn.bias_add(tf.linalg.matmul(X, self.W), self.W_bias)
+    XWA = tf.linalg.matmul(AI, XW)
+
+    X_out = self.act(XWA)
 
     return X_out, A

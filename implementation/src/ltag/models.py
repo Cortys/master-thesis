@@ -10,7 +10,8 @@ from ltag.layers import EFGCNLayer
 def gcn(layer, layer_dims=[], **kwargs):
   X = keras.Input(shape=(None, layer_dims[0]), name="X")
   A = keras.Input(shape=(None, None), name="A")
-  inputs = (X, A)
+  n = keras.Input(shape=(), dtype=tf.int32, name="n")
+  inputs = (X, A, n)
 
   h = inputs
   for f_dim in layer_dims[1:]:
@@ -31,10 +32,19 @@ def as_model(name, io_fn, *args, **kwargs):
 
 
 def avg_agg(io):
-  (X, A), Y = io
+  (X, A, n), Y = io
 
-  n = keras.Input(shape=(), name="n")
-  y = tf.transpose(tf.math.divide_no_nan(tf.transpose(tf.reduce_sum(Y, 1)), n))
+  Y_shape = tf.shape(Y)
+  max_n = Y_shape[-2]
+  n_mask = tf.broadcast_to(
+    tf.expand_dims(tf.sequence_mask(n, maxlen=max_n), 2), Y_shape)
+
+  Y = tf.where(n_mask, Y, tf.zeros_like(Y))
+
+  y = tf.transpose(
+    tf.math.divide_no_nan(
+      tf.transpose(tf.reduce_sum(Y, 1)),
+      tf.cast(n, tf.float32)))
 
   return (X, A, n), y
 
