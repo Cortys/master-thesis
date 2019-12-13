@@ -19,7 +19,7 @@ ds = ds_raw.batch(50)
 
 # -%% codecell
 
-model = models.AVG_EFGCN([1, 4, 1], act="tanh", k_dim=0)
+model = models.AVG_EF2GCN([1, 4, 1], act="tanh")
 opt = keras.optimizers.Adam(0.1)
 
 model.compile(optimizer=opt, loss="mse", metrics=["mae"])
@@ -38,6 +38,8 @@ def train(label=None):
 
   model.fit(ds, epochs=30, callbacks=[tb_callback])
 
+
+# -%% codecell
 
 train("twothree_filtered_4")
 
