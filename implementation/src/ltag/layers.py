@@ -93,10 +93,11 @@ class EF2GCNLayer(keras.layers.Layer):
     X_shape, n_shape = input_shape
     edge_dim = X_shape[-1]
 
-    print("build", X_shape, edge_dim, self.num_outputs)
-
     self.W = self.add_weight(
       "W", shape=[edge_dim, self.num_outputs],
+      trainable=True, initializer=tf.initializers.GlorotUniform)
+    self.W_prop = self.add_weight(
+      "W_prop", shape=[edge_dim, self.num_outputs],
       trainable=True, initializer=tf.initializers.GlorotUniform)
     self.W_bias = self.add_weight(
       "W_bias", shape=[self.num_outputs],
@@ -107,8 +108,10 @@ class EF2GCNLayer(keras.layers.Layer):
 
     X_prop = ops.edge_feature_aggregation(X, tf.multiply)
 
-    XW = tf.nn.bias_add(tf.linalg.matmul(X_prop, self.W), self.W_bias)
-
-    X_out = self.act(XW)
+    XW = tf.linalg.matmul(X, self.W)
+    XW_prop = tf.linalg.matmul(X_prop, self.W_prop)
+    XW_comb = tf.nn.bias_add(XW + XW_prop, self.W_bias)
+    XW_filtered = XW_comb
+    X_out = self.act(XW_filtered)
 
     return X_out, n

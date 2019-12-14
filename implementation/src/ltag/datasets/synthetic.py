@@ -38,8 +38,10 @@ def fiedler_approximation_dataset(
     for _ in range(N)]
 
   adjs = np.array([nx.to_numpy_array(g) for g in graphs])
-  x = [np.ones(adjs[i].shape[0], 1) for i in range(N)]
-  y = np.array([[nx.algebraic_connectivity(g)] for g in graphs])
+  x = [np.ones((adjs[i].shape[0], 1)) for i in range(N)]
+  y = np.array([
+    [nx.linalg.algebraicconnectivity.algebraic_connectivity(g, normalized=True)]
+    for g in graphs])
 
   return x, adjs, y
 
@@ -58,8 +60,10 @@ def regular_dataset(N, sizes=default_regular_sizes):
     regular_graph(*sizes[np.random.choice(len(sizes))]) for _ in range(N)]
 
   adjs = np.array([nx.to_numpy_array(g) for g in graphs])
-  x = [np.ones(adjs[i].shape[0], 1) for i in range(N)]
-  y = np.array([[nx.number_connected_components(g)] for g in graphs])
+  x = [np.ones((adjs[i].shape[0], 1)) for i in range(N)]
+  y = np.array([
+    [nx.number_connected_components(graphs[i]) / adjs[i].shape[0]]
+    for i in range(N)])
 
   return x, adjs, y
 

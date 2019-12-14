@@ -2,41 +2,32 @@ from __future__ import absolute_import, division, print_function,\
   unicode_literals
 
 import tensorflow as tf
-import funcy as fy
 from tensorflow import keras
 
+import ltag.chaining.pipeline as cp
+import ltag.chaining.model as cm
 from ltag.layers import EFGCNLayer, EF2GCNLayer
 
-def gcn(
-  layer, layer_dims=[],
-  input_transformer=None,
-  **kwargs):
-
+@cm.model_inputs
+def gcn_inputs(layer_dims):
   X = keras.Input(shape=(None, layer_dims[0]), name="X")
   A = keras.Input(shape=(None, None), name="A")
   n = keras.Input(shape=(), dtype=tf.int32, name="n")
-  inputs = (X, A, n)
 
-  h = input_transformer(inputs) if input_transformer else inputs
+  return (X, A, n)
+
+@cm.model_step
+def with_layers(inputs, layer, layer_dims, **kwargs):
+  layer = cp.tolerant(layer)
+  h = inputs
 
   for f_dim in layer_dims[1:]:
     h = layer(f_dim, **kwargs)(h)
 
-  Y = h[0]
+  return h
 
-  return inputs, Y
-
-
-def as_model(name, io_fn, *args, **kwargs):
-  def Model(*args2, **kwargs2):
-    inputs, output = io_fn(*args, *args2, **kwargs, **kwargs2)
-
-    return keras.Model(inputs=inputs, outputs=output, name=name)
-
-  return Model
-
-
-def edge_featured_inputs(inputs):
+@cm.model_step
+def with_edge_featured_propagation(inputs):
   X, A, n = inputs
 
   X_t = tf.linalg.matrix_transpose(X)
@@ -49,7 +40,11 @@ def edge_featured_inputs(inputs):
 
   return AX_e, n
 
+@cm.model_step
+def select_features(inputs):
+  return inputs[0]
 
+@cp.pipeline_step
 def avg_verts(io):
   (X, A, n), Y = io
 
@@ -67,7 +62,7 @@ def avg_verts(io):
 
   return (X, A, n), y
 
-
+@cp.pipeline_step
 def avg_edges(io):
   (X, A, n), Y = io
 
@@ -89,20 +84,19 @@ def avg_edges(io):
 
   return (X, A, n), y
 
-
-# Vertex models:
-
-EFGCN = as_model("EFGCN", gcn, EFGCNLayer)
-
-EF2GCN = as_model(
-  "EF2GCN", gcn, EF2GCNLayer, input_transformer=edge_featured_inputs)
+def gcn_model(name, steps):
+  return cm.create_model(name, [gcn_inputs, *steps])
 
 
-# Averaging models:
+# Non-aggregating GCNs:
 
-AVG_EFGCN = as_model("AVG_EFGCN", fy.rcompose(gcn, avg_verts), EFGCNLayer)
+EFGCN = gcn_model("EFGCN", [with_layers(EFGCNLayer), select_features])
+EF2GCN = gcn_model("EF2GCN", [
+  with_edge_featured_propagation,
+  with_layers(EF2GCNLayer),
+  select_features])
 
-AVG_EF2GCN = as_model(
-  "AVG_EF2GCN", fy.rcompose(gcn, avg_edges),
-  EF2GCNLayer,
-  input_transformer=edge_featured_inputs)
+# Averaging GCNs:
+
+AVG_EFGCN = EFGCN.extend("AVG_EFGCN", [avg_verts])
+AVG_EF2GCN = EF2GCN.extend("EF2GCN", [avg_edges])
