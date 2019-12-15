@@ -40,6 +40,6 @@ def train(label=None):
 
 
 # -%% codecell
-train("fiedler_dataset_wl2")
+train("triangle_dataset_wl2")
 
 model.predict(ds), np.array(list(map(lambda x: x[1].numpy(), list(ds_raw))))

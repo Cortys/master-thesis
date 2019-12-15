@@ -6,6 +6,7 @@ from tensorflow import keras
 
 import ltag.chaining.pipeline as cp
 import ltag.chaining.model as cm
+import ltag.ops as ops
 from ltag.layers import EFGCNLayer, EF2GCNLayer
 
 @cm.model_inputs
@@ -14,7 +15,7 @@ def gcn_inputs(layer_dims):
   A = keras.Input(shape=(None, None), name="A")
   n = keras.Input(shape=(), dtype=tf.int32, name="n")
 
-  return (X, A, n)
+  return X, A, n
 
 @cm.model_step
 def with_layers(inputs, layer, layer_dims, **kwargs):
@@ -38,7 +39,11 @@ def with_edge_featured_propagation(inputs):
 
   AX_e = tf.concat([A_e, X_e], axis=-1)
 
-  return AX_e, n
+  X_shape = tf.shape(X)
+  max_n = X_shape[-2]
+  mask = ops.matrix_mask.python_function(n, max_n)
+
+  return AX_e, mask, n
 
 @cm.model_step
 def select_features(inputs):
@@ -50,10 +55,9 @@ def avg_verts(io):
 
   Y_shape = tf.shape(Y)
   max_n = Y_shape[-2]
-  n_mask = tf.broadcast_to(
-    tf.expand_dims(tf.sequence_mask(n, maxlen=max_n), 2), Y_shape)
+  n_mask = ops.vec_mask.python_function(n, max_n)
 
-  Y = tf.where(n_mask, Y, tf.zeros_like(Y))
+  Y = Y * n_mask
 
   y = tf.transpose(
     tf.math.divide_no_nan(
@@ -65,17 +69,6 @@ def avg_verts(io):
 @cp.pipeline_step
 def avg_edges(io):
   (X, A, n), Y = io
-
-  Y_shape = tf.shape(Y)
-  max_n = Y_shape[-2]
-  n_mask = tf.cast(tf.sequence_mask(n, maxlen=max_n), tf.int32)
-  m_1 = tf.expand_dims(n_mask, 2)
-  m_2 = tf.expand_dims(n_mask, 1)
-  m = tf.broadcast_to(
-    tf.cast(tf.expand_dims(tf.linalg.matmul(m_1, m_2), -1), tf.float32),
-    Y_shape)
-
-  Y = Y * m
 
   y = tf.transpose(
     tf.math.divide_no_nan(
@@ -99,4 +92,4 @@ EF2GCN = gcn_model("EF2GCN", [
 # Averaging GCNs:
 
 AVG_EFGCN = EFGCN.extend("AVG_EFGCN", [avg_verts])
-AVG_EF2GCN = EF2GCN.extend("EF2GCN", [avg_edges])
+AVG_EF2GCN = EF2GCN.extend("AVG_EF2GCN", [avg_edges])

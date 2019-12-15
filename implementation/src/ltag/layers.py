@@ -90,7 +90,7 @@ class EF2GCNLayer(keras.layers.Layer):
     return base_config
 
   def build(self, input_shape):
-    X_shape, n_shape = input_shape
+    X_shape, mask_shape, n_shape = input_shape
     edge_dim = X_shape[-1]
 
     self.W = self.add_weight(
@@ -104,14 +104,13 @@ class EF2GCNLayer(keras.layers.Layer):
       trainable=True, initializer=tf.initializers.Zeros)
 
   def call(self, input):
-    X, n = input
+    X, mask, n = input
 
-    X_prop = ops.edge_feature_aggregation(X, tf.multiply)
+    X_prop = ops.aggregate_edge_features(X, tf.multiply)
 
     XW = tf.linalg.matmul(X, self.W)
     XW_prop = tf.linalg.matmul(X_prop, self.W_prop)
     XW_comb = tf.nn.bias_add(XW + XW_prop, self.W_bias)
-    XW_filtered = XW_comb
-    X_out = self.act(XW_filtered)
+    X_out = self.act(XW_comb) * mask
 
-    return X_out, n
+    return X_out, mask, n
