@@ -20,7 +20,7 @@ def to_tf(x, adjs, y, ragged=False):
       tf.cast(adjs, tf.float32),
       tf.constant([s.shape[0] for s in x_in], dtype=tf.int32)
     ),
-    tf.cast(tf.constant(y), tf.float32)
+    tf.constant(y, dtype=tf.float32)
   ))
 
 def tf_dataset_generator(f):

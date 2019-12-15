@@ -30,6 +30,7 @@ docker run --runtime=nvidia --rm --name ltag \
 	-v $(pwd)/src:/ltag \
 	-v $(pwd)/logs:/logs \
 	-v $(pwd)/libs:/libs \
+	-v $(pwd)/data:/data \
 	-e "JUPYTER_TOKEN=$JUPYTER_TOKEN" \
 	$ARGS ltag/ltag-$VARIANT &
 
