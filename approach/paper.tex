@@ -97,11 +97,11 @@ The problem was split into three parts:
 	\item \textbf{Formalization of LTA:}
 		Before LTA can be extended, its essential characteristics have to be defined.
 		Those characteristics should provide the terminology to formally capture the differences and similarities between LTA and existing \textit{graph classification and regression}~(GC/GR) methods.
-	\item \textbf{Give an LTA interpretation of existing GC/GR methods:}
+	\item \textbf{Giving an LTA interpretation of existing GC/GR methods:}
 		Using the LTA formalization, representative GC/GR approaches should be restated as LTA instances.
 		Currently there is no comprehensive formulation of the relation between both fields of research;
 		this is addressed by the the second goal.
-	\item \textbf{Define an LTA method for graphs:}
+	\item \textbf{Defining an LTA method for graphs:}
 		Using the LTA perspective on GC/GR, hidden assumptions of the existing approaches should become clear and in which way they share the assumptions of LTA.\@
 		The last goal is to use those insights to formulate an LTA-GC/GR method that combines ideas from the existing approaches with the LTA assumptions.
 \end{enumerate}
@@ -124,12 +124,12 @@ It consists of three properties that each LTA approach has to fulfill:
 		The disaggregation problem is solved by learning this function.
 	\item \textbf{Aggregation:}
 		Finally the aggregation problem is about finding an aggregation function $\mathcal{A}_{\text{SI}}: \mathcal{Y}^* \to \mathcal{Y}$ that combines the constituent scores.
-		This is the definition of a \textit{structurally independent} (SI) aggregation function, i.e.\ it only depends on the local constituent scores and does not use global structural information to potentially weight the scores.
+		This is the definition of a \textit{structurally independent}~(SI) aggregation function, i.e.\ it only depends on the local constituent scores and does not use global structural information to potentially weight the scores.
 		The existing LTA methods necessarily learn SI-aggregators since their inputs do not contain any structural information.
 
 		For structured inputs, a more general definition of aggregation functions can be considered.
-		A \textit{structurally dependent} (SD) aggregator not only gets constituent scores $f(c) \in \mathcal{Y}$ but also structural features $g(c, G) \in \mathcal{Z}$ for all constituents $c \in \varphi(G)$, i.e.\ $\mathcal{A}_{\text{SD}}: {(\mathcal{Y} \times \mathcal{Z})}^* \to \mathcal{Y}$.
-		To guarantee that the aggregated score is based on the constituent scores, an SD-aggregator is only allowed to use the structural features to weight and filter the constituent scores:
+		A \textit{structurally dependent}~(SD) aggregator not only gets constituent scores $f(c) \in \mathcal{Y}$ but also structural features $g(c, G) \in \mathcal{Z}$ for all constituents $c \in \varphi(G)$, i.e.\ $\mathcal{A}_{\text{SD}}: {(\mathcal{Y} \times \mathcal{Z})}^* \to \mathcal{Y}$.
+		To guarantee that the aggregated score is based on some combination of the constituent scores and not arbitrarily derived from the structural features, an SD-aggregator is only allowed to use the structural features to weight and filter the constituent scores:
 		\begin{align}
 			\mathcal{A}_{\text{SD}}(S)
 			= \mathcal{A}_{\text{SI}}(\{ w_i \circ y_i \,|\, (y_i, z_i) \in S \,\land\, w_i = h((y_i, z_i), S) \neq \texttt{nil} \}) \text{.} % chktex 21
@@ -147,15 +147,15 @@ An aggregated score can always be tracked back to the individual constituents th
 \section{LTA Interpretation of GC/GR Methods}%
 \label{sec:lta-gcr}
 
-Next a very brief sketch of existing GC/GR methods and their relation to LTA is provided here.
+Next a very brief sketch of existing GC/GR methods and their relation to LTA is provided.
 \begin{enumerate}[label=\textbf{\arabic*.}]
 	\item \textbf{Graph Kernels:}
 		Graph kernels do not directly allow for an LTA interpretation;
-		for example an SVM with a graph kernel does not fulfill the previously described disaggregation and aggregation properties of LTA methods.
-		Many graph kernels do however effectively compute graph decompositions and can therefore serve as starting points for graph LTA methods.
+		an SVM with a graph kernel for example does not fulfill the previously described disaggregation and aggregation properties of LTA methods.
+		Many graph kernels do however effectively compute graph decompositions $\varphi(G)$ and can therefore serve as starting points for graph LTA methods.
 		The following graph kernels are interesting from an LTA perspective:
 		\begin{itemize}
-			\item The \textit{Weisfeiler-Lehman} (WL) subtree kernel~\cite{Shervashidze2011} decomposes a graph into subtrees of depth $k$ with each vertex being the root of exactly one subtree.
+			\item The \textit{Weisfeiler-Lehman}~(WL) subtree kernel~\cite{Shervashidze2011} decomposes a graph into subtrees of depth $k$ with each vertex being the root of exactly one subtree.
 				The subtrees correspond to the breadth-first-walk trees with vertex repetition.
 				Subtrees are identified via their isomorphism class.
 			\item The Direct-Product kernel conceptually decomposes a graph into the set of all random walks with arbitrary finite length.
@@ -165,11 +165,11 @@ Next a very brief sketch of existing GC/GR methods and their relation to LTA is 
 				The details of those decompositions are not described in this summary.
 		\end{itemize}
 	\item \textbf{Graph Neural Networks:}
-		Most existing \textit{graph neural network} (GNN) approaches fulfill the three previously described LTA properties.
-		All GNN methods that are based vertex-neighborhood aggregation can be understood as continuous variants of the \textit{1-dimensional WL algorithm} (1-WL)~\cite{Weisfeiler1968}.
-		They are therefore closely related to the WL subtree kernel and in fact upper bounded by it in terms of their discriminative power.
+		Most existing \textit{graph neural network}~(GNN) approaches fulfill the three previously described LTA properties.
+		All GNN methods that are based vertex-neighborhood aggregation can be understood as continuous variants of the \textit{1-dimensional WL algorithm}~(1-WL)~\cite{Weisfeiler1968}.
+		They are therefore closely related to the WL subtree kernel and in fact upper bounded by it in terms of their discriminative power~\cite{Xu2018}\cite{Morris2018}.
 		They effectively also compute a subtree decomposition.
-		The constituent scoring function $f$ is modeled as a \textit{multilayer perceptron} (MLP).\@
+		The constituent scoring function $f$ is modeled as a \textit{multilayer perceptron}~(MLP).\@
 		Between each MLP layer a weighted average of the features of all vertices in the constituent subtree is taken.
 		The last layer of the MLP has to output a value which can be interpreted as an element of $\mathcal{Y}$.
 
@@ -184,22 +184,77 @@ Next a very brief sketch of existing GC/GR methods and their relation to LTA is 
 \label{sec:graph-lta}
 
 The proposed graph LTA method is based on two main ideas:
-\begin{enumerate}
-	\item While most existing GNN methods can be interpreted as LTA approaches, they use a fairly static decomposition approach.
-		In this approach each constituent is a tree that includes all vertices with a distance of at most $k$ from some root vertex.
-		The vertices that are part of a constituent therefore do not necessarily have any significant relation to each other.
-		The decompositions of existing GNN methods therefore do not have any semantic.
-		A learnable decomposition strategy could improve upon this problem.
-	\item As previously mentioned, the discriminative power of most GNNs is bounded by the 1-WL algorithm.
-		The limits of this algorithm are well understood and while 1-WL is able to distinguish most graphs, it cannot detect many graph properties that are considered to be important in various domains of graph analysis, e.g.\ triangle counts in the context social networks or cycle counts in the context of molecular analysis.
+\begin{enumerate}[label=\textbf{\arabic*.}]
+	\item \textbf{Extending discriminative power:}
+		As previously mentioned, the discriminative power of most GNNs is bounded by the 1-WL algorithm.
+		The limits of this algorithm are well understood and while 1-WL is able to distinguish most graphs, it cannot detect many graph properties that are considered to be important in various practical domains of graph analysis, e.g.\ triangle counts in the context social networks or cycle counts in the context of molecular analysis.
 		1-WL also fails to distinguish regular graphs with the same degree and vertex count.
 		There are higher dimensional variants of the WL algorithm that are able to capture such aspects.
-		The 2-dimensional WL algorithm, which aggregates edge neighborhoods instead of vertex neighborhoods, is already powerful enough to recognize triangles, cycles of length $\leq 6$ and most regular graphs.
+		The \textit{2-dimensional WL algorithm}~(2-WL), which aggregates edge neighborhoods instead of vertex neighborhoods, is already powerful enough to recognize triangles, cycles of length $\leq 6$ and also many regular graphs~\cite{Fuerer2017}.
 		A GNN based on a higher dimensional WL algorithm could therefore at least theoretically improve upon the expressive power of most existing state-of-the-art approaches.
+	\item \textbf{Learned decomposition:}
+		While most existing GNN methods can be interpreted as LTA approaches, they use a fairly static decomposition approach.
+		In the static approach each constituent is a tree that includes all vertices with a distance of at most $k$ from some root vertex.
+		The vertices that are part of a constituent therefore do not necessarily have any significant relation to each other.
+		The decompositions of existing GNN methods thus do not have any semantic attached to them, they are purely structural.
+		A learnable decomposition strategy could improve upon this problem.
+\end{enumerate}
+
+The proposed method incorporates the first idea by defining a graph convolution operator inspired by the 2-WL algorithm.
+Recently \citet{Morris2018} have already introduced a GNN architecture based on $k$-WL which does however use a simplified notion of neighborhood.
+This simplification reduces the discriminative power of the architecture; their 2-GNN for example cannot recognize triangles in graphs.
+The proposed method on the other hand is closer to the original 2-WL algorithm.
+
+While 1-WL-based GNNs propagate vertex features via the adjacency structure of an input graph, a 2-WL-based GNN propagates edge features to neighboring edges.
+The aggregation of edge features performed by one network layer $l$ is described by
+\begin{align}
+	h^{(l)}_{i j} &= \sigma\left(\, W^{(l)} h^{(l - 1)}_{i j} + W^{(l)}_{\Gamma} \sum_{k = 1}^{n} \kappa\left(h^{(l - 1)}_{i k}, h^{(l - 1)}_{k j}\right)\right), \\
+	\text{with } h^{(0)}_{i j} &= A_{i j} \oplus \begin{cases}
+		X_i & \text{if } i = j \\
+		\bm{0} & \text{else}
+	\end{cases}
+\end{align}
+where ${\left\{ h^{(l)} \in \mathbb{R}^{n \times n \times F^{(l)}} \right\}}_{l = 0}^{L}$ are the edge feature tensors after each convolution layer. % chktex 21
+The initial edge features $h^{(0)}$ are constructed by concatenating ($\oplus$) the input edge features/weights $A$ with the input vertex features $X$ along the diagonal, i.e.\ self-loops are used to carry the vertex features.
+
+The 2-WL inspired edge convolution combines each edge $(i, j)$ with the edges in all walks of length $2$ between $i$ and $j$.
+First each walk is aggregated via $\kappa: \mathbb{R}^{F} \times \mathbb{R}^{F} \to \mathbb{R}^{F}$ which has to satisfy $\kappa(a, b) = \bm{0}$ if $a = \bm{0} \lor b = \bm{0}$ to preserve the sparsity of $h^{(l)}$ for performance reasons\footnote{
+	$\kappa$ should not be a linear operator, since this would reduce the discriminative power of the model back to 1-WL.\@
+	Element-wise multiplication would be a simple suitable choice for $\kappa$ but a learned nonlinear combinator can also be used.
+}.
+Then the sum of all aggregated walks is used as a neighborhood aggregate.
+Finally $W^{(l)}, W^{(l)}_{\Gamma} \in \mathbb{R}^{F^{(l)} \times F^{(l - 1)}}$ and some activation function $\sigma$ are used to compute the output edge features of the layer.
+
+The choice of 2-WL as a basis for the just described GNN model was not only motivated by its larger discriminative power but also by the idea of learned graph decompositions.
+If the final layer of the described model produces outputs that are interpretable as elements of $\mathcal{Y}$, the graph is effectively decomposed into up to one constituent per edge\footnote{
+	Edges with a zero feature vector are not considered to be constituents.
+}.
+Every convolution layer increases the radius of the neighborhood that is considered in the final feature aggregate of each edge/constituent.
+By learning a filter on the edges one can selectively remove elements from edge neighborhoods since disconnected parts of a graph cannot become part of the same neighborhood.
+The proposed 2-WL convolution model is well suited for a combination with such an edge filter model since all edges already have feature vectors that can be used as inputs for the filter model.
+The details for this still have to be worked out.
+
+To aggregate the edges/constituents, existing graph pooling approaches like SortPooling or SAGPooling can be used.
+
+\section{Remarks and Current Status}%
+\label{sec:remarks}
+
+I have currently only evaluated the proposed 2-WL inspired GNN architecture on synthetic datasets and the MUTAG dataset\footnote{
+	The implementation does not yet use sparse tensors and therefore cannot handle other real datasets that contain large graphs.
+}.
+On the synthetic datasets I was able to clearly demonstrate that most state-of-the-art GNNs fail to learn on datasets consisting of regular graphs as well as datasets with graph labels derived from triangle counts.
+The proposed architecture on the other hand is able to learn the labeling function on those synthetic datasets.
+On the MUTAG dataset it performed more or less like the standard GCN model proposed by \citet{Kipf2017}.
+However the implementation currently only uses a static arithmetic average as the aggregation function, so there is probably still room for improvement.
+
+The next planned steps are:
+\begin{enumerate}
+	\item Use sparse tensors in the implementation in order to be able to evaluate on larger real datasets.
+	\item Integrate the previously described edge filtering idea and formalize how exactly this affects the learned constituents.
+	\item Swap out the constituent averaging with a learned aggregation/pooling layer.
 \end{enumerate}
 
 % % %
-\newpage
 {%
 \renewcommand{\bibfont}{\normalfont\small}
 \setlength{\biblabelsep}{5pt}
