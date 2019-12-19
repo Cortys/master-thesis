@@ -10,8 +10,19 @@ if [ ! -z "$(docker ps -aqf "name=ltag")" ]; then
 	exit 1
 fi
 
-VARIANT=${1:-tensorflow}
+DEFAULT_VARIANT=tensorflow
+VARIANT=${1:-$DEFAULT_VARIANT}
 ARGS=""
+REBUILD=""
+
+if [ "$1" == "rebuild" ]; then
+	REBUILD=1
+	VARIANT=${2:-$DEFAULT_VARIANT}
+fi
+
+if [ "$2" == "rebuild" ]; then
+	REBUILD=1
+fi
 
 if [ "$VARIANT" == "tensorflow" ]; then
 	ARGS="-u $(id -u):$(id -g)"
@@ -20,7 +31,13 @@ fi
 trap 'kill %1; exit 0' SIGINT
 trap 'kill -TERM %1; exit 0' SIGTERM
 
-docker build . -t ltag/ltag-$VARIANT -f Dockerfile.$VARIANT
+echo "Using container variant: $VARIANT."
+
+if [ "$REBUILD" == "1" ]; then
+	echo "Building container..."
+	docker build . -t ltag/ltag-$VARIANT -f Dockerfile.$VARIANT
+fi
+
 echo "Starting Notebook at ${JUPYTER_URL} ..."
 echo "Using additional ARGS='$ARGS' with variant $VARIANT."
 echo "Type \"rm\" to clean logs."
