@@ -5,7 +5,7 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 import networkx as nx
 
-def to_tf(x, adjs, y, ragged=False):
+def to_tf(x, adjs, y, ragged=False, sparse=False):
   x_in = x
   x = tf.ragged.constant(x)
   adjs = tf.ragged.constant(adjs)
@@ -13,6 +13,10 @@ def to_tf(x, adjs, y, ragged=False):
   if not ragged:
     x = x.to_tensor()
     adjs = adjs.to_tensor()
+
+    if sparse:
+      x = tf.sparse.from_dense(x)
+      adjs = tf.sparse.from_dense(adjs)
 
   return tf.data.Dataset.from_tensor_slices((
     (
@@ -24,8 +28,8 @@ def to_tf(x, adjs, y, ragged=False):
   ))
 
 def tf_dataset_generator(f):
-  def w(*args, ragged=False):
-    return to_tf(*f(*args), ragged=ragged)
+  def w(*args, ragged=False, sparse=False):
+    return to_tf(*f(*args), ragged=ragged, sparse=sparse)
 
   return w
 

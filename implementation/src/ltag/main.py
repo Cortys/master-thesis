@@ -7,23 +7,34 @@ import numpy as np
 from datetime import datetime
 
 import ltag.datasets.synthetic as synthetic
+import ltag.datasets.disk as disk
 import ltag.models as models
 
 log_dir = "../logs"
 
-ds_raw = synthetic.triangle_dataset()
+ds_raw = synthetic.triangle_dataset(sparse=False)
+# ds_raw = disk.load_classification_dataset("mutag")
 
 # ds_utils.draw_from_ds(ds_raw, 1)
 
 ds = ds_raw.batch(50)
+list(range(1, 10))
+ds.element_spec
+
+list(ds)
+
+in_dim = ds.element_spec[0][0].shape[-1]
 
 # -%% codecell
 
-model = models.AVG_EF2GCN(layer_dims=[2, 4, 1], act="tanh")
+model = models.AVG_EF2GCN(
+  layer_dims=[in_dim, 4, 1],
+  act="tanh", squeeze_output=False, sparse=False, masked_bias=True)
 
-opt = keras.optimizers.Adam(0.01)
+opt = keras.optimizers.Adam(0.03)
 
-model.compile(optimizer=opt, loss="mse", metrics=["mae"])
+model.compile(
+  optimizer=opt, loss="mse", metrics=["mae"])
 
 model.get_weights()
 
@@ -36,10 +47,10 @@ def train(label=None):
     histogram_freq=1,
     write_images=True)
 
-  model.fit(ds, epochs=200, callbacks=[tb_callback])
+  model.fit(ds, epochs=100, callbacks=[tb_callback])
 
 
 # -%% codecell
-train("triangle_dataset_wl2")
+train("triangle_wl2")
 
 model.predict(ds), np.array(list(map(lambda x: x[1].numpy(), list(ds_raw))))

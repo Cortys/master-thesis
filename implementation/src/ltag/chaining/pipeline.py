@@ -35,7 +35,7 @@ def pipeline_step(f):
   def step(*args, **kwargs1):
     @fy.wraps(f)
     def execute(input, **kwargs2):
-      kwargs = fy.merge(kwargs1, kwargs2)
+      kwargs = fy.merge(kwargs2, kwargs1)
 
       return f(input, *args, **kwargs)
 

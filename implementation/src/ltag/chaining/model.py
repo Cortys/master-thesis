@@ -50,3 +50,21 @@ def create_model(name, steps, **kwargs):
   modelFactory.extend = extend
 
   return modelFactory
+
+@model_step
+def with_layers(inputs, layer, layer_dims, **kwargs):
+  layer = pipeline.tolerant(layer)
+  h = inputs
+
+  for i in range(1, len(layer_dims)):
+    h = layer(in_dim=layer_dims[i - 1], out_dim=layer_dims[i], **kwargs)(h)
+
+  return h
+
+@pipeline.pipeline_step
+def with_layer(io, layer, with_inputs=False, **kwargs):
+  input, output = io
+
+  p = io if with_inputs else output
+
+  return input, pipeline.tolerant(layer)(**kwargs)(p)
