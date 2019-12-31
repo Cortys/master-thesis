@@ -39,17 +39,50 @@ def eid_lookup(e_ids, g, i, j):
   return e_ids[(g, i, j)]
 
 @cp.tolerant
-def to_edge_ds(xs, adjs, ys, shuffle=False):
+def to_edge_ds(
+  xs, adjs, ys,
+  shuffle=False,
+  fuzzy_batch_edge_count=1000,
+  batch_graph_count=10):
   def gen():
     il = np.arange(len(xs))
 
     if shuffle:
       np.random.shuffle(il)
 
+    b_x_e = []
+    b_ref_v = []
+    b_ref_u = []
+    b_ns = []
+    b_ys = []
+    e_ids = {}
+    e_count = 0
+    g_count = 0
+    local_e_counts = []
+
+    def make_batch(b_x_e, b_ref_v, b_ref_u, b_ns, b_ys, local_e_counts):
+      max_ref = np.max([len(r) for r in b_ref_v])
+
+      b_ref_v = [
+        np.pad(r, (0, max_ref - len(r)), "constant", constant_values=-1)
+        for r in b_ref_v]
+      b_ref_u = [
+        np.pad(r, (0, max_ref - len(r)), "constant", constant_values=-1)
+        for r in b_ref_u]
+
+      b_ns = np.array(b_ns)
+
+      return ((
+        np.array(b_x_e),
+        np.array(b_ref_v), np.array(b_ref_u),
+        np.array(local_e_counts),
+        np.array(b_ns)),
+        np.array(b_ys))
+
     for i in il:
       x = xs[i]
       y = ys[i]
-      (n, f) = x.shape
+      n, f = x.shape
 
       if n == 0:
         continue
@@ -58,43 +91,54 @@ def to_edge_ds(xs, adjs, ys, shuffle=False):
       y = ys[i]
       g = nx.from_numpy_array(adj)
       e_zero = np.zeros(f)
-      e_ids = {}
-      x_e = []
-      ref_v = []
-      ref_u = []
+      local_e_count = 0
 
-      for node in nx.nodes(g):
+      for node in g.nodes:
         g.add_edge(node, node)
 
-      e_count = 0
-      for v, u in nx.edges(g):
+      for v, u in g.edges:
         e_ids[(i, v, u)] = e_count
         e_count += 1
+        local_e_count += 1
 
-      for edge in nx.edges(g):
-        v, u = edge
-        n = list(nx.common_neighbors(g, v, u))
-        n_v = [eid_lookup(e_ids, i, v, k) for k in n]
-        n_u = [eid_lookup(e_ids, i, u, k) for k in n]
+      local_e_counts.append(local_e_count)
 
-        x_e.append(x[v] if v == u else e_zero)
-        ref_v.append(n_v)
-        ref_u.append(n_u)
+      for edge in g.edges(data=True):
+        v, u, d = edge
+        w = d.get("weight", 0)
+        ne = list(nx.common_neighbors(g, v, u))
+        n_v = [eid_lookup(e_ids, i, v, k) for k in ne]
+        n_u = [eid_lookup(e_ids, i, u, k) for k in ne]
 
-      max_ref = np.max([len(r) for r in ref_v])
+        b_x_e.append(np.concatenate(
+          (x[v], [1, 0]) if v == u
+          else (e_zero, [0, w])))
+        b_ref_v.append(n_v)
+        b_ref_u.append(n_u)
 
-      ref_v = [
-        np.pad(r, (0, max_ref - len(r)), "constant", constant_values=-1)
-        for r in ref_v]
-      ref_u = [
-        np.pad(r, (0, max_ref - len(r)), "constant", constant_values=-1)
-        for r in ref_u]
+      b_ns.append(n)
+      b_ys.append(y)
+      g_count += 1
 
-      yield np.array(x_e), np.array(ref_v), np.array(ref_u), y
+      if g_count >= batch_graph_count or e_count >= fuzzy_batch_edge_count:
+        yield make_batch(b_x_e, b_ref_v, b_ref_u, b_ns, b_ys, local_e_counts)
+        b_x_e = []
+        b_ref_v = []
+        b_ref_u = []
+        b_ns = []
+        b_ys = []
+        e_ids = {}
+        e_count = 0
+        g_count = 0
+        local_e_counts = []
+
+    if g_count > 0:
+      yield make_batch(b_x_e, b_ref_v, b_ref_u, b_ns, b_ys, local_e_counts)
 
   return tf.data.Dataset.from_generator(
     gen,
-    output_types=(tf.float32, tf.int32, tf.int32, tf.float32))
+    output_types=((
+      tf.float32, tf.int32, tf.int32, tf.int32, tf.int32), tf.float32))
 
 def tf_dataset_generator(f):
   @fy.wraps(f)
