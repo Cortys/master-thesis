@@ -3,6 +3,9 @@ from __future__ import absolute_import, division, print_function,\
 
 import tensorflow as tf
 
+import sys
+sys.argv = sys.argv[:1]
+
 @tf.function
 def normalize_mat(M):
   diags = tf.reduce_sum(M, axis=-1)
@@ -15,6 +18,20 @@ def normalize_mat(M):
 
   return M_norm
 
+@tf.function
+def vec_mask(n, max_n):
+  vec_mask = tf.cast(tf.sequence_mask(n, maxlen=max_n), tf.int32)
+
+  return tf.expand_dims(vec_mask, -1)
+
+@tf.function
+def matrix_mask(n, max_n, sparse=False):
+  vec_mask = tf.cast(tf.sequence_mask(n, maxlen=max_n), tf.int32)
+  m_1 = tf.expand_dims(vec_mask, 2)
+  m_2 = tf.expand_dims(vec_mask, 1)
+  m = tf.cast(tf.expand_dims(tf.linalg.matmul(m_1, m_2), -1), tf.float32)
+
+  return m
 
 @tf.function
 def aggregate_edge_features(X, agg):
@@ -27,21 +44,7 @@ def aggregate_edge_features(X, agg):
 
   X_1 = tf.transpose(X_b, perm=(1, 2, 0, 3, 4))
   X_2 = tf.transpose(X_b, perm=(1, 0, 3, 2, 4))
+
   X_prod = agg(X_1, X_2)
 
   return tf.reduce_sum(X_prod, axis=-2)
-
-@tf.function
-def vec_mask(n, max_n):
-  vec_mask = tf.cast(tf.sequence_mask(n, maxlen=max_n), tf.int32)
-
-  return tf.expand_dims(vec_mask, -1)
-
-@tf.function
-def matrix_mask(n, max_n):
-  vec_mask = tf.cast(tf.sequence_mask(n, maxlen=max_n), tf.int32)
-  m_1 = tf.expand_dims(vec_mask, 2)
-  m_2 = tf.expand_dims(vec_mask, 1)
-  m = tf.cast(tf.expand_dims(tf.linalg.matmul(m_1, m_2), -1), tf.float32)
-
-  return m

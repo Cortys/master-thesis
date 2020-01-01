@@ -8,16 +8,20 @@ import ltag.chaining.pipeline as cp
 import ltag.chaining.model as cm
 import ltag.ops as ops
 
-from ltag.layers import (
-  EdgeFeaturePreparation,
-  EFGCNLayer, EF2GCNLayer,
-  AVGEdgePooling
-)
+import ltag.layers.vert as vl
 
 @cm.model_inputs
-def gnn_inputs(layer_dims, sparse=False):
+def gnn_vert_inputs(layer_dims, sparse=False):
   X = keras.Input(shape=(None, layer_dims[0]), name="X", sparse=sparse)
   A = keras.Input(shape=(None, None), name="A", sparse=sparse)
+  n = keras.Input(shape=(), dtype=tf.int32, name="n")
+
+  return X, A, n
+
+@cm.model_inputs
+def gnn_edge_inputs(layer_dims):
+  X = keras.Input(shape=(None, layer_dims[0]), name="X")
+  A = keras.Input(shape=(None, None), name="A")
   n = keras.Input(shape=(), dtype=tf.int32, name="n")
 
   return X, A, n
@@ -43,23 +47,25 @@ def avg_verts(io):
 
   return (X, A, n), y
 
-def gnn_model(name, steps):
-  return cm.create_model(name, [gnn_inputs, *steps])
+def gnn_model(name, steps, edge_inputs=False):
+  return cm.create_model(name, [
+    gnn_edge_inputs if edge_inputs else gnn_vert_inputs,
+    *steps])
 
 
 # Non-aggregating GCNs:
 
-EFGCN = gnn_model("EFGCN", [
-  cm.with_layers(EFGCNLayer),
+VertEFGCN = gnn_model("VertEFGCN", [
+  cm.with_layers(vl.EFGCNLayer),
   select_features])
 
-EF2GCN = gnn_model("EF2GCN", [
-  cm.with_layer(EdgeFeaturePreparation),
-  cm.with_layers(EF2GCNLayer),
+VertEF2GCN = gnn_model("VertEF2GCN", [
+  cm.with_layer(vl.EdgeFeaturePreparation),
+  cm.with_layers(vl.EF2GCNLayer),
   select_features])
 
 # Averaging GCNs:
 
-AVG_EFGCN = EFGCN.extend("AVG_EFGCN", [avg_verts])
-AVG_EF2GCN = EF2GCN.extend("AVG_EF2GCN", [
-  cm.with_layer(AVGEdgePooling, with_inputs=True)])
+AVG_VertEFGCN = VertEFGCN.extend("AVG_VertEFGCN", [avg_verts])
+AVG_VertEF2GCN = VertEF2GCN.extend("AVG_VertEF2GCN", [
+  cm.with_layer(vl.AVGEdgePooling, with_inputs=True)])

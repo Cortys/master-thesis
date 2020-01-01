@@ -1,9 +1,8 @@
 FROM pytorch/pytorch:1.3-cuda10.1-cudnn7-devel
 
-RUN pip install jupyterlab
+RUN pip3 install jupyter_kernel_gateway jupyterlab
 
-# Install TorchNet, a high-level framework for PyTorch.
-RUN pip install torchnet==0.0.4
+ENV TORCH_CUDA_ARCH_LIST = "6.0 6.1 7.2+PTX 7.5+PTX"
 
 # Install PyTorch Geometric.
 RUN CPATH=/usr/local/cuda/include:$CPATH \

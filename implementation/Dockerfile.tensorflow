@@ -1,9 +1,9 @@
-FROM tensorflow/tensorflow:2.0.0-gpu-py3-jupyter
+FROM tensorflow/tensorflow:2.1.0rc2-gpu-py3-jupyter
 
 RUN pip3 install jupyter_kernel_gateway jupyterlab
 
 WORKDIR /
-ADD requirements.txt requirements.txt
+ADD requirements.tensorflow.txt requirements.txt
 RUN pip3 install -r requirements.txt
 
 ADD tf_startup.sh tf_startup.sh

@@ -27,7 +27,7 @@ in_dim = ds.element_spec[0][0].shape[-1]
 
 # -%% codecell
 
-model = models.AVG_EF2GCN(
+model = models.AVG_VertEF2GCN(
   layer_dims=[in_dim, 4, 1],
   act="tanh", squeeze_output=False, sparse=False, masked_bias=True)
 
