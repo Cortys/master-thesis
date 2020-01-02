@@ -3,12 +3,11 @@ from __future__ import absolute_import, division, print_function,\
 
 import tensorflow as tf
 from tensorflow import keras
+import funcy as fy
 
-import ltag.chaining.pipeline as cp
 import ltag.chaining.model as cm
-import ltag.ops as ops
-
 import ltag.layers.vert as vl
+import ltag.layers.edge as ve
 
 @cm.model_inputs
 def gnn_vert_inputs(layer_dims, sparse=False):
@@ -19,53 +18,62 @@ def gnn_vert_inputs(layer_dims, sparse=False):
   return X, A, n
 
 @cm.model_inputs
-def gnn_edge_inputs(layer_dims):
-  X = keras.Input(shape=(None, layer_dims[0]), name="X")
-  A = keras.Input(shape=(None, None), name="A")
-  n = keras.Input(shape=(), dtype=tf.int32, name="n")
+def gnn_edge2_inputs():
+  X = keras.Input(shape=(None,), dtype=tf.float32, name="X")
+  ref_a = keras.Input(shape=(None,), dtype=tf.int32, name="ref_a")
+  ref_b = keras.Input(shape=(None,), dtype=tf.int32, name="ref_b")
+  e_map = keras.Input(shape=(), dtype=tf.int32, name="e_map")
+  v_count = keras.Input(shape=(), dtype=tf.int32, name="v_count")
 
-  return X, A, n
+  return X, ref_a, ref_b, e_map, v_count
+
+
+input_types = {
+  "vert": gnn_vert_inputs,
+  "edge2": gnn_edge2_inputs
+}
 
 @cm.model_step
 def select_features(inputs):
   return inputs[0]
 
-@cp.pipeline_step
-def avg_verts(io):
-  (X, A, n), Y = io
-
-  Y_shape = tf.shape(Y)
-  max_n = Y_shape[-2]
-  n_mask = ops.vec_mask.python_function(n, max_n)
-
-  Y = Y * n_mask
-
-  y = tf.transpose(
-    tf.math.divide_no_nan(
-      tf.transpose(tf.reduce_sum(Y, 1)),
-      tf.cast(n, tf.float32)))
-
-  return (X, A, n), y
-
-def gnn_model(name, steps, edge_inputs=False):
-  return cm.create_model(name, [
-    gnn_edge_inputs if edge_inputs else gnn_vert_inputs,
+def gnn_model(name, steps, input_type="vert"):
+  m = cm.create_model(name, [
+    input_types[input_type],
     *steps])
 
+  def add_attrs(m):
+    m.input_type = input_type
+    return m
 
-# Non-aggregating GCNs:
+  add_attrs(m)
+  m.extend = fy.rcompose(m.extend, add_attrs)
 
-VertEFGCN = gnn_model("VertEFGCN", [
-  cm.with_layers(vl.EFGCNLayer),
+  return m
+
+
+# Non-aggregating GNNs:
+
+VertGCN = gnn_model("VertGCN", [
+  cm.with_layers(vl.GCNLayer),
   select_features])
 
-VertEF2GCN = gnn_model("VertEF2GCN", [
+VertWL2GCN = gnn_model("VertWL2GCN", [
   cm.with_layer(vl.EdgeFeaturePreparation),
-  cm.with_layers(vl.EF2GCNLayer),
+  cm.with_layers(vl.WL2GCNLayer),
   select_features])
 
-# Averaging GCNs:
+EdgeWL2GCN = gnn_model("EdgeWL2GCN", [
+  cm.with_layers(ve.WL2GCNLayer),
+  select_features],
+  input_type="edge2")
 
-AVG_VertEFGCN = VertEFGCN.extend("AVG_VertEFGCN", [avg_verts])
-AVG_VertEF2GCN = VertEF2GCN.extend("AVG_VertEF2GCN", [
+# Averaging GNNs:
+
+AVG_VertGCN = VertGCN.extend("AVG_VertGCN", [
+  cm.with_layer(vl.AVGVertPooling, with_inputs=True)])
+AVG_VertWL2GCN = VertWL2GCN.extend("AVG_VertWL2GCN", [
   cm.with_layer(vl.AVGEdgePooling, with_inputs=True)])
+
+AVG_EdgeWL2GCN = EdgeWL2GCN.extend("AVG_EdgeWL2GCN", [
+  cm.with_layer(ve.AVGPooling, with_inputs=True)])

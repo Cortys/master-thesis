@@ -154,10 +154,10 @@ def triangle_dataset():
   #   [0, 0, 3], [3, 2, 1], [2, 3, 1]]
 
   configs = [
-    [i, j, 0]
-    for i in range(0, 10)
-    for j in range(0, 10)
-    # for k in range(0, 10)
+    [i, j, k]
+    for i in range(0, 3)
+    for j in range(0, 3)
+    for k in range(0, 3)
   ]
 
   configs = configs[1:]

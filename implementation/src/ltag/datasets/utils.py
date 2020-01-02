@@ -39,11 +39,13 @@ def eid_lookup(e_ids, g, i, j):
   return e_ids[(g, i, j)]
 
 @cp.tolerant
-def to_edge_ds(
+def to_edge2_ds(
   xs, adjs, ys,
   shuffle=False,
-  fuzzy_batch_edge_count=1000,
-  batch_graph_count=10):
+  fuzzy_batch_edge_count=100000,
+  batch_graph_count=100):
+  f = xs[0].shape[1] if len(xs) > 0 else 0
+
   def gen():
     il = np.arange(len(xs))
 
@@ -51,38 +53,38 @@ def to_edge_ds(
       np.random.shuffle(il)
 
     b_x_e = []
-    b_ref_v = []
-    b_ref_u = []
+    b_ref_a = []
+    b_ref_b = []
     b_ns = []
     b_ys = []
     e_ids = {}
     e_count = 0
     g_count = 0
-    local_e_counts = []
+    e_map = []
 
-    def make_batch(b_x_e, b_ref_v, b_ref_u, b_ns, b_ys, local_e_counts):
-      max_ref = np.max([len(r) for r in b_ref_v])
+    def make_batch(b_x_e, b_ref_a, b_ref_b, e_map, b_ns, b_ys):
+      max_ref = np.max([len(r) for r in b_ref_a])
 
-      b_ref_v = [
+      b_ref_a = [
         np.pad(r, (0, max_ref - len(r)), "constant", constant_values=-1)
-        for r in b_ref_v]
-      b_ref_u = [
+        for r in b_ref_a]
+      b_ref_b = [
         np.pad(r, (0, max_ref - len(r)), "constant", constant_values=-1)
-        for r in b_ref_u]
+        for r in b_ref_b]
 
       b_ns = np.array(b_ns)
 
       return ((
         np.array(b_x_e),
-        np.array(b_ref_v), np.array(b_ref_u),
-        np.array(local_e_counts),
+        np.array(b_ref_a), np.array(b_ref_b),
+        np.array(e_map),
         np.array(b_ns)),
         np.array(b_ys))
 
     for i in il:
       x = xs[i]
       y = ys[i]
-      n, f = x.shape
+      n = x.shape[0]
 
       if n == 0:
         continue
@@ -101,53 +103,66 @@ def to_edge_ds(
         e_count += 1
         local_e_count += 1
 
-      local_e_counts.append(local_e_count)
+      e_map += [g_count] * local_e_count
 
       for edge in g.edges(data=True):
-        v, u, d = edge
+        a, b, d = edge
         w = d.get("weight", 0)
-        ne = list(nx.common_neighbors(g, v, u))
-        n_v = [eid_lookup(e_ids, i, v, k) for k in ne]
-        n_u = [eid_lookup(e_ids, i, u, k) for k in ne]
+        ne = (
+          ([a] if a == b else [a, b])
+          + list(nx.common_neighbors(g, a, b)))
+        n_a = [eid_lookup(e_ids, i, a, k) for k in ne]
+        n_b = [eid_lookup(e_ids, i, b, k) for k in ne]
 
         b_x_e.append(np.concatenate(
           (x[v], [1, 0]) if v == u
           else (e_zero, [0, w])))
-        b_ref_v.append(n_v)
-        b_ref_u.append(n_u)
+        b_ref_a.append(n_a)
+        b_ref_b.append(n_b)
 
       b_ns.append(n)
       b_ys.append(y)
       g_count += 1
 
       if g_count >= batch_graph_count or e_count >= fuzzy_batch_edge_count:
-        yield make_batch(b_x_e, b_ref_v, b_ref_u, b_ns, b_ys, local_e_counts)
+        yield make_batch(b_x_e, b_ref_a, b_ref_b, e_map, b_ns, b_ys)
         b_x_e = []
-        b_ref_v = []
-        b_ref_u = []
+        b_ref_a = []
+        b_ref_b = []
         b_ns = []
         b_ys = []
         e_ids = {}
         e_count = 0
         g_count = 0
-        local_e_counts = []
+        e_map = []
 
     if g_count > 0:
-      yield make_batch(b_x_e, b_ref_v, b_ref_u, b_ns, b_ys, local_e_counts)
+      yield make_batch(b_x_e, b_ref_a, b_ref_b, e_map, b_ns, b_ys)
 
   return tf.data.Dataset.from_generator(
     gen,
     output_types=((
-      tf.float32, tf.int32, tf.int32, tf.int32, tf.int32), tf.float32))
+      tf.float32, tf.int32, tf.int32, tf.int32, tf.int32), tf.float32),
+    output_shapes=((
+      tf.TensorShape([None, f + 2]),
+      tf.TensorShape([None, None]),
+      tf.TensorShape([None, None]),
+      tf.TensorShape([None]),
+      tf.TensorShape([None])),
+      tf.TensorShape([None])))
+
+
+output_types = {
+  "vert": to_vert_ds,
+  "edge2": to_edge2_ds
+}
 
 def tf_dataset_generator(f):
   @fy.wraps(f)
-  def w(*args, edge_featured=False, **kwargs):
+  def w(*args, output_type="vert", **kwargs):
     r = cp.tolerant(f)(*args, **kwargs)
 
-    return (
-      to_edge_ds(*r, **kwargs) if edge_featured
-      else to_vert_ds(*r, **kwargs))
+    return (output_types[output_type](*r, **kwargs))
 
   return w
 

@@ -20,7 +20,7 @@ def normalize_mat(M):
 
 @tf.function
 def vec_mask(n, max_n):
-  vec_mask = tf.cast(tf.sequence_mask(n, maxlen=max_n), tf.int32)
+  vec_mask = tf.cast(tf.sequence_mask(n, maxlen=max_n), tf.float32)
 
   return tf.expand_dims(vec_mask, -1)
 
@@ -48,3 +48,12 @@ def aggregate_edge_features(X, agg):
   X_prod = agg(X_1, X_2)
 
   return tf.reduce_sum(X_prod, axis=-2)
+
+@tf.function
+def aggregate_edge_features_using_refs(X, ref_a, ref_b, agg):
+  X_a = tf.gather(X, ref_a, axis=0, batch_dims=1)
+  X_b = tf.gather(X, ref_b, axis=0, batch_dims=1)
+  X_ab = agg(X_a, X_b)
+  X_agg = tf.reduce_sum(X_ab, axis=-2)
+
+  return X_agg

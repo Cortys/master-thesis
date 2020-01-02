@@ -4,27 +4,24 @@ from __future__ import absolute_import, division, print_function,\
 import tensorflow as tf
 from tensorflow import keras
 
-import ltag.ops as ops
-
-class AVGEdgePooling(keras.layers.Layer):
+class AVGPooling(keras.layers.Layer):
   def __init__(
     self, squeeze_output=False):
-    super(AVGEdgePooling, self).__init__()
+    super(AVGPooling, self).__init__()
     self.squeeze_output = squeeze_output
 
   def get_config(self):
-    base_config = super(AVGEdgePooling, self).get_config()
+    base_config = super(AVGPooling, self).get_config()
     base_config["squeeze_output"] = self.squeeze_output
 
     return base_config
 
   def call(self, io):
-    (X, A, n), Y = io
+    (X, ref_a, ref_b, e_map, v_count), Y = io
 
-    y = tf.transpose(
-      tf.math.divide_no_nan(
-        tf.transpose(tf.reduce_sum(Y, axis=(1, 2))),
-        tf.cast(n * n, tf.float32)))
+    N = tf.shape(v_count)[0]
+
+    y = tf.math.unsorted_segment_mean(Y, e_map, num_segments=N)
 
     if self.squeeze_output:
       y = tf.squeeze(y, axis=-1)

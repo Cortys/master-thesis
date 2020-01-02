@@ -6,13 +6,13 @@ from tensorflow import keras
 
 import ltag.ops as ops
 
-class EFGCNLayer(keras.layers.Layer):
+class GCNLayer(keras.layers.Layer):
   def __init__(
     self, out_dim, in_dim=None,
     act="relu",
     k_dim=0, k_act="sigmoid",
     normalize_adj=True):
-    super(EFGCNLayer, self).__init__()
+    super(GCNLayer, self).__init__()
 
     self.out_dim = out_dim
     self.act = keras.activations.get(act)
@@ -21,7 +21,7 @@ class EFGCNLayer(keras.layers.Layer):
     self.normalize_adj = normalize_adj
 
   def get_config(self):
-    base_config = super(EFGCNLayer, self).get_config()
+    base_config = super(GCNLayer, self).get_config()
     base_config["out_dim"] = self.out_dim
     base_config["act"] = keras.activations.serialize(self.act)
     base_config["k_dim"] = self.k_dim
