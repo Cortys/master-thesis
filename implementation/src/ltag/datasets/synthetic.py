@@ -150,16 +150,14 @@ def triangle_graph(a=1, b=1, mix=1):
 @tf_dataset_generator
 def triangle_dataset():
   # configs = [
-  #   [1, 1, 1], [1, 0, 0], [0, 1, 0], [0, 0, 1],
-  #   [0, 0, 3], [3, 2, 1], [2, 3, 1]]
+  #   [1, 0, 0], [0, 1, 0], [2, 1, 0]]
 
   configs = [
-    [i, j, k]
-    for i in range(0, 3)
-    for j in range(0, 3)
-    for k in range(0, 3)
+    [i, j, 0]
+    for i in range(0, 10)
+    for j in range(0, 10)
+    # for k in range(0, 10)
   ]
-
   configs = configs[1:]
 
   x, adjs, y = unzip([triangle_graph(*config) for config in configs])

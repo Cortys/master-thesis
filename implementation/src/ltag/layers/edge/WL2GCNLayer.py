@@ -26,7 +26,6 @@ class WL2GCNLayer(keras.layers.Layer):
     return base_config
 
   def build(self, input_shape):
-    print("wl2gcn", input_shape)
     X_shape = input_shape[0]
 
     edge_dim = X_shape[-1]

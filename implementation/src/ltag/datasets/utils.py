@@ -10,7 +10,7 @@ import funcy as fy
 import ltag.chaining.pipeline as cp
 
 @cp.tolerant
-def to_vert_ds(x, adjs, y, ragged=False, sparse=False):
+def to_vert_ds(x, adjs, n_s, y, ragged=False, sparse=False):
   x_in = x
   x = tf.ragged.constant(x)
   adjs = tf.ragged.constant(adjs)
@@ -27,7 +27,8 @@ def to_vert_ds(x, adjs, y, ragged=False, sparse=False):
     (
       tf.cast(x, tf.float32),
       tf.cast(adjs, tf.float32),
-      tf.constant([s.shape[0] for s in x_in], dtype=tf.int32)
+      tf.constant(
+        [s.shape[0] for s in x_in] if n_s is None else n_s, dtype=tf.int32)
     ),
     tf.constant(y, dtype=tf.float32)
   ))
@@ -40,18 +41,21 @@ def eid_lookup(e_ids, g, i, j):
 
 @cp.tolerant
 def to_edge2_ds(
-  xs, adjs, ys,
+  xs, adjs, n_s, ys,
   shuffle=False,
   fuzzy_batch_edge_count=100000,
   batch_graph_count=100):
   f = xs[0].shape[1] if len(xs) > 0 else 0
 
+  il = np.arange(len(xs))
+
+  y_shape = ys.shape
+  y_dim = y_shape[1:] if len(y_shape) > 1 else []
+
+  if shuffle:
+    np.random.shuffle(il)
+
   def gen():
-    il = np.arange(len(xs))
-
-    if shuffle:
-      np.random.shuffle(il)
-
     b_x_e = []
     b_ref_a = []
     b_ref_b = []
@@ -84,7 +88,7 @@ def to_edge2_ds(
     for i in il:
       x = xs[i]
       y = ys[i]
-      n = x.shape[0]
+      n = x.shape[0] if n_s is None else n_s[i]
 
       if n == 0:
         continue
@@ -115,7 +119,7 @@ def to_edge2_ds(
         n_b = [eid_lookup(e_ids, i, b, k) for k in ne]
 
         b_x_e.append(np.concatenate(
-          (x[v], [1, 0]) if v == u
+          (x[a], [1, 0]) if a == b
           else (e_zero, [0, w])))
         b_ref_a.append(n_a)
         b_ref_b.append(n_b)
@@ -149,7 +153,7 @@ def to_edge2_ds(
       tf.TensorShape([None, None]),
       tf.TensorShape([None]),
       tf.TensorShape([None])),
-      tf.TensorShape([None])))
+      tf.TensorShape([None, *y_dim])))
 
 
 output_types = {
@@ -162,7 +166,16 @@ def tf_dataset_generator(f):
   def w(*args, output_type="vert", **kwargs):
     r = cp.tolerant(f)(*args, **kwargs)
 
-    return (output_types[output_type](*r, **kwargs))
+    if len(r) == 3:
+      X, A, y = r
+      n = None
+    else:
+      X, A, n, y = r
+
+    ds = output_types[output_type](X, A, n, y, **kwargs)
+    ds.name = f.__name__
+
+    return ds
 
   return w
 
