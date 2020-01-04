@@ -11,33 +11,45 @@ import ltag.datasets.disk as disk
 import ltag.models as models
 
 log_dir = "../logs"
-modelClass = models.AVG_EdgeWL2GCN
+modelClass = models.AvgVertGCN
 
-ds_raw = synthetic.triangle_dataset(
-  output_type=modelClass.input_type, shuffle=False)
-# ds_raw = disk.load_classification_dataset("mutag")
+modelClass
 
-# ds_utils.draw_from_ds(ds_raw, 1)
+# ds_raw = synthetic.triangle_dataset(
+#   output_type=modelClass.input_type, shuffle=True)
+ds_raw = disk.load_classification_dataset(
+  "mutag", output_type=modelClass.input_type, shuffle=True)
+
+ds_name = ds_raw.name
+
+# import ltag.datasets.utils as dsutils
+# dsutils.draw_from_ds(synthetic.triangle_dataset(), 2)
 
 # edge2 encoded datasets are by definition pre-batched:
-ds = ds_raw if modelClass.input_type == "edge2" else ds_raw.batch(50)
+ds = (
+  ds_raw if modelClass.input_type == "edge2"
+  else ds_raw.shuffle(1000, reshuffle_each_iteration=False).batch(50))
+ds.prefetch(20)
 
 ds.element_spec
 
-list(ds)
 in_dim = ds.element_spec[0][0].shape[-1]
-in_dim
+squeeze_output = len(ds.element_spec[1].shape) == 1
+[(d[0][2].numpy(), 1 if d[1].numpy() == 1 else -1) for d in list(ds_raw)]
 
 # -%% codecell
 
 model = modelClass(
-  layer_dims=[in_dim, 8, 4, 1],
-  act="tanh", squeeze_output=True, bias=True)
+  layer_dims=[in_dim, 4, 1],
+  act="sigmoid", squeeze_output=squeeze_output,
+  bias=True)
 
 opt = keras.optimizers.Adam(0.005)
 
 model.compile(
-  optimizer=opt, loss="mse", metrics=["mae"])
+  optimizer=opt,
+  loss="binary_crossentropy",
+  metrics=["accuracy"])
 
 model.get_weights()
 
@@ -45,18 +57,23 @@ def train(label=None):
   label = "_" + label if label is not None else ""
 
   t = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-  tb_callback = keras.callbacks.TensorBoard(
+  tb = keras.callbacks.TensorBoard(
     log_dir=f"{log_dir}/{t}{label}/",
     histogram_freq=1,
     write_images=False)
+  es = tf.keras.callbacks.EarlyStopping(
+    monitor="loss",
+    patience=50,
+    min_delta=0.0001,
+    restore_best_weights=True)
 
-  model.fit(ds, epochs=200, callbacks=[tb_callback])
+  model.fit(ds, epochs=500, callbacks=[tb, es])
 
 
-train("triangle_wl2")
+train(f"{ds_name}_{model.name}")
 
 # -%% codecell
-model.predict(ds), np.array([
+np.round(np.stack([model.predict(ds), np.array([
   y
   for ys in map(lambda x: x[1].numpy(), list(ds))
-  for y in ys])
+  for y in ys])], axis=1), decimals=3)

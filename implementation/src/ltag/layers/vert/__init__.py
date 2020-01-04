@@ -9,11 +9,13 @@ from ltag.layers.vert.GCNLayer import GCNLayer
 from ltag.layers.vert.WL2GCNLayer import WL2GCNLayer
 
 # Pooling:
-from ltag.layers.vert.AVGVertPooling import AVGVertPooling
-from ltag.layers.vert.AVGEdgePooling import AVGEdgePooling
+from ltag.layers.vert.AvgVertPooling import AvgVertPooling
+from ltag.layers.vert.MaxVertPooling import MaxVertPooling
+from ltag.layers.vert.AvgEdgePooling import AvgEdgePooling
 
 __all__ = [
   EdgeFeaturePreparation,
   GCNLayer, WL2GCNLayer,
-  AVGVertPooling, AVGEdgePooling
+  AvgVertPooling, MaxVertPooling,
+  AvgEdgePooling
 ]

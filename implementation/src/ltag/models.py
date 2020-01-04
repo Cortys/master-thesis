@@ -70,10 +70,14 @@ EdgeWL2GCN = gnn_model("EdgeWL2GCN", [
 
 # Averaging GNNs:
 
-AVG_VertGCN = VertGCN.extend("AVG_VertGCN", [
-  cm.with_layer(vl.AVGVertPooling, with_inputs=True)])
-AVG_VertWL2GCN = VertWL2GCN.extend("AVG_VertWL2GCN", [
-  cm.with_layer(vl.AVGEdgePooling, with_inputs=True)])
+AvgVertGCN = VertGCN.extend("AvgVertGCN", [
+  cm.with_layer(vl.AvgVertPooling, with_inputs=True)])
+AvgVertWL2GCN = VertWL2GCN.extend("AvgVertWL2GCN", [
+  cm.with_layer(vl.AvgEdgePooling, with_inputs=True)])
 
-AVG_EdgeWL2GCN = EdgeWL2GCN.extend("AVG_EdgeWL2GCN", [
-  cm.with_layer(ve.AVGPooling, with_inputs=True)])
+AvgEdgeWL2GCN = EdgeWL2GCN.extend("AvgEdgeWL2GCN", [
+  cm.with_layer(ve.AvgPooling, with_inputs=True)])
+
+# Max GNNs:
+MaxVertGCN = VertGCN.extend("MaxVertGCN", [
+  cm.with_layer(vl.MaxVertPooling, with_inputs=True)])

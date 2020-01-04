@@ -7,9 +7,9 @@ from __future__ import absolute_import, division, print_function,\
 from ltag.layers.edge.WL2GCNLayer import WL2GCNLayer
 
 # Pooling:
-from ltag.layers.edge.AVGPooling import AVGPooling
+from ltag.layers.edge.AvgPooling import AvgPooling
 
 __all__ = [
   WL2GCNLayer,
-  AVGPooling
+  AvgPooling
 ]

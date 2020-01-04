@@ -75,4 +75,4 @@ def load_classification_dataset(name):
   with open(ds_path, "rb") as file:
     (X, A, n), y = convert_classification_data(pickle.load(file))
 
-  return X, A, n, y
+  return name + "_classify", (X, A, n, y)

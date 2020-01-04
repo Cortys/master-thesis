@@ -6,14 +6,14 @@ from tensorflow import keras
 
 import ltag.ops as ops
 
-class AVGEdgePooling(keras.layers.Layer):
+class AvgVertPooling(keras.layers.Layer):
   def __init__(
     self, squeeze_output=False):
-    super(AVGEdgePooling, self).__init__()
+    super(AvgVertPooling, self).__init__()
     self.squeeze_output = squeeze_output
 
   def get_config(self):
-    base_config = super(AVGEdgePooling, self).get_config()
+    base_config = super(AvgVertPooling, self).get_config()
     base_config["squeeze_output"] = self.squeeze_output
 
     return base_config
@@ -21,10 +21,16 @@ class AVGEdgePooling(keras.layers.Layer):
   def call(self, io):
     (X, A, n), Y = io
 
+    Y_shape = tf.shape(Y)
+    max_n = Y_shape[-2]
+    n_mask = ops.vec_mask(n, max_n)
+
+    Y = Y * n_mask
+
     y = tf.transpose(
       tf.math.divide_no_nan(
-        tf.transpose(tf.reduce_sum(Y, axis=(1, 2))),
-        tf.cast(n * n, tf.float32)))
+        tf.transpose(tf.reduce_sum(Y, 1)),
+        tf.cast(n, tf.float32)))
 
     if self.squeeze_output:
       y = tf.squeeze(y, axis=-1)

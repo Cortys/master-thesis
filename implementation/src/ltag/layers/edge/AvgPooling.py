@@ -4,33 +4,28 @@ from __future__ import absolute_import, division, print_function,\
 import tensorflow as tf
 from tensorflow import keras
 
-import ltag.ops as ops
-
-class AVGVertPooling(keras.layers.Layer):
+class AvgPooling(keras.layers.Layer):
   def __init__(
     self, squeeze_output=False):
-    super(AVGVertPooling, self).__init__()
+    super(AvgPooling, self).__init__()
     self.squeeze_output = squeeze_output
 
   def get_config(self):
-    base_config = super(AVGVertPooling, self).get_config()
+    base_config = super(AvgPooling, self).get_config()
     base_config["squeeze_output"] = self.squeeze_output
 
     return base_config
 
   def call(self, io):
-    (X, A, n), Y = io
+    (X, ref_a, ref_b, e_map, v_count), Y = io
 
-    Y_shape = tf.shape(Y)
-    max_n = Y_shape[-2]
-    n_mask = ops.vec_mask(n, max_n)
+    N = tf.shape(v_count)[0]
 
-    Y = Y * n_mask
+    y = tf.math.unsorted_segment_mean(Y, e_map, num_segments=N)
 
-    y = tf.transpose(
-      tf.math.divide_no_nan(
-        tf.transpose(tf.reduce_sum(Y, 1)),
-        tf.cast(n, tf.float32)))
+    # y = tf.math.divide_no_nan(
+    #   y,
+    #   tf.expand_dims(tf.cast(v_count, tf.float32), axis=1))
 
     if self.squeeze_output:
       y = tf.squeeze(y, axis=-1)

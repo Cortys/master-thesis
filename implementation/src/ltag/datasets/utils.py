@@ -166,6 +166,11 @@ def tf_dataset_generator(f):
   def w(*args, output_type="vert", **kwargs):
     r = cp.tolerant(f)(*args, **kwargs)
 
+    if len(r) == 2:
+      name, r = r
+    else:
+      name = None
+
     if len(r) == 3:
       X, A, y = r
       n = None
@@ -173,7 +178,7 @@ def tf_dataset_generator(f):
       X, A, n, y = r
 
     ds = output_types[output_type](X, A, n, y, **kwargs)
-    ds.name = f.__name__
+    ds.name = f.__name__ if name is None else name
 
     return ds
 
