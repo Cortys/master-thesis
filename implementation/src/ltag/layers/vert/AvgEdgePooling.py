@@ -4,8 +4,6 @@ from __future__ import absolute_import, division, print_function,\
 import tensorflow as tf
 from tensorflow import keras
 
-import ltag.ops as ops
-
 class AvgEdgePooling(keras.layers.Layer):
   def __init__(
     self, squeeze_output=False):
@@ -21,10 +19,10 @@ class AvgEdgePooling(keras.layers.Layer):
   def call(self, io):
     (X, A, n), Y = io
 
-    y = tf.transpose(
-      tf.math.divide_no_nan(
-        tf.transpose(tf.reduce_sum(Y, axis=(1, 2))),
-        tf.cast(n * n, tf.float32)))
+    Y_sum = tf.reduce_sum(Y, axis=(1, 2))
+    n_2 = tf.cast(tf.expand_dims(n * n, axis=-1), tf.float32)
+
+    y = tf.math.divide_no_nan(Y_sum, n_2)
 
     if self.squeeze_output:
       y = tf.squeeze(y, axis=-1)

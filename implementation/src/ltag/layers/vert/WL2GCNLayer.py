@@ -49,10 +49,7 @@ class WL2GCNLayer(keras.layers.Layer):
         trainable=True, initializer=tf.initializers.Zeros)
 
   def call(self, input):
-    if self.bias:
-      X, mask, n = input
-    else:
-      X, n = input
+    X, mask, n = input
 
     X_prop = ops.aggregate_edge_features(X, tf.multiply)
 
@@ -60,13 +57,10 @@ class WL2GCNLayer(keras.layers.Layer):
     XW_prop = tf.linalg.matmul(X_prop, self.W_prop)
 
     if self.bias:
-      XW_comb = tf.nn.bias_add(XW + XW_prop, self.W_bias) * mask
+      XW_comb = tf.nn.bias_add(XW + XW_prop, self.W_bias)
     else:
       XW_comb = XW + XW_prop
 
-    X_out = self.act(XW_comb)
+    X_out = self.act(XW_comb) * mask
 
-    if self.bias:
-      return X_out, mask, n
-    else:
-      return X_out, n
+    return X_out, mask, n

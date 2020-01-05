@@ -38,11 +38,8 @@ class EdgeFeaturePreparation(keras.layers.Layer):
     if self.sparse:
       AX_e = tf.sparse.from_dense(AX_e)
 
-    if self.bias:
       X_shape = tf.shape(X)
       max_n = X_shape[-2]
       mask = ops.matrix_mask(n, max_n)
 
-      return AX_e, mask, n
-    else:
-      return AX_e, n
+    return AX_e, mask, n
