@@ -11,14 +11,17 @@ import ltag.datasets.disk as disk
 import ltag.models as models
 
 log_dir = "../logs"
-modelClass = models.AvgVertGCN
+modelClass = models.AvgEdgeWL2GCN
 
 modelClass
 
-# ds_raw = synthetic.triangle_dataset(
-#   output_type=modelClass.input_type, shuffle=True)
-ds_raw = disk.load_classification_dataset(
-  "mutag", output_type=modelClass.input_type, shuffle=True)
+# ds_raw = synthetic.twothree_dataset(
+#   output_type=modelClass.input_type,
+#   shuffle=True, neighborhood=2)
+# ds_raw = disk.load_classification_dataset(
+#   "nci1", output_type=modelClass.input_type,
+#   shuffle=True, neighborhood=8)
+ds_raw = disk.load_sparse_classification_dataset("proteins")
 
 ds_name = ds_raw.name
 
@@ -32,24 +35,29 @@ ds = (
 ds.prefetch(20)
 
 ds.element_spec
+# list(ds_raw)[0]
 
 in_dim = ds.element_spec[0][0].shape[-1]
 squeeze_output = len(ds.element_spec[1].shape) == 1
-[(d[0][2].numpy(), 1 if d[1].numpy() == 1 else -1) for d in list(ds_raw)]
 
 # -%% codecell
 
 model = modelClass(
-  layer_dims=[in_dim, 4, 1],
+  layer_dims=[in_dim, 32, 32, 1],
   act="sigmoid", squeeze_output=squeeze_output,
   bias=True)
 
 opt = keras.optimizers.Adam(0.005)
 
+
 model.compile(
   optimizer=opt,
   loss="binary_crossentropy",
   metrics=["accuracy"])
+# model.compile(
+#   optimizer=opt,
+#   loss="mse",
+#   metrics=["mae"])
 
 model.get_weights()
 
@@ -67,7 +75,7 @@ def train(label=None):
     min_delta=0.0001,
     restore_best_weights=True)
 
-  model.fit(ds, epochs=500, callbacks=[tb, es])
+  model.fit(ds, epochs=500, callbacks=[tb])
 
 
 train(f"{ds_name}_{model.name}")

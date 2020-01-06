@@ -39,15 +39,40 @@ def eid_lookup(e_ids, g, i, j):
 
   return e_ids[(g, i, j)]
 
+def make_edge2_batch(b_x_e, b_ref_a, b_ref_b, e_map, b_ns, b_ys):
+  max_ref = np.max([len(r) for r in b_ref_a])
+
+  b_ref_a = [
+    np.pad(r, (0, max_ref - len(r)), "constant", constant_values=-1)
+    for r in b_ref_a]
+  b_ref_b = [
+    np.pad(r, (0, max_ref - len(r)), "constant", constant_values=-1)
+    for r in b_ref_b]
+
+  b_ns = np.array(b_ns)
+
+  return ((
+    np.array(b_x_e),
+    np.array(b_ref_a), np.array(b_ref_b),
+    np.array(e_map),
+    np.array(b_ns)),
+    np.array(b_ys))
+
 @cp.tolerant
 def to_edge2_ds(
   xs, adjs, n_s, ys,
   shuffle=False,
   fuzzy_batch_edge_count=100000,
-  batch_graph_count=100):
-  f = xs[0].shape[1] if len(xs) > 0 else 0
+  upper_batch_edge_count=120000,
+  batch_graph_count=100,
+  neighborhood=1,
+  lazy=False,
+  as_list=False, log=False):
+  ds_size = len(xs)
 
-  il = np.arange(len(xs))
+  f = xs[0].shape[1] if ds_size > 0 else 0
+
+  il = np.arange(ds_size)
 
   y_shape = ys.shape
   y_dim = y_shape[1:] if len(y_shape) > 1 else []
@@ -66,55 +91,55 @@ def to_edge2_ds(
     g_count = 0
     e_map = []
 
-    def make_batch(b_x_e, b_ref_a, b_ref_b, e_map, b_ns, b_ys):
-      max_ref = np.max([len(r) for r in b_ref_a])
+    if ds_size > 0:
+      g_next = nx.from_numpy_array(adjs[il[0]])
+      g_next_p = nx.power(g_next, neighborhood)
 
-      b_ref_a = [
-        np.pad(r, (0, max_ref - len(r)), "constant", constant_values=-1)
-        for r in b_ref_a]
-      b_ref_b = [
-        np.pad(r, (0, max_ref - len(r)), "constant", constant_values=-1)
-        for r in b_ref_b]
+      for node in g_next.nodes:
+        g_next.add_edge(node, node)
+        g_next_p.add_edge(node, node)
 
-      b_ns = np.array(b_ns)
-
-      return ((
-        np.array(b_x_e),
-        np.array(b_ref_a), np.array(b_ref_b),
-        np.array(e_map),
-        np.array(b_ns)),
-        np.array(b_ys))
-
-    for i in il:
+    for i_pos in range(ds_size):
+      i = il[i_pos]
       x = xs[i]
       y = ys[i]
       n = x.shape[0] if n_s is None else n_s[i]
 
+      y = ys[i]
+      e_zero = np.zeros(f)
+      local_e_count = 0
+      g = g_next
+      g_p = g_next_p
+
+      if i_pos + 1 < ds_size:
+        i_next = il[i_pos + 1]
+        adj = adjs[i_next]
+        g_next = nx.from_numpy_array(adj)
+        g_next_p = nx.power(g_next, neighborhood)
+
+        for node in g_next.nodes:
+          g_next.add_edge(node, node)
+          g_next_p.add_edge(node, node)
+      else:
+        g_next_p = None
+
       if n == 0:
         continue
 
-      adj = adjs[i]
-      y = ys[i]
-      g = nx.from_numpy_array(adj)
-      e_zero = np.zeros(f)
-      local_e_count = 0
-
-      for node in g.nodes:
-        g.add_edge(node, node)
-
-      for v, u in g.edges:
+      for v, u in g_p.edges:
         e_ids[(i, v, u)] = e_count
         e_count += 1
         local_e_count += 1
 
       e_map += [g_count] * local_e_count
 
-      for edge in g.edges(data=True):
-        a, b, d = edge
-        w = d.get("weight", 0)
+      for edge in g_p.edges:
+        a, b = edge
+        in_g = g.has_edge(a, b)
+        w = g.get_edge_data(a, b).get("weight", 0) if in_g else 0
         ne = (
           ([a] if a == b else [a, b])
-          + list(nx.common_neighbors(g, a, b)))
+          + list(nx.common_neighbors(g_p, a, b)))
         n_a = [eid_lookup(e_ids, i, a, k) for k in ne]
         n_b = [eid_lookup(e_ids, i, b, k) for k in ne]
 
@@ -127,9 +152,19 @@ def to_edge2_ds(
       b_ns.append(n)
       b_ys.append(y)
       g_count += 1
+      next_e_count = (
+        e_count if g_next_p is None
+        else e_count + nx.number_of_edges(g_next_p))
 
-      if g_count >= batch_graph_count or e_count >= fuzzy_batch_edge_count:
-        yield make_batch(b_x_e, b_ref_a, b_ref_b, e_map, b_ns, b_ys)
+      if (
+        g_count >= batch_graph_count
+        or e_count >= fuzzy_batch_edge_count
+        or (g_count > 0 and next_e_count >= upper_batch_edge_count)):
+        if log:
+          print(
+            "Batch with", g_count, "graphs and",
+            e_count, "edges with", f, "features.")
+        yield make_edge2_batch(b_x_e, b_ref_a, b_ref_b, e_map, b_ns, b_ys)
         b_x_e = []
         b_ref_a = []
         b_ref_b = []
@@ -141,10 +176,26 @@ def to_edge2_ds(
         e_map = []
 
     if g_count > 0:
-      yield make_batch(b_x_e, b_ref_a, b_ref_b, e_map, b_ns, b_ys)
+      if log:
+        print(
+          "Batch with", g_count, "graphs and",
+          e_count, "edges with", f, "features.")
+      yield make_edge2_batch(b_x_e, b_ref_a, b_ref_b, e_map, b_ns, b_ys)
+
+  if lazy and not as_list:
+    gen_out = gen
+  else:
+    batches = list(gen())
+
+    if as_list:
+      return batches
+
+    def gen_out():
+      for b in batches:
+        yield b
 
   return tf.data.Dataset.from_generator(
-    gen,
+    gen_out,
     output_types=((
       tf.float32, tf.int32, tf.int32, tf.int32, tf.int32), tf.float32),
     output_shapes=((

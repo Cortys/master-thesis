@@ -5,10 +5,9 @@ import os.path as path
 import pickle
 import tensorflow as tf
 import numpy as np
-import networkx as nx
 import funcy as fy
 
-from ltag.datasets.utils import tf_dataset_generator
+from ltag.datasets.utils import tf_dataset_generator, to_edge2_ds
 
 data_dir = "../data"
 
@@ -76,3 +75,81 @@ def load_classification_dataset(name):
     (X, A, n), y = convert_classification_data(pickle.load(file))
 
   return name + "_classify", (X, A, n, y)
+
+def load_sparse_classification_dataset(name):
+  ds_path = path.join(data_dir, "classification_sparse", name + ".pickle")
+
+  with open(ds_path, "rb") as file:
+    batches = pickle.load(file)
+
+  if len(batches) > 0:
+    (X, ref_a, ref_b, e_map, n), y = batches[0]
+    f_dim = X.shape[-1]
+    y_dim = y_dim = y.shape[1:] if len(y.shape) > 1 else []
+  else:
+    f_dim = 1
+    y_dim = []
+
+  def gen():
+    for b in batches:
+      yield b
+
+  ds = tf.data.Dataset.from_generator(
+    gen,
+    output_types=((
+      tf.float32, tf.int32, tf.int32, tf.int32, tf.int32), tf.float32),
+    output_shapes=((
+      tf.TensorShape([None, f_dim]),
+      tf.TensorShape([None, None]),
+      tf.TensorShape([None, None]),
+      tf.TensorShape([None]),
+      tf.TensorShape([None])),
+      tf.TensorShape([None, *y_dim])))
+
+  ds.name = name
+
+  return ds
+
+def save_sparse_classification_dataset(name, **kwargs):
+  ds_path = path.join(data_dir, "classification", name + ".pickle")
+
+  with open(ds_path, "rb") as file:
+    (X, A, n), y = convert_classification_data(pickle.load(file))
+
+  batches = to_edge2_ds(X, A, n, y, as_list=True, **kwargs)
+
+  ds_sparse_path = path.join(
+    data_dir, "classification_sparse", name + ".pickle")
+
+  with open(ds_sparse_path, "wb") as file:
+    pickle.dump(batches, file)
+
+def save_sparse_classification_datasets(
+  sets=["mutag", "nci1", "proteins", "dd"]):
+  configs = {
+    "mutag": {
+      "neighborhood": 8
+    },
+    "nci1": {
+      "neighborhood": 8
+    },
+    "proteins": {
+      "neighborhood": 6,
+      "batch_graph_count": 20,
+      "fuzzy_batch_edge_count": 10000,
+      "upper_batch_edge_count": 30000
+    },
+    "dd": {
+      "neighborhood": 2,
+      "batch_graph_count": 4,
+      "fuzzy_batch_edge_count": 10000,
+      "upper_batch_edge_count": 30000
+    }
+  }
+
+  for s in sets:
+    print("Saving", s, "as a sparse dataset...")
+    save_sparse_classification_dataset(
+      s, shuffle=True, log=True, **configs[s])
+
+  print("Done.")

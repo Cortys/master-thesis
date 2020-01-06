@@ -34,6 +34,19 @@ def matrix_mask(n, max_n, sparse=False):
   return m
 
 @tf.function
+def neighborhood_mask(AX_e, degree=1):
+  mask = tf.where(
+    tf.reduce_sum(AX_e, axis=-1) == 0,
+    0, 1)
+
+  mask_p = mask
+
+  for _ in tf.range(degree - 1):
+    mask_p = tf.linalg.matmul(mask_p, mask)
+
+  return tf.expand_dims(tf.where(mask_p == 0, 0.0, 1.0), -1)
+
+@tf.function
 def aggregate_edge_features(X, agg):
   X_shape = tf.shape(X)
   n = X_shape[-2]
@@ -57,3 +70,11 @@ def aggregate_edge_features_using_refs(X, ref_a, ref_b, agg):
   X_agg = tf.reduce_sum(X_ab, axis=-2)
 
   return X_agg
+
+# import ltag.datasets.synthetic as synthetic
+#
+# ds = synthetic.triangle_dataset(output_type="edge2", batch_graph_count=1)
+#
+# (X, ref_a, ref_b, e_map, v_count), y = list(ds)[0]
+#
+# print(aggregate_edge_features_using_refs(X, ref_a, ref_b, tf.multiply))
