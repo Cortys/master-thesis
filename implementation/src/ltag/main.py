@@ -11,17 +11,14 @@ import ltag.datasets.disk as disk
 import ltag.models as models
 
 log_dir = "../logs"
-modelClass = models.AvgEdgeWL2GCN
+modelClass = models.SortEdgeWL2GCN
 
 modelClass
 
-# ds_raw = synthetic.twothree_dataset(
+# ds_raw = synthetic.triangle_dataset(
 #   output_type=modelClass.input_type,
-#   shuffle=True, neighborhood=2)
-# ds_raw = disk.load_classification_dataset(
-#   "nci1", output_type=modelClass.input_type,
-#   shuffle=True, neighborhood=8)
-ds_raw = disk.load_sparse_classification_dataset("proteins")
+#   shuffle=True, neighborhood=3)
+ds_raw = disk.load_sparse_classification_dataset("dd")
 
 ds_name = ds_raw.name
 
@@ -43,12 +40,11 @@ squeeze_output = len(ds.element_spec[1].shape) == 1
 # -%% codecell
 
 model = modelClass(
-  layer_dims=[in_dim, 32, 32, 1],
+  layer_dims=[in_dim, 32, 32, 32, 1],
   act="sigmoid", squeeze_output=squeeze_output,
-  bias=True)
+  bias=True, k_pool=128)
 
-opt = keras.optimizers.Adam(0.005)
-
+opt = keras.optimizers.Adam(0.001)
 
 model.compile(
   optimizer=opt,

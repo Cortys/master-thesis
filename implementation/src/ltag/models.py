@@ -81,3 +81,7 @@ AvgEdgeWL2GCN = EdgeWL2GCN.extend("AvgEdgeWL2GCN", [
 # Max GNNs:
 MaxVertGCN = VertGCN.extend("MaxVertGCN", [
   cm.with_layer(vl.MaxVertPooling, with_inputs=True)])
+
+# SortPool GNNs:
+SortEdgeWL2GCN = EdgeWL2GCN.extend("SortEdgeWL2GCN", [
+  cm.with_layer(ve.SortPooling, with_inputs=True)])

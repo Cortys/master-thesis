@@ -8,15 +8,17 @@ import ltag.ops as ops
 
 class EdgeFeaturePreparation(keras.layers.Layer):
   def __init__(
-    self, sparse=False, bias=False):
+    self, sparse=False, bias=False, neighborhood_mask=-1):
     super(EdgeFeaturePreparation, self).__init__()
     self.sparse = sparse
     self.bias = bias
+    self.neighborhood_mask = neighborhood_mask
 
   def get_config(self):
     base_config = super(EdgeFeaturePreparation, self).get_config()
     base_config["sparse"] = self.sparse
     base_config["bias"] = self.bias
+    base_config["neighborhood_mask"] = self.neighborhood_mask
 
     return base_config
 
@@ -38,8 +40,13 @@ class EdgeFeaturePreparation(keras.layers.Layer):
     if self.sparse:
       AX_e = tf.sparse.from_dense(AX_e)
 
-      X_shape = tf.shape(X)
+    X_shape = tf.shape(X)
+
+    if self.neighborhood_mask == -1:
       max_n = X_shape[-2]
       mask = ops.matrix_mask(n, max_n)
+    else:
+      mask = ops.neighborhood_mask(
+        AX_e, self.neighborhood_mask)
 
     return AX_e, mask, n
