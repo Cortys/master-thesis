@@ -7,7 +7,7 @@ import numpy as np
 from datetime import datetime
 
 import ltag.datasets.synthetic as synthetic
-import ltag.datasets.disk as disk
+import ltag.datasets.disk.binary_class_chem as bcc
 import ltag.models as models
 
 log_dir = "../logs"
@@ -18,7 +18,7 @@ modelClass
 # ds_raw = synthetic.triangle_dataset(
 #   output_type=modelClass.input_type,
 #   shuffle=True, neighborhood=3)
-ds_raw = disk.load_sparse_classification_dataset("dd")
+ds_raw = bcc.load_sparse_classification_dataset("mutag")
 
 ds_name = ds_raw.name
 

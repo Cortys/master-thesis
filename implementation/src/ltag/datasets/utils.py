@@ -99,8 +99,7 @@ def to_edge2_ds(
         g_next.add_edge(node, node)
         g_next_p.add_edge(node, node)
 
-    for i_pos in range(ds_size):
-      i = il[i_pos]
+    for i_pos, i in enumerate(il):
       x = xs[i]
       y = ys[i]
       n = x.shape[0] if n_s is None else n_s[i]

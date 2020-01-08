@@ -5,11 +5,10 @@ import os.path as path
 import pickle
 import tensorflow as tf
 import numpy as np
-import funcy as fy
 
 from ltag.datasets.utils import tf_dataset_generator, to_edge2_ds
 
-data_dir = "../data"
+data_dir = "../data/1_binary_class_chem"
 
 # Adapted from https://github.com/XuSShuai/GNN_tensorflow:
 def convert_classification_data(data, directed=False):
@@ -69,7 +68,7 @@ def convert_classification_data(data, directed=False):
 
 @tf_dataset_generator
 def load_classification_dataset(name):
-  ds_path = path.join(data_dir, "classification", name + ".pickle")
+  ds_path = path.join(data_dir, "dense", name + ".pickle")
 
   with open(ds_path, "rb") as file:
     (X, A, n), y = convert_classification_data(pickle.load(file))
@@ -77,7 +76,7 @@ def load_classification_dataset(name):
   return name + "_classify", (X, A, n, y)
 
 def load_sparse_classification_dataset(name):
-  ds_path = path.join(data_dir, "classification_sparse", name + ".pickle")
+  ds_path = path.join(data_dir, "sparse", name + ".pickle")
 
   with open(ds_path, "rb") as file:
     batches = pickle.load(file)
@@ -111,7 +110,7 @@ def load_sparse_classification_dataset(name):
   return ds
 
 def save_sparse_classification_dataset(name, **kwargs):
-  ds_path = path.join(data_dir, "classification", name + ".pickle")
+  ds_path = path.join(data_dir, "dense", name + ".pickle")
 
   with open(ds_path, "rb") as file:
     (X, A, n), y = convert_classification_data(pickle.load(file))
@@ -119,7 +118,7 @@ def save_sparse_classification_dataset(name, **kwargs):
   batches = to_edge2_ds(X, A, n, y, as_list=True, **kwargs)
 
   ds_sparse_path = path.join(
-    data_dir, "classification_sparse", name + ".pickle")
+    data_dir, "sparse", name + ".pickle")
 
   with open(ds_sparse_path, "wb") as file:
     pickle.dump(batches, file)
