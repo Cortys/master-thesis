@@ -8,6 +8,7 @@ import numpy as np
 import pickle
 from sklearn.model_selection import train_test_split, StratifiedKFold
 
+import ltag.datasets.utils as ds_utils
 import ltag.datasets.disk.tu.utils as tu_utils
 
 # Implementation adapted from https://github.com/diningphil/gnn-comparison.
@@ -22,17 +23,13 @@ class NumpyEncoder(json.JSONEncoder):
 
 class GraphDatasetManager:
   def __init__(
-    self, kfold_class=StratifiedKFold, outer_k=10, inner_k=None, seed=42,
-    holdout_test_size=0.1, use_node_degree=False, use_node_attrs=False,
-    use_one=False,
+    self, kfold_class=StratifiedKFold, outer_k=10, inner_k=None,
+    seed=42, holdout_test_size=0.1,
     max_reductions=10, DATA_DIR=data_dir):
 
     self.root_dir = Path(DATA_DIR) / self.name
     self.kfold_class = kfold_class
     self.holdout_test_size = holdout_test_size
-    self.use_node_degree = use_node_degree
-    self.use_node_attrs = use_node_attrs
-    self.use_one = use_one
 
     self.outer_k = outer_k
     assert (outer_k is not None and outer_k > 0) or outer_k is None
@@ -53,8 +50,7 @@ class GraphDatasetManager:
         os.makedirs(self.processed_dir)
       self._process()
 
-    with open(self.processed_dir / f"{self.name}.pickle", "rb") as f:
-      self.dataset = pickle.load(f)
+    self._dataset = None
 
     splits_filename = self.processed_dir / f"{self.name}_splits.json"
     if not splits_filename.exists():
@@ -62,6 +58,14 @@ class GraphDatasetManager:
       self._make_splits()
     else:
       self.splits = json.load(open(splits_filename, "r"))
+
+  @property
+  def dataset(self):
+    if self._dataset is None:
+      with open(self.processed_dir / f"{self.name}.pickle", "rb") as f:
+        self._dataset = pickle.load(f)
+
+    return self._dataset
 
   @property
   def num_graphs(self):
@@ -72,8 +76,16 @@ class GraphDatasetManager:
     return self._dim_target
 
   @property
-  def dim_features(self):
-    return self._dim_features
+  def dim_node_features(self):
+    return self._dim_node_features
+
+  @property
+  def dim_edge_features(self):
+    return self._dim_edge_features
+
+  @property
+  def max_num_nodes(self):
+    return self._max_num_nodes
 
   def _process(self):
     raise NotImplementedError
@@ -162,6 +174,30 @@ class GraphDatasetManager:
     with open(filename, "w") as f:
       json.dump(self.splits[:], f, cls=NumpyEncoder)
 
+  def _prepare_wl2(self, neighborhood=1):
+    wl2_dir = self.root_dir / "wl2" / f"n_{neighborhood}"
+    if not (wl2_dir / f"{self.name}.pickle").exists():
+      if not wl2_dir.exists():
+        os.makedirs(wl2_dir)
+
+      graphs, targets = self.dataset
+
+    with open(wl2_dir / f"{self.name}.pickle", "rb") as f:
+      return pickle.load(f)
+
+
+  def get_test_fold(
+    self, outer_idx, batch_size=1, output_type="dense"):
+    outer_idx = outer_idx or 0
+
+    idxs = self.splits[outer_idx]["test"]
+
+  def get_train_fold(
+    self, outer_idx, inner_idx=None, batch_size=1, output_type="dense"):
+    outer_idx = outer_idx or 0
+    inner_idx = inner_idx or 0
+
+    idxs = self.splits[outer_idx]["model_selection"][inner_idx]
 
 class TUDatasetManager(GraphDatasetManager):
   URL = (

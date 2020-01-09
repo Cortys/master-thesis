@@ -10,10 +10,17 @@ import funcy as fy
 import ltag.chaining.pipeline as cp
 
 @cp.tolerant
-def to_vert_ds(x, adjs, n_s, y, ragged=False, sparse=False):
-  x_in = x
+def to_dense_ds(graphs, ys, ragged=False, sparse=False):
+  x = [[
+    data.get("features", [1])
+    for _, data in g.nodes(data=True)]
+    for g in graphs]
+
+  adjs = [nx.to_numpy_array(g) for g in graphs]
+
   x = tf.ragged.constant(x)
   adjs = tf.ragged.constant(adjs)
+  n_s = [g.order() for g in graphs]
 
   if not ragged:
     x = x.to_tensor()
@@ -27,40 +34,114 @@ def to_vert_ds(x, adjs, n_s, y, ragged=False, sparse=False):
     (
       tf.cast(x, tf.float32),
       tf.cast(adjs, tf.float32),
-      tf.constant(
-        [s.shape[0] for s in x_in] if n_s is None else n_s, dtype=tf.int32)
+      tf.constant(n_s, dtype=tf.int32)
     ),
-    tf.constant(y, dtype=tf.float32)
+    tf.constant(ys, dtype=tf.float32)
   ))
 
-def eid_lookup(e_ids, g, i, j):
+def eid_lookup(e_ids, i, j):
   if i > j:
     i, j = j, i
 
-  return e_ids[(g, i, j)]
+  return e_ids[(i, j)]
 
-def make_wl2_batch(b_x_e, b_ref_a, b_ref_b, e_map, b_ns, b_ys):
-  max_ref = np.max([len(r) for r in b_ref_a])
+def wl2_encode(
+  g, dim_node_features=None, dim_edge_features=None, neighborhood=1):
+  """
+    Takes a graph with node and edge features and converts it
+    into a edge + row/col ref list for sparse WL2 implementations.
+  """
+  g_p = nx.power(g, neighborhood)
 
-  b_ref_a = [
-    np.pad(r, (0, max_ref - len(r)), "constant", constant_values=-1)
-    for r in b_ref_a]
-  b_ref_b = [
-    np.pad(r, (0, max_ref - len(r)), "constant", constant_values=-1)
-    for r in b_ref_b]
+  if dim_node_features is None:
+    dim_node_features = 0
 
-  b_ns = np.array(b_ns)
+  if dim_edge_features is None:
+    dim_edge_features = 0
 
-  return ((
-    np.array(b_x_e),
+  n_zero = np.zeros(dim_node_features)
+  e_zero = np.zeros(dim_edge_features)
+
+  for node, data in g.nodes(data=True):
+    g.add_edge(node, node, features=data.get("features", n_zero))
+    g_p.add_edge(node, node)
+
+  x = []
+  ref_a = []
+  ref_b = []
+  max_ref_dim = 0
+  e_ids = {}
+
+  for i, edge in enumerate(g_p.edges):
+    e_ids[edge] = i
+
+  for i, edge in enumerate(g_p.edges):
+    a, b = edge
+    in_g = g.has_edge(a, b)
+    if not in_g:
+      f = e_zero
+    elif (
+      (a != b and dim_edge_features == 0)
+      or (a == b and dim_node_features == 0)):
+      f = []
+    else:
+      f = g.get_edge_data(a, b).get("features", e_zero)
+
+    nbs = (
+      ([a] if a == b else [a, b])
+      + list(nx.common_neighbors(g_p, a, b)))
+    n_a = np.array([eid_lookup(e_ids, a, k) for k in nbs])
+    n_b = np.array([eid_lookup(e_ids, b, k) for k in nbs])
+    nbs_count = len(nbs)
+
+    if nbs_count > max_ref_dim:
+      max_ref_dim = nbs_count
+
+    x.append(np.concatenate(
+      ([1, 0], f,      e_zero) if a == b else
+      ([0, 1], n_zero, f)))
+    ref_a.append(n_a)
+    ref_b.append(n_b)
+
+  n = g.order()
+
+  return x, ref_a, ref_b, max_ref_dim, n
+
+def make_wl2_batch(encoded_graphs):
+  "Takes a sequence of graphs that were encoded via `wl2_encode`."
+  max_ref_dim = np.max([g[3] for g in encoded_graphs])
+
+  b_x = []
+  b_ref_a = []
+  b_ref_b = []
+  b_e_map = []
+  b_n = []
+  e_offset = 0
+
+  for i, (x, ref_a, ref_b, _, n) in enumerate(encoded_graphs):
+    e_count = len(x)
+    b_x += x
+    b_ref_a += [np.pad(
+      r + e_offset,
+      (0, max_ref_dim - len(r)), "constant", constant_values=-1)
+      for r in ref_a]
+    b_ref_b += [np.pad(
+      r + e_offset,
+      (0, max_ref_dim - len(r)), "constant", constant_values=-1)
+      for r in ref_b]
+    b_e_map += [i] * e_count
+    b_n.append(n)
+    e_offset += e_count
+
+  return (
+    np.array(b_x),
     np.array(b_ref_a), np.array(b_ref_b),
-    np.array(e_map),
-    np.array(b_ns)),
-    np.array(b_ys))
+    np.array(b_e_map),
+    np.array(b_n))
 
 @cp.tolerant
 def to_wl2_ds(
-  xs, adjs, n_s, ys,
+  graphs, ys,
   shuffle=False,
   fuzzy_batch_edge_count=100000,
   upper_batch_edge_count=120000,
@@ -68,9 +149,7 @@ def to_wl2_ds(
   neighborhood=1,
   lazy=False,
   as_list=False, log=False):
-  ds_size = len(xs)
-
-  f = xs[0].shape[1] if ds_size > 0 else 0
+  ds_size = len(graphs)
 
   il = np.arange(ds_size)
 
@@ -80,106 +159,79 @@ def to_wl2_ds(
   if shuffle:
     np.random.shuffle(il)
 
+  dim_node_features = 0
+  dim_edge_features = 0
+  dim_wl2 = 0
+
+  if ds_size > 0:
+    g = graphs[0]
+    dim_wl2 = 2
+
+    for _, data in g.nodes(data=True):
+      f = data.get("features")
+      if f is not None:
+        dim_node_features = len(f)
+      else:
+        break
+
+    for _, _, data in g.edges(data=True):
+      f = data.get("features")
+      if f is not None:
+        dim_edge_features = len(f)
+      else:
+        break
+
+    dim_wl2 += dim_node_features
+    dim_wl2 += dim_edge_features
+
+  if log:
+    print(
+      "Batching", ds_size, "graphs.",
+      f"dim_wl2={dim_wl2},",
+      f"dim_node={dim_node_features}, dim_edge={dim_edge_features}")
+
   def gen():
-    b_x_e = []
-    b_ref_a = []
-    b_ref_b = []
-    b_ns = []
+    b_gs = []
     b_ys = []
-    e_ids = {}
     e_count = 0
-    g_count = 0
-    e_map = []
 
     if ds_size > 0:
-      g_next = nx.from_numpy_array(adjs[il[0]])
-      g_next_p = nx.power(g_next, neighborhood)
-
-      for node in g_next.nodes:
-        g_next.add_edge(node, node)
-        g_next_p.add_edge(node, node)
+      enc_next = wl2_encode(
+        graphs[il[0]],
+        dim_node_features, dim_edge_features, neighborhood)
 
     for i_pos, i in enumerate(il):
-      x = xs[i]
+      enc = enc_next
       y = ys[i]
-      n = x.shape[0] if n_s is None else n_s[i]
+      enc_next = (
+        wl2_encode(
+          graphs[il[i_pos + 1]],
+          dim_node_features, dim_edge_features, neighborhood)
+        if i_pos + 1 < ds_size else None)
 
-      y = ys[i]
-      e_zero = np.zeros(f)
-      local_e_count = 0
-      g = g_next
-      g_p = g_next_p
-
-      if i_pos + 1 < ds_size:
-        i_next = il[i_pos + 1]
-        adj = adjs[i_next]
-        g_next = nx.from_numpy_array(adj)
-        g_next_p = nx.power(g_next, neighborhood)
-
-        for node in g_next.nodes:
-          g_next.add_edge(node, node)
-          g_next_p.add_edge(node, node)
-      else:
-        g_next_p = None
-
-      if n == 0:
-        continue
-
-      for v, u in g_p.edges:
-        e_ids[(i, v, u)] = e_count
-        e_count += 1
-        local_e_count += 1
-
-      e_map += [g_count] * local_e_count
-
-      for edge in g_p.edges:
-        a, b = edge
-        in_g = g.has_edge(a, b)
-        w = g.get_edge_data(a, b).get("weight", 0) if in_g else 0
-        ne = (
-          ([a] if a == b else [a, b])
-          + list(nx.common_neighbors(g_p, a, b)))
-        n_a = [eid_lookup(e_ids, i, a, k) for k in ne]
-        n_b = [eid_lookup(e_ids, i, b, k) for k in ne]
-
-        b_x_e.append(np.concatenate(
-          (x[a], [1, 0]) if a == b
-          else (e_zero, [0, w])))
-        b_ref_a.append(n_a)
-        b_ref_b.append(n_b)
-
-      b_ns.append(n)
+      b_gs.append(enc)
       b_ys.append(y)
-      g_count += 1
-      next_e_count = (
-        e_count if g_next_p is None
-        else e_count + nx.number_of_edges(g_next_p))
+
+      e_count += len(enc[0])
+      e_count_next = (
+        e_count if enc_next is None
+        else e_count + len(enc_next[0]))
 
       if (
-        g_count >= batch_graph_count
+        len(b_gs) >= batch_graph_count
         or e_count >= fuzzy_batch_edge_count
-        or (g_count > 0 and next_e_count >= upper_batch_edge_count)):
+        or (len(b_gs) > 0 and e_count_next >= upper_batch_edge_count)):
         if log:
-          print(
-            "Batch with", g_count, "graphs and",
-            e_count, "edges with", f, "features.")
-        yield make_wl2_batch(b_x_e, b_ref_a, b_ref_b, e_map, b_ns, b_ys)
-        b_x_e = []
-        b_ref_a = []
-        b_ref_b = []
-        b_ns = []
-        b_ys = []
-        e_ids = {}
+          print("Batch with", len(b_gs), "graphs and", e_count, "edges.")
+        yield (make_wl2_batch(b_gs), b_ys)
         e_count = 0
-        g_count = 0
-        e_map = []
+        b_gs = []
+        b_ys = []
 
-    if g_count > 0:
+    if len(b_gs) > 0:
       if log:
-        print(
-          "Batch with", g_count, "graphs and",
-          e_count, "edges with", f, "features.")
-      yield make_wl2_batch(b_x_e, b_ref_a, b_ref_b, e_map, b_ns, b_ys)
+        print("Batch with", len(b_gs), "graphs and", e_count, "edges with.")
+      yield (make_wl2_batch(b_gs), b_ys)
 
   if lazy and not as_list:
     gen_out = gen
@@ -198,7 +250,7 @@ def to_wl2_ds(
     output_types=((
       tf.float32, tf.int32, tf.int32, tf.int32, tf.int32), tf.float32),
     output_shapes=((
-      tf.TensorShape([None, f + 2]),
+      tf.TensorShape([None, dim_wl2]),
       tf.TensorShape([None, None]),
       tf.TensorShape([None, None]),
       tf.TensorShape([None]),
@@ -207,54 +259,39 @@ def to_wl2_ds(
 
 
 output_types = {
-  "vert": to_vert_ds,
+  "dense": to_dense_ds,
   "wl2": to_wl2_ds
 }
 
 def tf_dataset_generator(f):
   @fy.wraps(f)
-  def w(*args, output_type="vert", **kwargs):
+  def w(*args, output_type="dense", **kwargs):
     r = cp.tolerant(f)(*args, **kwargs)
 
-    if len(r) == 2:
-      name, r = r
+    if len(r) == 3:
+      name, graphs, y = r
     else:
       name = None
+      graphs, y = r
 
-    if len(r) == 3:
-      X, A, y = r
-      n = None
-    else:
-      X, A, n, y = r
-
-    ds = output_types[output_type](X, A, n, y, **kwargs)
+    ds = output_types[output_type](graphs, y, **kwargs)
     ds.name = f.__name__ if name is None else name
 
     return ds
 
   return w
 
-def draw_graph(x, adj, y):
+def draw_graph(g, y, with_features=False):
   plt.figure()
   plt.title('Label: {}'.format(y))
 
-  g = nx.from_numpy_array(adj)
+  g = g.copy()
 
-  nx.relabel_nodes(g, dict([
-    (i, str(x[i]))
-    for i in range(x.shape[0])
-  ]))
+  if with_features:
+    nx.relabel_nodes(g, dict([
+      (n, f"{n}: " + str(data.get("features")))
+      for n, data in g.nodes(data=True)
+    ]))
 
   nx.draw_spring(g, with_labels=True)
   plt.show()
-
-def draw_from_ds(ds, i):
-  (x, adj, n), y = list(ds)[i]
-  x = x.numpy()
-  adj = adj.numpy()
-  y = y.numpy()
-
-  x = x[:n, :]
-  adj = adj[:n, :n]
-
-  draw_graph(x, adj, y)

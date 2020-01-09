@@ -135,7 +135,7 @@ def create_graph_from_tu_data(
     if len(features) == 0:
       features = [1]
 
-  G.add_node(node, features=features)
+    G.add_node(node, features=features)
 
   for i, edge in enumerate(edges):
     n1, n2 = edge

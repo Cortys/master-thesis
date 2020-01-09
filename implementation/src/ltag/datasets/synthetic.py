@@ -37,14 +37,12 @@ def fiedler_approximation_dataset(
       np.random.choice(crossing_probs))
     for _ in range(N)]
 
-  adjs = np.array([nx.to_numpy_array(g) for g in graphs])
-  x = [np.ones((adjs[i].shape[0], 1)) for i in range(N)]
   y = np.array([
     [nx.linalg.algebraicconnectivity.algebraic_connectivity(
       g, normalized=True)]
     for g in graphs])
 
-  return x, adjs, y
+  return graphs, y
 
 
 # Regular:
@@ -61,12 +59,11 @@ def regular_dataset(N, sizes=default_regular_sizes):
     regular_graph(*sizes[np.random.choice(len(sizes))]) for _ in range(N)]
 
   adjs = np.array([nx.to_numpy_array(g) for g in graphs])
-  x = [np.ones((adjs[i].shape[0], 1)) for i in range(N)]
   y = np.array([
     [nx.number_connected_components(graphs[i]) / adjs[i].shape[0]]
     for i in range(N)])
 
-  return x, adjs, y
+  return graphs, y
 
 
 # Loops:
@@ -77,7 +74,6 @@ default_loop_scores = [1, -1, 0.5]
 def loop_graph(loop_count, loop_sizes, loop_scores):
   g = nx.Graph()
   i = 0
-  x = []
   y = 0.0
   sizes_count = len(loop_sizes)
 
@@ -87,41 +83,39 @@ def loop_graph(loop_count, loop_sizes, loop_scores):
 
     nodes = range(i, i + size)
     i += size
-    x += [[1]] * size
     y += score
 
     nx.add_cycle(g, nodes)
 
-  adj = nx.to_numpy_array(g)
   y /= loop_count
 
-  return np.array(x), adj, [y]
+  return g, y
 
 @tf_dataset_generator
 def loop_dataset(
   N, loop_counts=default_loop_counts, loop_sizes=default_loop_sizes,
   loop_scores=default_loop_scores):
 
-  x, adjs, y = unzip([
+  graphs, ys = unzip([
     loop_graph(np.random.choice(loop_counts), loop_sizes, loop_scores)
     for _ in range(N)])
 
-  return np.array(x), np.array(adjs), np.array(y)
+  return graphs, np.array(ys)
 
 
 # Triangles:
 def triangle_graph(a=1, b=1, mix=1):
   g = nx.Graph()
   i = 0
-  x = []
   ab_split = a * 3
   e = np.eye(2)
 
   for _ in range(a + b):
     t = range(i, i + 3)
 
+    g.add_nodes_from(
+      t, features=(e[0 if i < ab_split else 1]))
     nx.add_cycle(g, t)
-    x += [e[0], e[0], e[0]] if i < ab_split else [e[1], e[1], e[1]]
     i += 3
 
   if a <= b:
@@ -139,13 +133,15 @@ def triangle_graph(a=1, b=1, mix=1):
     g.add_edge(pairing_a + j * 3 + 2, pairing_b + j * 3 + 2)
 
   for _ in range(mix):
+    g.add_node(i, features=e[0])
+    g.add_node(i + 1, features=e[0])
+    g.add_node(i + 2, features=e[1])
     nx.add_cycle(g, range(i, i + 3))
-    x += [e[0], e[0], e[1]]
     i += 3
 
   y = (a - b) / max(a + b, 1)
 
-  return np.array(x), nx.to_numpy_array(g), y
+  return g, y
 
 @tf_dataset_generator
 def triangle_dataset():
@@ -160,9 +156,9 @@ def triangle_dataset():
   ]
   configs = configs[1:]
 
-  x, adjs, y = unzip([triangle_graph(*config) for config in configs])
+  graphs, ys = unzip([triangle_graph(*config) for config in configs])
 
-  return np.array(x), np.array(adjs), np.array(y)
+  return graphs, np.array(ys)
 
 @tf_dataset_generator
 def twothree_dataset():
@@ -172,9 +168,4 @@ def twothree_dataset():
   g3 = nx.Graph()
   nx.add_cycle(g3, range(3))
 
-  x, adjs, y = unzip([
-    [np.array([[1], [1]]), nx.to_numpy_array(g2), -1],
-    [np.array([[1], [1], [1]]), nx.to_numpy_array(g3), 1],
-  ])
-
-  return np.array(x), np.array(adjs), np.array(y)
+  return [g2, g3], np.array([-1, 1])

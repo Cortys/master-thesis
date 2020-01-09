@@ -13,10 +13,10 @@ import ltag.models as models
 log_dir = "../logs"
 modelClass = models.SortWL2GCN
 
-# ds_raw = synthetic.triangle_dataset(
-#   output_type=modelClass.input_type,
-#   shuffle=True, neighborhood=3)
-ds_raw = bcc.load_sparse_classification_dataset("mutag")
+ds_raw = synthetic.triangle_dataset(
+  output_type=modelClass.input_type,
+  shuffle=True, neighborhood=3)
+# ds_raw = bcc.load_sparse_classification_dataset("mutag")
 
 ds_name = ds_raw.name
 
@@ -30,7 +30,7 @@ ds = (
 ds.prefetch(20)
 
 ds.element_spec
-# list(ds_raw)[0]
+list(ds_raw)[0]
 
 in_dim = ds.element_spec[0][0].shape[-1]
 squeeze_output = len(ds.element_spec[1].shape) == 1
@@ -39,19 +39,19 @@ squeeze_output = len(ds.element_spec[1].shape) == 1
 
 model = modelClass(
   layer_dims=[in_dim, 32, 32, 32, 1],
-  act="sigmoid", squeeze_output=squeeze_output,
+  act="tanh", squeeze_output=squeeze_output,
   bias=True, k_pool=128)
 
 opt = keras.optimizers.Adam(0.001)
 
-model.compile(
-  optimizer=opt,
-  loss="binary_crossentropy",
-  metrics=["accuracy"])
 # model.compile(
 #   optimizer=opt,
-#   loss="mse",
-#   metrics=["mae"])
+#   loss="binary_crossentropy",
+#   metrics=["accuracy"])
+model.compile(
+  optimizer=opt,
+  loss="mse",
+  metrics=["mae"])
 
 model.get_weights()
 
