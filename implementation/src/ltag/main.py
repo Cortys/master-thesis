@@ -11,9 +11,7 @@ import ltag.datasets.disk.binary_class_chem as bcc
 import ltag.models as models
 
 log_dir = "../logs"
-modelClass = models.SortEdgeWL2GCN
-
-modelClass
+modelClass = models.SortWL2GCN
 
 # ds_raw = synthetic.triangle_dataset(
 #   output_type=modelClass.input_type,
@@ -25,9 +23,9 @@ ds_name = ds_raw.name
 # import ltag.datasets.utils as dsutils
 # dsutils.draw_from_ds(synthetic.triangle_dataset(), 2)
 
-# edge2 encoded datasets are by definition pre-batched:
+# wl2 encoded datasets are by definition pre-batched:
 ds = (
-  ds_raw if modelClass.input_type == "edge2"
+  ds_raw if modelClass.input_type == "wl2"
   else ds_raw.shuffle(1000, reshuffle_each_iteration=False).batch(50))
 ds.prefetch(20)
 

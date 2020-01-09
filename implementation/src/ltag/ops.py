@@ -73,7 +73,7 @@ def aggregate_edge_features_using_refs(X, ref_a, ref_b, agg):
 
 # import ltag.datasets.synthetic as synthetic
 #
-# ds = synthetic.triangle_dataset(output_type="edge2", batch_graph_count=1)
+# ds = synthetic.triangle_dataset(output_type="wl2", batch_graph_count=1)
 #
 # (X, ref_a, ref_b, e_map, v_count), y = list(ds)[0]
 #

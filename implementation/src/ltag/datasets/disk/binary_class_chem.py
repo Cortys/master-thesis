@@ -6,7 +6,7 @@ import pickle
 import tensorflow as tf
 import numpy as np
 
-from ltag.datasets.utils import tf_dataset_generator, to_edge2_ds
+from ltag.datasets.utils import tf_dataset_generator, to_wl2_ds
 
 data_dir = "../data/1_binary_class_chem"
 
@@ -115,7 +115,7 @@ def save_sparse_classification_dataset(name, **kwargs):
   with open(ds_path, "rb") as file:
     (X, A, n), y = convert_classification_data(pickle.load(file))
 
-  batches = to_edge2_ds(X, A, n, y, as_list=True, **kwargs)
+  batches = to_wl2_ds(X, A, n, y, as_list=True, **kwargs)
 
   ds_sparse_path = path.join(
     data_dir, "sparse", name + ".pickle")

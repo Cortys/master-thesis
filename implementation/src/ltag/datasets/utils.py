@@ -39,7 +39,7 @@ def eid_lookup(e_ids, g, i, j):
 
   return e_ids[(g, i, j)]
 
-def make_edge2_batch(b_x_e, b_ref_a, b_ref_b, e_map, b_ns, b_ys):
+def make_wl2_batch(b_x_e, b_ref_a, b_ref_b, e_map, b_ns, b_ys):
   max_ref = np.max([len(r) for r in b_ref_a])
 
   b_ref_a = [
@@ -59,7 +59,7 @@ def make_edge2_batch(b_x_e, b_ref_a, b_ref_b, e_map, b_ns, b_ys):
     np.array(b_ys))
 
 @cp.tolerant
-def to_edge2_ds(
+def to_wl2_ds(
   xs, adjs, n_s, ys,
   shuffle=False,
   fuzzy_batch_edge_count=100000,
@@ -163,7 +163,7 @@ def to_edge2_ds(
           print(
             "Batch with", g_count, "graphs and",
             e_count, "edges with", f, "features.")
-        yield make_edge2_batch(b_x_e, b_ref_a, b_ref_b, e_map, b_ns, b_ys)
+        yield make_wl2_batch(b_x_e, b_ref_a, b_ref_b, e_map, b_ns, b_ys)
         b_x_e = []
         b_ref_a = []
         b_ref_b = []
@@ -179,7 +179,7 @@ def to_edge2_ds(
         print(
           "Batch with", g_count, "graphs and",
           e_count, "edges with", f, "features.")
-      yield make_edge2_batch(b_x_e, b_ref_a, b_ref_b, e_map, b_ns, b_ys)
+      yield make_wl2_batch(b_x_e, b_ref_a, b_ref_b, e_map, b_ns, b_ys)
 
   if lazy and not as_list:
     gen_out = gen
@@ -208,7 +208,7 @@ def to_edge2_ds(
 
 output_types = {
   "vert": to_vert_ds,
-  "edge2": to_edge2_ds
+  "wl2": to_wl2_ds
 }
 
 def tf_dataset_generator(f):

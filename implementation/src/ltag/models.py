@@ -6,11 +6,11 @@ from tensorflow import keras
 import funcy as fy
 
 import ltag.chaining.model as cm
-import ltag.layers.vert as vl
-import ltag.layers.edge as ve
+import ltag.layers.dense as ld
+import ltag.layers.wl2 as lwl2
 
 @cm.model_inputs
-def gnn_vert_inputs(layer_dims, sparse=False):
+def gnn_dense_inputs(layer_dims, sparse=False):
   X = keras.Input(shape=(None, layer_dims[0]), name="X", sparse=sparse)
   A = keras.Input(shape=(None, None), name="A", sparse=sparse)
   n = keras.Input(shape=(), dtype=tf.int32, name="n")
@@ -18,7 +18,7 @@ def gnn_vert_inputs(layer_dims, sparse=False):
   return X, A, n
 
 @cm.model_inputs
-def gnn_edge2_inputs():
+def gnn_wl2_inputs():
   X = keras.Input(shape=(None,), dtype=tf.float32, name="X")
   ref_a = keras.Input(shape=(None,), dtype=tf.int32, name="ref_a")
   ref_b = keras.Input(shape=(None,), dtype=tf.int32, name="ref_b")
@@ -29,15 +29,15 @@ def gnn_edge2_inputs():
 
 
 input_types = {
-  "vert": gnn_vert_inputs,
-  "edge2": gnn_edge2_inputs
+  "dense": gnn_dense_inputs,
+  "wl2": gnn_wl2_inputs
 }
 
 @cm.model_step
 def select_features(inputs):
   return inputs[0]
 
-def gnn_model(name, steps, input_type="vert"):
+def gnn_model(name, steps, input_type="dense"):
   m = cm.create_model(name, [
     input_types[input_type],
     *steps])
@@ -54,34 +54,34 @@ def gnn_model(name, steps, input_type="vert"):
 
 # Non-aggregating GNNs:
 
-VertGCN = gnn_model("VertGCN", [
-  cm.with_layers(vl.GCNLayer),
+DenseGCN = gnn_model("DenseGCN", [
+  cm.with_layers(ld.GCNLayer),
   select_features])
 
-VertWL2GCN = gnn_model("VertWL2GCN", [
-  cm.with_layer(vl.EdgeFeaturePreparation),
-  cm.with_layers(vl.WL2GCNLayer),
+DenseWL2GCN = gnn_model("DenseWL2GCN", [
+  cm.with_layer(ld.EdgeFeaturePreparation),
+  cm.with_layers(ld.WL2GCNLayer),
   select_features])
 
-EdgeWL2GCN = gnn_model("EdgeWL2GCN", [
-  cm.with_layers(ve.WL2GCNLayer),
+WL2GCN = gnn_model("WL2GCN", [
+  cm.with_layers(lwl2.WL2GCNLayer),
   select_features],
-  input_type="edge2")
+  input_type="wl2")
 
 # Averaging GNNs:
 
-AvgVertGCN = VertGCN.extend("AvgVertGCN", [
-  cm.with_layer(vl.AvgVertPooling, with_inputs=True)])
-AvgVertWL2GCN = VertWL2GCN.extend("AvgVertWL2GCN", [
-  cm.with_layer(vl.AvgEdgePooling, with_inputs=True)])
+AvgDenseGCN = DenseGCN.extend("AvgDenseGCN", [
+  cm.with_layer(ld.AvgVertPooling, with_inputs=True)])
+AvgDenseWL2GCN = DenseWL2GCN.extend("AvgDenseWL2GCN", [
+  cm.with_layer(ld.AvgEdgePooling, with_inputs=True)])
 
-AvgEdgeWL2GCN = EdgeWL2GCN.extend("AvgEdgeWL2GCN", [
-  cm.with_layer(ve.AvgPooling, with_inputs=True)])
+AvgWL2GCN = WL2GCN.extend("AvgWL2GCN", [
+  cm.with_layer(lwl2.AvgPooling, with_inputs=True)])
 
 # Max GNNs:
-MaxVertGCN = VertGCN.extend("MaxVertGCN", [
-  cm.with_layer(vl.MaxVertPooling, with_inputs=True)])
+MaxDenseGCN = DenseGCN.extend("MaxDenseGCN", [
+  cm.with_layer(ld.MaxVertPooling, with_inputs=True)])
 
 # SortPool GNNs:
-SortEdgeWL2GCN = EdgeWL2GCN.extend("SortEdgeWL2GCN", [
-  cm.with_layer(ve.SortPooling, with_inputs=True)])
+SortWL2GCN = WL2GCN.extend("SortWL2GCN", [
+  cm.with_layer(lwl2.SortPooling, with_inputs=True)])

@@ -4,11 +4,11 @@ from __future__ import absolute_import, division, print_function,\
 # Preprocessing:
 
 # Convolution:
-from ltag.layers.edge.WL2GCNLayer import WL2GCNLayer
+from ltag.layers.wl2.WL2GCNLayer import WL2GCNLayer
 
 # Pooling:
-from ltag.layers.edge.AvgPooling import AvgPooling
-from ltag.layers.edge.SortPooling import SortPooling
+from ltag.layers.wl2.AvgPooling import AvgPooling
+from ltag.layers.wl2.SortPooling import SortPooling
 
 __all__ = [
   WL2GCNLayer,
