@@ -5,7 +5,6 @@ import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
 import networkx as nx
-import funcy as fy
 
 import ltag.chaining.pipeline as cp
 
@@ -105,7 +104,7 @@ def wl2_encode(
 
   n = g.order()
 
-  return x, ref_a, ref_b, max_ref_dim, n
+  return x, ref_a, ref_b, max_ref_dim, np.array(n)
 
 def make_wl2_batch(encoded_graphs):
   "Takes a sequence of graphs that were encoded via `wl2_encode`."
@@ -139,25 +138,39 @@ def make_wl2_batch(encoded_graphs):
     np.array(b_e_map),
     np.array(b_n))
 
+def get_graph_feature_dims(g):
+  dim_node_features = 0
+  dim_edge_features = 0
+
+  for _, data in g.nodes(data=True):
+    f = data.get("features")
+    if f is not None:
+      dim_node_features = len(f)
+    else:
+      break
+
+  for _, _, data in g.edges(data=True):
+    f = data.get("features")
+    if f is not None:
+      dim_edge_features = len(f)
+    else:
+      break
+
+  return dim_node_features, dim_edge_features
+
 @cp.tolerant
 def to_wl2_ds(
   graphs, ys,
-  shuffle=False,
   fuzzy_batch_edge_count=100000,
   upper_batch_edge_count=120000,
   batch_graph_count=100,
   neighborhood=1,
-  lazy=False,
+  lazy=False, preencoded=False,
   as_list=False, log=False):
   ds_size = len(graphs)
-
   il = np.arange(ds_size)
-
   y_shape = ys.shape
   y_dim = y_shape[1:] if len(y_shape) > 1 else []
-
-  if shuffle:
-    np.random.shuffle(il)
 
   dim_node_features = 0
   dim_edge_features = 0
@@ -165,30 +178,22 @@ def to_wl2_ds(
 
   if ds_size > 0:
     g = graphs[0]
-    dim_wl2 = 2
 
-    for _, data in g.nodes(data=True):
-      f = data.get("features")
-      if f is not None:
-        dim_node_features = len(f)
-      else:
-        break
-
-    for _, _, data in g.edges(data=True):
-      f = data.get("features")
-      if f is not None:
-        dim_edge_features = len(f)
-      else:
-        break
-
-    dim_wl2 += dim_node_features
-    dim_wl2 += dim_edge_features
+    if preencoded:
+      dim_node_features = "?"
+      dim_edge_features = "?"
+      dim_wl2 = len(g[0][0])
+    else:
+      dim_wl2 = 2
+      dim_node_features, dim_edge_features = get_graph_feature_dims(g)
+      dim_wl2 += dim_node_features
+      dim_wl2 += dim_edge_features
 
   if log:
     print(
-      "Batching", ds_size, "graphs.",
-      f"dim_wl2={dim_wl2},",
-      f"dim_node={dim_node_features}, dim_edge={dim_edge_features}")
+      "Batching", ds_size, "preencoded" if preencoded else "raw", "graphs.",
+      f"dim_wl2={dim_wl2}",
+      f"(node={dim_node_features}, edge={dim_edge_features})")
 
   def gen():
     b_gs = []
@@ -196,18 +201,19 @@ def to_wl2_ds(
     e_count = 0
 
     if ds_size > 0:
-      enc_next = wl2_encode(
+      enc_next = graphs[il[0]] if preencoded else wl2_encode(
         graphs[il[0]],
         dim_node_features, dim_edge_features, neighborhood)
 
     for i_pos, i in enumerate(il):
       enc = enc_next
       y = ys[i]
-      enc_next = (
-        wl2_encode(
+      if i_pos + 1 < ds_size:
+        enc_next = graphs[il[i_pos + 1]] if preencoded else wl2_encode(
           graphs[il[i_pos + 1]],
           dim_node_features, dim_edge_features, neighborhood)
-        if i_pos + 1 < ds_size else None)
+      else:
+        enc_next = None
 
       b_gs.append(enc)
       b_ys.append(y)
@@ -257,29 +263,6 @@ def to_wl2_ds(
       tf.TensorShape([None])),
       tf.TensorShape([None, *y_dim])))
 
-
-output_types = {
-  "dense": to_dense_ds,
-  "wl2": to_wl2_ds
-}
-
-def tf_dataset_generator(f):
-  @fy.wraps(f)
-  def w(*args, output_type="dense", **kwargs):
-    r = cp.tolerant(f)(*args, **kwargs)
-
-    if len(r) == 3:
-      name, graphs, y = r
-    else:
-      name = None
-      graphs, y = r
-
-    ds = output_types[output_type](graphs, y, **kwargs)
-    ds.name = f.__name__ if name is None else name
-
-    return ds
-
-  return w
 
 def draw_graph(g, y, with_features=False):
   plt.figure()

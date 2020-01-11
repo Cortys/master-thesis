@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function,\
 import numpy as np
 import networkx as nx
 
-from ltag.datasets.utils import tf_dataset_generator
+from ltag.datasets.manager import synthetic_dataset
 
 def unzip(tuples):
   return list(zip(*tuples))
@@ -27,7 +27,7 @@ def dumbbell_graph(n, m, crossing_prob):
 
 default_fiedler_sizes = [(i, int(i ** 1.5)) for i in range(10, 80)]
 
-@tf_dataset_generator
+@synthetic_dataset
 def fiedler_approximation_dataset(
   N, sizes=default_fiedler_sizes,
   crossing_probs=[0, 0.01, 0.02, 0.2, 0.5, 1]):
@@ -53,7 +53,7 @@ def regular_graph(n, d):
 default_regular_sizes = [
   (n, d) for n in range(10, 80, 2) for d in range(1, int(n ** 0.5), 1)]
 
-@tf_dataset_generator
+@synthetic_dataset
 def regular_dataset(N, sizes=default_regular_sizes):
   graphs = [
     regular_graph(*sizes[np.random.choice(len(sizes))]) for _ in range(N)]
@@ -91,7 +91,7 @@ def loop_graph(loop_count, loop_sizes, loop_scores):
 
   return g, y
 
-@tf_dataset_generator
+@synthetic_dataset
 def loop_dataset(
   N, loop_counts=default_loop_counts, loop_sizes=default_loop_sizes,
   loop_scores=default_loop_scores):
@@ -143,16 +143,16 @@ def triangle_graph(a=1, b=1, mix=1):
 
   return g, y
 
-@tf_dataset_generator
+@synthetic_dataset
 def triangle_dataset():
   # configs = [
   #   [1, 0, 0], [0, 1, 0], [2, 1, 0]]
 
   configs = [
-    [i, j, k]
+    [i, j, 0]
     for i in range(0, 10)
     for j in range(0, 10)
-    for k in range(0, 10)
+    # for k in range(10, 20)
   ]
   configs = configs[1:]
 
@@ -160,7 +160,7 @@ def triangle_dataset():
 
   return graphs, np.array(ys)
 
-@tf_dataset_generator
+@synthetic_dataset
 def twothree_dataset():
   g2 = nx.Graph()
   g2.add_edge(0, 1)

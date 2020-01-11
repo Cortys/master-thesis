@@ -1,209 +1,172 @@
+from __future__ import absolute_import, division, print_function,\
+  unicode_literals
+
 import io
-import os
-import json
+from collections import defaultdict
 import requests
 import zipfile
 from pathlib import Path
-import numpy as np
 import pickle
-from sklearn.model_selection import train_test_split, StratifiedKFold
+import numpy as np
+import networkx as nx
 
-import ltag.datasets.utils as ds_utils
-import ltag.datasets.disk.tu.utils as tu_utils
+from ltag.datasets.manager import StoredGraphDatasetManager
 
 # Implementation adapted from https://github.com/diningphil/gnn-comparison.
 
-data_dir = "../data/2_tu"
+def parse_tu_data(name, raw_dir):
+  indicator_path = raw_dir / name / f'{name}_graph_indicator.txt'
+  edges_path = raw_dir / name / f'{name}_A.txt'
+  graph_labels_path = raw_dir / name / f'{name}_graph_labels.txt'
+  node_labels_path = raw_dir / name / f'{name}_node_labels.txt'
+  edge_labels_path = raw_dir / name / f'{name}_edge_labels.txt'
+  node_attrs_path = raw_dir / name / f'{name}_node_attributes.txt'
+  edge_attrs_path = raw_dir / name / f'{name}_edge_attributes.txt'
 
-class NumpyEncoder(json.JSONEncoder):
-  def default(self, obj):
-    if isinstance(obj, np.ndarray):
-      return obj.tolist()
-    return json.JSONEncoder.default(self, obj)
+  unique_node_labels = set()
+  unique_edge_labels = set()
 
-class GraphDatasetManager:
-  def __init__(
-    self, kfold_class=StratifiedKFold, outer_k=10, inner_k=None,
-    seed=42, holdout_test_size=0.1,
-    max_reductions=10, DATA_DIR=data_dir):
+  indicator, edge_indicator = [-1], [(-1, -1)]
+  graph_nodes = defaultdict(list)
+  graph_edges = defaultdict(list)
+  node_labels = defaultdict(list)
+  edge_labels = defaultdict(list)
+  node_attrs = defaultdict(list)
+  edge_attrs = defaultdict(list)
 
-    self.root_dir = Path(DATA_DIR) / self.name
-    self.kfold_class = kfold_class
-    self.holdout_test_size = holdout_test_size
+  with open(indicator_path, "r") as f:
+    for i, line in enumerate(f.readlines(), 1):
+      line = line.rstrip("\n")
+      graph_id = int(line)
+      indicator.append(graph_id)
+      graph_nodes[graph_id].append(i)
 
-    self.outer_k = outer_k
-    assert (outer_k is not None and outer_k > 0) or outer_k is None
+  with open(edges_path, "r") as f:
+    for i, line in enumerate(f.readlines(), 1):
+      line = line.rstrip("\n")
+      edge = [int(e) for e in line.split(',')]
+      edge_indicator.append(edge)
+      graph_id = indicator[edge[0]]
+      graph_edges[graph_id].append(edge)
 
-    self.inner_k = inner_k
-    assert (inner_k is not None and inner_k > 0) or inner_k is None
+  if node_labels_path.exists():
+    with open(node_labels_path, "r") as f:
+      for i, line in enumerate(f.readlines(), 1):
+        line = line.rstrip("\n")
+        node_label = int(line)
+        unique_node_labels.add(node_label)
+        graph_id = indicator[i]
+        node_labels[graph_id].append(node_label)
 
-    self.seed = seed
+  if edge_labels_path.exists():
+    with open(edge_labels_path, "r") as f:
+      for i, line in enumerate(f.readlines(), 1):
+        line = line.rstrip("\n")
+        edge_label = int(line)
+        unique_edge_labels.add(edge_label)
+        graph_id = indicator[edge_indicator[i][0]]
+        edge_labels[graph_id].append(edge_label)
 
-    self.raw_dir = self.root_dir / "raw"
-    if not self.raw_dir.exists():
-      os.makedirs(self.raw_dir)
-      self._download()
+  if node_attrs_path.exists():
+    with open(node_attrs_path, "r") as f:
+      for i, line in enumerate(f.readlines(), 1):
+        line = line.rstrip("\n")
+        nums = line.split(",")
+        node_attr = np.array([float(n) for n in nums])
+        graph_id = indicator[i]
+        node_attrs[graph_id].append(node_attr)
 
-    self.processed_dir = self.root_dir / "processed"
-    if not (self.processed_dir / f"{self.name}.pickle").exists():
-      if not self.processed_dir.exists():
-        os.makedirs(self.processed_dir)
-      self._process()
+  if edge_attrs_path.exists():
+    with open(edge_attrs_path, "r") as f:
+      for i, line in enumerate(f.readlines(), 1):
+        line = line.rstrip("\n")
+        nums = line.split(",")
+        edge_attr = np.array([float(n) for n in nums])
+        graph_id = indicator[edge_indicator[i][0]]
+        edge_attrs[graph_id].append(edge_attr)
 
-    self._dataset = None
-
-    splits_filename = self.processed_dir / f"{self.name}_splits.json"
-    if not splits_filename.exists():
-      self.splits = []
-      self._make_splits()
-    else:
-      self.splits = json.load(open(splits_filename, "r"))
-
-  @property
-  def dataset(self):
-    if self._dataset is None:
-      with open(self.processed_dir / f"{self.name}.pickle", "rb") as f:
-        self._dataset = pickle.load(f)
-
-    return self._dataset
-
-  @property
-  def num_graphs(self):
-    return len(self.dataset[0])
-
-  @property
-  def dim_target(self):
-    return self._dim_target
-
-  @property
-  def dim_node_features(self):
-    return self._dim_node_features
-
-  @property
-  def dim_edge_features(self):
-    return self._dim_edge_features
-
-  @property
-  def max_num_nodes(self):
-    return self._max_num_nodes
-
-  def _process(self):
-    raise NotImplementedError
-
-  def _download(self):
-    raise NotImplementedError
-
-  def _make_splits(self):
-    graphs, targets = self.dataset
-    all_idxs = np.arange(len(targets))
-
-    if self.outer_k is None:  # holdout assessment strategy
-      assert self.holdout_test_size is not None
-
-      if self.holdout_test_size == 0:
-        train_o_split, test_split = all_idxs, []
+  graph_labels = []
+  with open(graph_labels_path, "r") as f:
+    for i, line in enumerate(f.readlines(), 1):
+      line = line.rstrip("\n")
+      target = int(line)
+      if target == -1:
+        graph_labels.append(0)
       else:
-        outer_split = train_test_split(
-          all_idxs,
-          stratify=targets,
-          test_size=self.holdout_test_size)
-        train_o_split, test_split = outer_split
-      split = {"test": all_idxs[test_split], "model_selection": []}
+        graph_labels.append(target)
 
-      train_o_targets = targets[train_o_split]
+    # Shift by one to the left.
+    # Apparently this is necessary for multiclass tasks.
+    if min(graph_labels) == 1:
+      graph_labels = [l - 1 for l in graph_labels]
 
-      if self.inner_k is None:  # holdout model selection strategy
-        if self.holdout_test_size == 0:
-          train_i_split, val_i_split = train_o_split, []
-        else:
-          train_i_split, val_i_split = train_test_split(
-            train_o_split,
-            stratify=train_o_targets,
-            test_size=self.holdout_test_size)
-        split["model_selection"].append(
-          {"train": train_i_split, "validation": val_i_split})
+  num_node_labels = (
+    max(unique_node_labels) if unique_node_labels != set() else 0)
+  if num_node_labels != 0 and min(unique_node_labels) == 0:
+    # some datasets e.g. PROTEINS have labels with value 0
+    num_node_labels += 1
 
-      else:  # cross validation model selection strategy
-        inner_kfold = self.kfold_class(
-          n_splits=self.inner_k, shuffle=True)
-        for train_ik_split, val_ik_split in inner_kfold.split(
-          train_o_split, train_o_targets):
-          split["model_selection"].append({
-            "train": train_o_split[train_ik_split],
-            "validation": train_o_split[val_ik_split]
-          })
+  num_edge_labels = (
+    max(unique_edge_labels) if unique_edge_labels != set() else 0)
+  if num_edge_labels != 0 and min(unique_edge_labels) == 0:
+    num_edge_labels += 1
 
-      self.splits.append(split)
+  return {
+    "graph_nodes": graph_nodes,
+    "graph_edges": graph_edges,
+    "graph_labels": graph_labels,
+    "node_labels": node_labels,
+    "node_attrs": node_attrs,
+    "edge_labels": edge_labels,
+    "edge_attrs": edge_attrs
+  }, num_node_labels, num_edge_labels
 
-    else:  # cross validation assessment strategy
+def create_graph_from_tu_data(
+  graph_data, num_node_labels, num_edge_labels):
+  nodes = graph_data["graph_nodes"]
+  edges = graph_data["graph_edges"]
 
-      outer_kfold = self.kfold_class(
-        n_splits=self.outer_k, shuffle=True)
+  G = nx.Graph()
+  I_n = np.eye(num_node_labels)
+  I_e = np.eye(num_edge_labels)
 
-      for train_ok_split, test_ok_split in outer_kfold.split(
-        X=all_idxs, y=targets):
-        split = {
-          "test": all_idxs[test_ok_split],
-          "model_selection": []
-        }
+  for i, node in enumerate(nodes):
+    features = []
 
-        train_ok_targets = targets[train_ok_split]
+    if graph_data["node_labels"] != []:
+      features.extend(I_n[graph_data["node_labels"][i] - 1])
 
-        if self.inner_k is None:  # holdout model selection strategy
-          assert self.holdout_test_size is not None
-          train_i_split, val_i_split = train_test_split(
-            train_ok_split,
-            stratify=train_ok_targets,
-            test_size=self.holdout_test_size)
-          split["model_selection"].append(
-            {"train": train_i_split, "validation": val_i_split})
+    if graph_data["node_attrs"] != []:
+      features.extend(graph_data["node_attrs"][i])
 
-        else:  # cross validation model selection strategy
-          inner_kfold = self.kfold_class(
-            n_splits=self.inner_k, shuffle=True)
-          for train_ik_split, val_ik_split in inner_kfold.split(
-            train_ok_split, train_ok_targets):
-            split["model_selection"].append({
-              "train": train_ok_split[train_ik_split],
-              "validation": train_ok_split[val_ik_split]
-            })
+    if len(features) == 0:
+      features = [1]
 
-        self.splits.append(split)
+    G.add_node(node, features=features)
 
-    filename = self.processed_dir / f"{self.name}_splits.json"
-    with open(filename, "w") as f:
-      json.dump(self.splits[:], f, cls=NumpyEncoder)
+  for i, edge in enumerate(edges):
+    n1, n2 = edge
+    features = []
 
-  def _prepare_wl2(self, neighborhood=1):
-    wl2_dir = self.root_dir / "wl2" / f"n_{neighborhood}"
-    if not (wl2_dir / f"{self.name}.pickle").exists():
-      if not wl2_dir.exists():
-        os.makedirs(wl2_dir)
+    if graph_data["edge_labels"] != []:
+      features.extend(I_e[graph_data["edge_labels"][i] - 1])
 
-      graphs, targets = self.dataset
+    if graph_data["edge_attrs"] != []:
+      features.extend(graph_data["edge_attrs"][i])
 
-    with open(wl2_dir / f"{self.name}.pickle", "rb") as f:
-      return pickle.load(f)
+    if len(features) == 0:
+      features = [1]
 
+    G.add_edge(n1, n2, features=features)
 
-  def get_test_fold(
-    self, outer_idx, batch_size=1, output_type="dense"):
-    outer_idx = outer_idx or 0
+  return G
 
-    idxs = self.splits[outer_idx]["test"]
-
-  def get_train_fold(
-    self, outer_idx, inner_idx=None, batch_size=1, output_type="dense"):
-    outer_idx = outer_idx or 0
-    inner_idx = inner_idx or 0
-
-    idxs = self.splits[outer_idx]["model_selection"][inner_idx]
-
-class TUDatasetManager(GraphDatasetManager):
+class TUDatasetManager(StoredGraphDatasetManager):
   URL = (
     "https://ls11-www.cs.tu-dortmund.de/"
     + "people/morris/graphkerneldatasets/{name}.zip")
   classification = True
+  data_dir = Path("../data/tu")
 
   def _download(self):
     url = self.URL.format(name=self.name)
@@ -214,14 +177,14 @@ class TUDatasetManager(GraphDatasetManager):
         z.extract(fname, self.raw_dir)
 
   def _process(self):
-    graphs_data, num_node_labels, num_edge_labels = tu_utils.parse_tu_data(
+    graphs_data, num_node_labels, num_edge_labels = parse_tu_data(
       self.name, self.raw_dir)
     targets = graphs_data.pop("graph_labels")
 
     graphs, out_targets = [], []
     for i, target in enumerate(targets, 1):
       graph_data = {k: v[i] for (k, v) in graphs_data.items()}
-      G = tu_utils.create_graph_from_tu_data(
+      G = create_graph_from_tu_data(
         graph_data, num_node_labels, num_edge_labels)
 
       if G.number_of_nodes() > 1 and G.number_of_edges() > 0:

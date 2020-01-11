@@ -8,11 +8,11 @@ import numpy as np
 class SortPooling(keras.layers.Layer):
   def __init__(
     self, k_pool=1):
-    super(SortPooling, self).__init__()
+    super().__init__()
     self.k_pool = k_pool
 
   def get_config(self):
-    base_config = super(SortPooling, self).get_config()
+    base_config = super().get_config()
     base_config['k_pool'] = self.k_pool
 
     return base_config

@@ -9,11 +9,11 @@ import ltag.ops as ops
 class AvgVertPooling(keras.layers.Layer):
   def __init__(
     self, squeeze_output=False):
-    super(AvgVertPooling, self).__init__()
+    super().__init__()
     self.squeeze_output = squeeze_output
 
   def get_config(self):
-    base_config = super(AvgVertPooling, self).get_config()
+    base_config = super().get_config()
     base_config["squeeze_output"] = self.squeeze_output
 
     return base_config

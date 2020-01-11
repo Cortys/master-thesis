@@ -7,11 +7,11 @@ from tensorflow import keras
 class AvgPooling(keras.layers.Layer):
   def __init__(
     self, squeeze_output=False):
-    super(AvgPooling, self).__init__()
+    super().__init__()
     self.squeeze_output = squeeze_output
 
   def get_config(self):
-    base_config = super(AvgPooling, self).get_config()
+    base_config = super().get_config()
     base_config["squeeze_output"] = self.squeeze_output
 
     return base_config

@@ -10,14 +10,14 @@ class WL2GCNLayer(keras.layers.Layer):
   def __init__(
     self, out_dim, in_dim=None,
     act="relu", bias=True):
-    super(WL2GCNLayer, self).__init__()
+    super().__init__()
     self.out_dim = out_dim
     self.in_dim = in_dim
     self.act = keras.activations.get(act)
     self.bias = bias
 
   def get_config(self):
-    base_config = super(WL2GCNLayer, self).get_config()
+    base_config = super().get_config()
     base_config["out_dim"] = self.out_dim
     base_config["in_dim"] = self.in_dim
     base_config["act"] = keras.activations.serialize(self.act)
