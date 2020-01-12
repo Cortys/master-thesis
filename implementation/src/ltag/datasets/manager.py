@@ -21,12 +21,15 @@ class GraphDatasetManager:
   def __init__(
     self, kfold_class=StratifiedKFold, outer_k=10, inner_k=None,
     seed=42, holdout_test_size=0.1,
-    wl2_neighborhood=1, wl2_cache=True):
+    dense_batch_size = 50,
+    wl2_neighborhood=1, wl2_cache=True, wl2_batch_size={}):
 
     self.kfold_class = kfold_class
     self.holdout_test_size = holdout_test_size
+    self.dense_batch_size = dense_batch_size
     self.wl2_neighborhood = wl2_neighborhood
     self.wl2_cache = wl2_cache
+    self.wl2_batch_size = wl2_batch_size
 
     self.outer_k = outer_k
     assert (outer_k is not None and outer_k > 0) or outer_k is None
@@ -87,7 +90,10 @@ class GraphDatasetManager:
 
   @property
   def num_graphs(self):
-    return len(self.dataset[0])
+    if self._wl2_dataset is None:
+      return len(self.dataset[0])
+    else:
+      return len(self._wl2_dataset[0])
 
   @property
   def dim_target(self):
@@ -185,7 +191,8 @@ class GraphDatasetManager:
 
     return splits
 
-  def get_all(self, output_type="dense", idxs=None, shuffle=False):
+  def get_all(
+    self, output_type="dense", idxs=None, shuffle=False, name_suffix=""):
     print("getting ds...")
 
     if shuffle:
@@ -204,6 +211,7 @@ class GraphDatasetManager:
         targets = targets[idxs]
 
       ds = ds_utils.to_dense_ds(graphs, targets)
+      ds = ds.batch(self.dense_batch_size)
     elif output_type == "wl2":
       graphs, targets = self.wl2_dataset if self.wl2_cache else self.dataset
 
@@ -215,30 +223,36 @@ class GraphDatasetManager:
 
       ds = ds_utils.to_wl2_ds(
         graphs, targets,
-        preencoded=self.wl2_cache)
+        preencoded=self.wl2_cache, **self.wl2_batch_size)
 
-    ds.name = self.name
+    ds.name = self.name + name_suffix
 
     print("created ds")
 
     return ds
 
   def get_test_fold(
-    self, outer_idx, batch_size=1, output_type="dense"):
+    self, outer_idx, output_type="dense"):
     outer_idx = outer_idx or 0
 
     idxs = self.splits[outer_idx]["test"]
 
-    return self.get_all(output_type, idxs)
+    return self.get_all(output_type, idxs, name_suffix=f"_test{outer_idx}")
 
   def get_train_fold(
-    self, outer_idx, inner_idx=None, batch_size=1, output_type="dense"):
+    self, outer_idx, inner_idx=None, output_type="dense"):
     outer_idx = outer_idx or 0
     inner_idx = inner_idx or 0
 
     idxs = self.splits[outer_idx]["model_selection"][inner_idx]
+    train_ds = self.get_all(
+      output_type, idxs["train"],
+      name_suffix=f"_train{outer_idx}-{inner_idx}")
+    val_ds = self.get_all(
+      output_type, idxs["validation"],
+      name_suffix=f"_val{outer_idx}-{inner_idx}")
 
-    return self.get_all(output_type, idxs)
+    return train_ds, val_ds
 
 
 class StoredGraphDatasetManager(GraphDatasetManager):

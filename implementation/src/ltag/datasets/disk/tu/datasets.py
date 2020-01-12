@@ -39,7 +39,7 @@ class Reddit5K(manager.TUDatasetManager):
 
 class Proteins(manager.TUDatasetManager):
   name = "PROTEINS_full"
-  _dim_node_features = 3
+  _dim_node_features = 32
   _dim_edge_features = 1
   _dim_target = 2
   _max_num_nodes = 620

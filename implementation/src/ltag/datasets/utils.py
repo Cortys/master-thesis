@@ -50,7 +50,7 @@ def wl2_encode(
     Takes a graph with node and edge features and converts it
     into a edge + row/col ref list for sparse WL2 implementations.
   """
-  g_p = nx.power(g, neighborhood)
+  g_p = nx.power(g, neighborhood) if neighborhood > 1 else g
 
   if dim_node_features is None:
     dim_node_features = 0
@@ -62,8 +62,8 @@ def wl2_encode(
   e_zero = np.zeros(dim_edge_features)
 
   for node, data in g.nodes(data=True):
-    g.add_edge(node, node, features=data.get("features", n_zero))
     g_p.add_edge(node, node)
+    g.add_edge(node, node, features=data.get("features", n_zero))
 
   x = []
   ref_a = []
@@ -97,14 +97,14 @@ def wl2_encode(
       max_ref_dim = nbs_count
 
     x.append(np.concatenate(
-      ([1, 0], f,      e_zero) if a == b else
-      ([0, 1], n_zero, f)))
+      ([1, 0, 0], f, e_zero) if a == b else
+      ([0], [1, 0] if in_g else [0, 1], n_zero, f)))
     ref_a.append(n_a)
     ref_b.append(n_b)
 
   n = g.order()
 
-  return x, ref_a, ref_b, max_ref_dim, np.array(n)
+  return x, ref_a, ref_b, max_ref_dim, n
 
 def make_wl2_batch(encoded_graphs):
   "Takes a sequence of graphs that were encoded via `wl2_encode`."
@@ -184,7 +184,7 @@ def to_wl2_ds(
       dim_edge_features = "?"
       dim_wl2 = len(g[0][0])
     else:
-      dim_wl2 = 2
+      dim_wl2 = 3
       dim_node_features, dim_edge_features = get_graph_feature_dims(g)
       dim_wl2 += dim_node_features
       dim_wl2 += dim_edge_features
