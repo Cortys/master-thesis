@@ -44,12 +44,10 @@ def gnn_model(name, steps, input_type="dense"):
 
   def add_attrs(m):
     m.input_type = input_type
+    m.extend = fy.rcompose(m.extend, add_attrs)
     return m
 
-  add_attrs(m)
-  m.extend = fy.rcompose(m.extend, add_attrs)
-
-  return m
+  return add_attrs(m)
 
 
 # Non-aggregating GNNs:

@@ -48,6 +48,7 @@ def create_model(name, steps, **kwargs):
     return create_model(name, steps + additional_steps, **ext_kwargs)
 
   modelFactory.extend = extend
+  modelFactory.name = name
 
   return modelFactory
 

@@ -43,14 +43,16 @@ echo "Using additional ARGS='$ARGS' with variant $VARIANT."
 echo "Type \"rm\" to clean logs."
 
 mkdir -p logs
-mkdir -p data
+mkdir -p evaluations
 mkdir -p libs
+mkdir -p data
 
 docker run --runtime=nvidia --rm --name ltag \
 	-p 8888:8888 \
 	-p 6006:6006 \
 	-v $(pwd)/src:/ltag \
 	-v $(pwd)/logs:/logs \
+	-v $(pwd)/evaluations:/evaluations \
 	-v $(pwd)/libs:/libs \
 	-v $(pwd)/data:/data \
 	-e "JUPYTER_TOKEN=$JUPYTER_TOKEN" \

@@ -1,9 +1,14 @@
+from __future__ import absolute_import, division, print_function,\
+  unicode_literals
+
 import os
 import json
 import numpy as np
 import pickle
 import funcy as fy
 from sklearn.model_selection import train_test_split, StratifiedKFold
+
+import gc
 
 import ltag.chaining.pipeline as cp
 import ltag.datasets.utils as ds_utils
@@ -351,9 +356,11 @@ class StoredGraphDatasetManager(GraphDatasetManager):
       for ik in range(self.inner_k or 1):
         print(f"Preparing train fold {ok} {ik} of {self.name}...")
         self.get_train_fold(ok, ik, output_type="wl2")
+        gc.collect()
 
       print(f"Preparing test fold {ok} of {self.name}...")
       self.get_test_fold(ok, output_type="wl2")
+      gc.collect()
 
     print("Prepared all batch folds.")
 

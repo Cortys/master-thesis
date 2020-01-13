@@ -2,9 +2,7 @@
 
 USER="-u $(id -u):$(id -g)"
 
-if [ "$1" == "root" ]; then
-	USER="-u 0:0"
-fi
+LOGDIR="/${1:-logs}"
 
 echo "Starting board at http://localhost:6006/"
-docker exec -it $USER $(docker ps -aqf "name=ltag") tensorboard --logdir /logs --bind_all
+docker exec -it $USER $(docker ps -aqf "name=ltag") tensorboard --logdir $LOGDIR --bind_all

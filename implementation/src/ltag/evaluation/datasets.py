@@ -40,8 +40,15 @@ chemical = [
   DD
 ]
 
-# All:
+# Other categories:
 
-all_stored = chemical
+stored = chemical
 
-all = all_stored
+binary = [
+  Mutag,
+  NCI1,
+  Proteins,
+  DD
+]
+
+all = stored
