@@ -74,13 +74,13 @@ def train(model, train_ds, val_ds=None, label=None):
     min_delta=0.0001,
     restore_best_weights=True)
 
-  model.fit(
+  return model.fit(
     train_ds, validation_data=val_ds,
     epochs=300, callbacks=[tb, es])
 
 
-def evaluate(model_factory, ds_manager, repeat=1):
-  outer_k = ds_manager.outer_k
+def evaluate(model_factory, ds_manager, outer_k=None, repeat=1):
+  outer_k = outer_k or ds_manager.outer_k
 
   ds_type = model_factory.input_type
 
@@ -97,4 +97,6 @@ def evaluate(model_factory, ds_manager, repeat=1):
 
 
 # -%% codecell
-evaluate(model_factory, ds_manager)
+# evaluate(model_factory, ds_manager, outer_k=1)
+
+# ds_manager.prepare_wl2_batches()

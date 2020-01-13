@@ -21,8 +21,9 @@ class GraphDatasetManager:
   def __init__(
     self, kfold_class=StratifiedKFold, outer_k=10, inner_k=None,
     seed=42, holdout_test_size=0.1,
-    dense_batch_size = 50,
-    wl2_neighborhood=1, wl2_cache=True, wl2_batch_size={}):
+    dense_batch_size=50,
+    wl2_neighborhood=1, wl2_cache=True,
+    wl2_batch_size={}, **kwargs):
 
     self.kfold_class = kfold_class
     self.holdout_test_size = holdout_test_size
@@ -43,9 +44,9 @@ class GraphDatasetManager:
     self._wl2_dataset = None
     self._splits = None
 
-    self._setup()
+    self._setup(**kwargs)
 
-  def _setup(self):
+  def _setup(self, **kwargs):
     pass
 
   def _load_dataset(self):
@@ -54,14 +55,14 @@ class GraphDatasetManager:
   def _load_wl2_dataset(self, neighborhood):
     graphs, targets = self.dataset
 
-    print("encoding wl2 graphs...")
+    print(f"Encoding {self.name} as WL2 with neighborhood {neighborhood}...")
 
     wl2_graphs = np.array([
       ds_utils.wl2_encode(
         g, self._dim_node_features, self._dim_edge_features, neighborhood)
       for g in graphs])
 
-    print("encoded wl2 graphs")
+    print(f"Encoded WL2 graphs.")
 
     return wl2_graphs, targets
 
@@ -69,8 +70,6 @@ class GraphDatasetManager:
   def dataset(self):
     if self._dataset is None:
         self._dataset = self._load_dataset()
-
-    print("got dataset")
 
     return self._dataset
 
@@ -191,9 +190,24 @@ class GraphDatasetManager:
 
     return splits
 
+  def _get_wl2_batches(self, name, idxs=None):
+    graphs, targets = self.wl2_dataset if self.wl2_cache else self.dataset
+
+    if idxs is not None:
+      graphs = graphs[idxs]
+      targets = targets[idxs]
+
+    batches = ds_utils.to_wl2_ds(
+      graphs, targets, as_list=True,
+      preencoded=self.wl2_cache,
+      neighborhood=self.wl2_neighborhood,
+      **self.wl2_batch_size)
+
+    return batches
+
   def get_all(
     self, output_type="dense", idxs=None, shuffle=False, name_suffix=""):
-    print("getting ds...")
+    ds_name = self.name + name_suffix
 
     if shuffle:
       if idxs is None:
@@ -213,21 +227,14 @@ class GraphDatasetManager:
       ds = ds_utils.to_dense_ds(graphs, targets)
       ds = ds.batch(self.dense_batch_size)
     elif output_type == "wl2":
-      graphs, targets = self.wl2_dataset if self.wl2_cache else self.dataset
+      batches = self._get_wl2_batches(ds_name, idxs)
 
-      if idxs is not None:
-        graphs = graphs[idxs]
-        targets = targets[idxs]
+      if batches is None:
+        return
 
-      print("creating ds...")
+      ds = ds_utils.wl2_batches_to_dataset(*batches)
 
-      ds = ds_utils.to_wl2_ds(
-        graphs, targets,
-        preencoded=self.wl2_cache, **self.wl2_batch_size)
-
-    ds.name = self.name + name_suffix
-
-    print("created ds")
+    ds.name = ds_name
 
     return ds
 
@@ -237,7 +244,7 @@ class GraphDatasetManager:
 
     idxs = self.splits[outer_idx]["test"]
 
-    return self.get_all(output_type, idxs, name_suffix=f"_test{outer_idx}")
+    return self.get_all(output_type, idxs, name_suffix=f"_test-{outer_idx}")
 
   def get_train_fold(
     self, outer_idx, inner_idx=None, output_type="dense"):
@@ -247,16 +254,18 @@ class GraphDatasetManager:
     idxs = self.splits[outer_idx]["model_selection"][inner_idx]
     train_ds = self.get_all(
       output_type, idxs["train"],
-      name_suffix=f"_train{outer_idx}-{inner_idx}")
+      name_suffix=f"_train-{outer_idx}-{inner_idx}")
     val_ds = self.get_all(
       output_type, idxs["validation"],
-      name_suffix=f"_val{outer_idx}-{inner_idx}")
+      name_suffix=f"_val-{outer_idx}-{inner_idx}")
 
     return train_ds, val_ds
 
 
 class StoredGraphDatasetManager(GraphDatasetManager):
-  def _setup(self):
+  def _setup(self, wl2_batch_cache=True, no_wl2_load=False, **kwargs):
+      self.wl2_batch_cache = wl2_batch_cache
+      self.no_wl2_load = no_wl2_load
       self.root_dir = self.data_dir / self.name
       self.raw_dir = self.root_dir / "raw"
       if not self.raw_dir.exists():
@@ -303,6 +312,51 @@ class StoredGraphDatasetManager(GraphDatasetManager):
 
     return splits
 
+  def _get_wl2_batches(self, name, idxs=None):
+    if not self.wl2_batch_cache:
+      return super()._get_wl2_batches(name, idxs)
+
+    bc = f"n_{self.wl2_neighborhood}"
+
+    for k, s in [
+      ("fuzzy_batch_edge_count", "fbec"),
+      ("upper_batch_edge_count", "ubec"),
+      ("batch_graph_count", "bgc")]:
+      if k in self.wl2_batch_size:
+        v = self.wl2_batch_size[k]
+        bc += f"_{s}_{v}"
+
+    bn = f"{name}.pickle"
+
+    batch_dir = self.root_dir / "wl2_batches" / bc
+
+    if not (batch_dir / bn).exists():
+      if not batch_dir.exists():
+        os.makedirs(batch_dir)
+
+      batches = super()._get_wl2_batches(name, idxs)
+
+      with open(batch_dir / bn, "wb") as f:
+        pickle.dump(batches, f)
+
+      return batches
+    elif not self.no_wl2_load:
+      with open(batch_dir / bn, "rb") as f:
+        return pickle.load(f)
+
+  def prepare_wl2_batches(self):
+    assert self.wl2_batch_cache
+
+    for ok in range(self.outer_k or 1):
+      for ik in range(self.inner_k or 1):
+        print(f"Preparing train fold {ok} {ik} of {self.name}...")
+        self.get_train_fold(ok, ik, output_type="wl2")
+
+      print(f"Preparing test fold {ok} of {self.name}...")
+      self.get_test_fold(ok, output_type="wl2")
+
+    print("Prepared all batch folds.")
+
   def _process(self):
     raise NotImplementedError
 
@@ -317,7 +371,7 @@ class SyntheticGraphDatasetManager(GraphDatasetManager):
 def synthetic_dataset(f):
   @fy.wraps(f)
   def w(*args, **kwargs):
-    print("creating graphs...")
+    print("Creating graphs...")
     r = cp.tolerant(f)(*args, **kwargs)
 
     if len(r) == 3:
@@ -334,7 +388,7 @@ def synthetic_dataset(f):
       ef = 0
       t = 0
 
-    print("created graphs")
+    print(f"Created {n} graphs.")
 
     class M(SyntheticGraphDatasetManager):
       name = n

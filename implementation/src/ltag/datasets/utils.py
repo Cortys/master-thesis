@@ -158,6 +158,26 @@ def get_graph_feature_dims(g):
 
   return dim_node_features, dim_edge_features
 
+def wl2_batches_to_dataset(batches, dim_wl2, y_dim):
+  if callable(batches):
+    batch_gen = batches
+  else:
+    def batch_gen():
+      for b in batches:
+        yield b
+
+  return tf.data.Dataset.from_generator(
+    batch_gen,
+    output_types=((
+      tf.float32, tf.int32, tf.int32, tf.int32, tf.int32), tf.float32),
+    output_shapes=((
+      tf.TensorShape([None, dim_wl2]),
+      tf.TensorShape([None, None]),
+      tf.TensorShape([None, None]),
+      tf.TensorShape([None]),
+      tf.TensorShape([None])),
+      tf.TensorShape([None, *y_dim])))
+
 @cp.tolerant
 def to_wl2_ds(
   graphs, ys,
@@ -240,28 +260,14 @@ def to_wl2_ds(
       yield (make_wl2_batch(b_gs), b_ys)
 
   if lazy and not as_list:
-    gen_out = gen
+    batches = gen
   else:
     batches = list(gen())
 
     if as_list:
-      return batches
+      return batches, dim_wl2, y_dim
 
-    def gen_out():
-      for b in batches:
-        yield b
-
-  return tf.data.Dataset.from_generator(
-    gen_out,
-    output_types=((
-      tf.float32, tf.int32, tf.int32, tf.int32, tf.int32), tf.float32),
-    output_shapes=((
-      tf.TensorShape([None, dim_wl2]),
-      tf.TensorShape([None, None]),
-      tf.TensorShape([None, None]),
-      tf.TensorShape([None]),
-      tf.TensorShape([None])),
-      tf.TensorShape([None, *y_dim])))
+  return wl2_batches_to_dataset(batches, dim_wl2, y_dim)
 
 
 def draw_graph(g, y, with_features=False):

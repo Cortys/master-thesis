@@ -8,5 +8,6 @@ RUN pip3 install -r requirements.txt
 
 ADD tf_startup.sh tf_startup.sh
 WORKDIR /ltag
+ENV PYTHONPATH=/ltag
 
 CMD ["bash", "/tf_startup.sh"]

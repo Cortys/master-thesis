@@ -60,6 +60,6 @@ while true; do
 	read in
 
 	if [ "$in" == "rm" ]; then
-		rm -r  ./logs/[^.]* 2> /dev/null && echo "Removed logs." || echo "No logs to remove."
+		rm -r ./logs/[^.]* 2> /dev/null && echo "Removed logs." || echo "No logs to remove."
 	fi
 done
