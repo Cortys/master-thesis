@@ -1,5 +1,5 @@
 .ipynb_checkpoints
 __pycache__
 JUPYTER_TOKEN
-logs/*
-!logs/.keep
+logs*/*
+data*/*

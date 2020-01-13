@@ -41,6 +41,11 @@ fi
 echo "Starting Notebook at ${JUPYTER_URL} ..."
 echo "Using additional ARGS='$ARGS' with variant $VARIANT."
 echo "Type \"rm\" to clean logs."
+
+mkdir -p logs
+mkdir -p data
+mkdir -p libs
+
 docker run --runtime=nvidia --rm --name ltag \
 	-p 8888:8888 \
 	-p 6006:6006 \
