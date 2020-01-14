@@ -12,14 +12,9 @@ import gc
 
 import ltag.chaining.pipeline as cp
 import ltag.datasets.utils as ds_utils
+from ltag.utils import NumpyEncoder
 
 # Implementation adapted from https://github.com/diningphil/gnn-comparison.
-
-class NumpyEncoder(json.JSONEncoder):
-  def default(self, obj):
-    if isinstance(obj, np.ndarray):
-      return obj.tolist()
-    return json.JSONEncoder.default(self, obj)
 
 
 class GraphDatasetManager:
@@ -110,6 +105,10 @@ class GraphDatasetManager:
   @property
   def dim_edge_features(self):
     return self._dim_edge_features
+
+  @classmethod
+  def dim_wl2_features(cls):
+    return 3 + cls._dim_node_features + cls._dim_edge_features
 
   @property
   def max_num_nodes(self):
@@ -203,7 +202,10 @@ class GraphDatasetManager:
       targets = targets[idxs]
 
     batches = ds_utils.to_wl2_ds(
-      graphs, targets, as_list=True,
+      graphs, targets,
+      dim_node_features=self._dim_node_features,
+      dim_edge_features=self._dim_edge_features,
+      as_list=True,
       preencoded=self.wl2_cache,
       neighborhood=self.wl2_neighborhood,
       **self.wl2_batch_size)
@@ -351,6 +353,10 @@ class StoredGraphDatasetManager(GraphDatasetManager):
 
   def prepare_wl2_batches(self):
     assert self.wl2_batch_cache
+
+    print(f"Preparing full dataset batches of {self.name}...")
+    self.get_all(output_type="wl2")
+    gc.collect()
 
     for ok in range(self.outer_k or 1):
       for ik in range(self.inner_k or 1):

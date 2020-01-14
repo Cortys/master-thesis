@@ -11,15 +11,9 @@ def model_factory(mf):
   def model_factory_instance(model_class):
     def model_factory_with_class(hyperparam_gen):
       @fy.wraps(hyperparam_gen)
-      def wrapper(ds, **params):
-        hps = hyperparam_gen(ds, **params)
-
-        def mf_caller(hp):
-          model_ctr = fy.partial(mf, model_class, **hp)
-          model_ctr.hyperparams = hp
-          return model_ctr
-
-        return fy.map(mf_caller, hps)
+      def wrapper(ds_manager, **params):
+        hps = list(hyperparam_gen(ds_manager, **params))
+        return fy.partial(mf, model_class), hps
 
       wrapper.input_type = model_class.input_type
       wrapper.name = model_class.name
@@ -63,20 +57,22 @@ def cart(*pos_params, **params):
 
   return (dict(zip(params, x)) for x in itertools.product(*params.values()))
 
-def wl2_in_dim(ds):
-  return ds.element_spec[0][0].shape[-1]
-
 
 @binary_classifier(models.AvgWL2GCN)
-def AvgWL2GCN_Binary(ds):
-  in_dim = wl2_in_dim(ds)
+def AvgWL2GCN_Binary(dsm):
+  in_dim = dsm.dim_wl2_features()
 
   hidden = [
     [b] * l
     for b, l in cart([8, 32], [1, 3])]
 
+  hidden = [
+    [8], [8, 8, 8],
+    [32], [32, 32]
+  ]
+
   return cart(
     layer_dims=[[in_dim, *h, 1] for h in hidden],
-    bias=[True, False],
-    learning_rate=[0.01, 0.001, 0.0001]
+    bias=[True],
+    learning_rate=[0.0001]
   )

@@ -181,6 +181,8 @@ def wl2_batches_to_dataset(batches, dim_wl2, y_dim):
 @cp.tolerant
 def to_wl2_ds(
   graphs, ys,
+  dim_node_features,
+  dim_edge_features,
   fuzzy_batch_edge_count=100000,
   upper_batch_edge_count=120000,
   batch_graph_count=100,
@@ -191,23 +193,7 @@ def to_wl2_ds(
   il = np.arange(ds_size)
   y_shape = ys.shape
   y_dim = y_shape[1:] if len(y_shape) > 1 else []
-
-  dim_node_features = 0
-  dim_edge_features = 0
-  dim_wl2 = 0
-
-  if ds_size > 0:
-    g = graphs[0]
-
-    if preencoded:
-      dim_node_features = "?"
-      dim_edge_features = "?"
-      dim_wl2 = len(g[0][0])
-    else:
-      dim_wl2 = 3
-      dim_node_features, dim_edge_features = get_graph_feature_dims(g)
-      dim_wl2 += dim_node_features
-      dim_wl2 += dim_edge_features
+  dim_wl2 = 3 + dim_node_features + dim_edge_features
 
   if log:
     print(
