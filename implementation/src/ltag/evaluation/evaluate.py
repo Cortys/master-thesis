@@ -11,6 +11,7 @@ from tensorflow import keras
 import funcy as fy
 
 from ltag.utils import NumpyEncoder
+import ltag.evaluation.summary as summary
 
 # Sparse gradient updates don't work for some reason. Disable the warning:
 warnings.filterwarnings(
@@ -48,15 +49,13 @@ def train(
     epochs=epochs, callbacks=[tb, es],
     verbose=verbose)
 
-def summarize_evaluation(eval_dir):
-  pass
-
 def evaluate(
   model_factory, ds_manager,
   outer_k=None, repeat=10, epochs=500,
   patience=50, stopping_min_delta=0.0001,
-  restore_best=False,
+  restore_best=False, label=None,
   eval_dir=None, verbose=2):
+  label = "_" + label if label is not None else ""
   outer_k = outer_k or ds_manager.outer_k
   inner_k = None
 
@@ -65,7 +64,7 @@ def evaluate(
   ds_name = ds_manager.name
   t = time_str()
   if eval_dir is None:
-    eval_dir = eval_dir_base / f"{t}_{ds_name}_{mf_name}"
+    eval_dir = eval_dir_base / f"{t}_{ds_name}_{mf_name}{label}"
     if not eval_dir.exists():
       os.makedirs(eval_dir)
 
@@ -205,7 +204,7 @@ def evaluate(
       config["end_time"] = time_str()
       json.dump(config, f, indent="\t", sort_keys=True, cls=NumpyEncoder)
 
-  summarize_evaluation(eval_dir)
+  summary.summarize_evaluation(eval_dir)
   print(
     time_str(),
     f"- Evaluation of {ds_name} using {mf_name} completed in {dur_eval}s.")
@@ -223,4 +222,10 @@ def resume_evaluation(model_factory, ds_manager, eval_dir, **kwargs):
     stopping_min_delta=config["stopping_min_delta"],
     restore_best=config["restore_best"],
     eval_dir=eval_dir,
+    **kwargs)
+
+def quick_evaluate(model_factory, ds_manager, **kwargs):
+  return evaluate(
+    model_factory, ds_manager,
+    epochs=1, repeat=1, label="quick",
     **kwargs)

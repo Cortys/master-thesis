@@ -7,15 +7,15 @@ import ltag.datasets.disk.tu.datasets as tu
 
 # Chemical:
 
-Mutag = fy.partial(
+Mutag_8 = fy.partial(
   tu.Mutag,
   wl2_neighborhood=8)
 
-NCI1 = fy.partial(
+NCI1_8 = fy.partial(
   tu.NCI1,
   wl2_neighborhood=8)
 
-Proteins = fy.partial(
+Proteins_6 = fy.partial(
   tu.Proteins,
   wl2_neighborhood=6,
   wl2_batch_size={
@@ -24,7 +24,7 @@ Proteins = fy.partial(
     "batch_graph_count": 20
   })
 
-DD = fy.partial(
+DD_2 = fy.partial(
   tu.DD,
   wl2_neighborhood=2,
   wl2_batch_size={
@@ -34,10 +34,10 @@ DD = fy.partial(
   })
 
 chemical = [
-  Mutag,
-  NCI1,
-  Proteins,
-  DD
+  Mutag_8,
+  NCI1_8,
+  Proteins_6,
+  DD_2
 ]
 
 # Other categories:
@@ -45,10 +45,10 @@ chemical = [
 stored = chemical
 
 binary = [
-  Mutag,
-  NCI1,
-  Proteins,
-  DD
+  Mutag_8,
+  NCI1_8,
+  Proteins_6,
+  DD_2
 ]
 
 all = stored

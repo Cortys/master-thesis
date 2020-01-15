@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function,\
   unicode_literals
 
 import ltag.evaluation.evaluate as evaluate
+import ltag.evaluation.summary as summary
 import ltag.evaluation.models as models
 import ltag.evaluation.datasets as ds
 
@@ -9,7 +10,10 @@ epochs = 500
 repeat = 5  # fewer repeats for now.
 
 mf = models.AvgWL2GCN_Binary
-dsm = ds.Proteins
+dsm = ds.NCI1_8
+
+def quick_run(**kwargs):
+  evaluate.quick_evaluate(mf, dsm(), **kwargs)
 
 def run(**kwargs):
   evaluate.evaluate(
@@ -21,6 +25,9 @@ def resume(eval_dir_name, **kwargs):
     mf, dsm(), evaluate.eval_dir_base / eval_dir_name,
     **kwargs)
 
+
+def summarize(eval_dir_name):
+  return summary.summarize_evaluation(evaluate.eval_dir_base / eval_dir_name)
 
 if __name__ == "__main__":
   run()

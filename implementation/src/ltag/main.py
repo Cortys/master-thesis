@@ -38,7 +38,10 @@ def proteins_experient():
     model, ds, verbose=1,
     label=f"{dsm.name}_{model.name}")
 
-eval_main.run(verbose=1)
+
+# eval_main.run(verbose=1)
+# eval_main.quick_run()
 # eval_main.resume(
-#   "2020-01-14_22-03-00_PROTEINS_full_AvgWL2GCN",
+#   "2020-01-15_14-26-15_NCI1_AvgWL2GCN_quick",
 #   verbose=1)
+eval_main.summarize("2020-01-15_14-31-53_NCI1_AvgWL2GCN")
