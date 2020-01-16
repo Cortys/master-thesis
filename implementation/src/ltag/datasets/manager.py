@@ -272,6 +272,7 @@ class GraphDatasetManager:
 class StoredGraphDatasetManager(GraphDatasetManager):
   def _setup(self, wl2_batch_cache=True, no_wl2_load=False, **kwargs):
       self.wl2_batch_cache = wl2_batch_cache
+      self._wl2_batch_dataset = None
       self.no_wl2_load = no_wl2_load
       self.root_dir = self.data_dir / self.name
       self.raw_dir = self.root_dir / "raw"
@@ -323,12 +324,26 @@ class StoredGraphDatasetManager(GraphDatasetManager):
     if not self.wl2_batch_cache:
       return super()._get_wl2_batches(name, idxs)
 
+    graph_count = self.wl2_batch_size.get("batch_graph_count", -1)
+    if graph_count == 1 and self._wl2_batch_dataset is not None:
+      batches = self._wl2_batch_dataset
+      if idxs is None:
+        return batches
+      else:
+        return (batches[0][idxs], batches[1], batches[2])
+
     bc = f"n_{self.wl2_neighborhood}"
 
-    for k, s in [
-      ("fuzzy_batch_edge_count", "fbec"),
-      ("upper_batch_edge_count", "ubec"),
-      ("batch_graph_count", "bgc")]:
+    if graph_count != 1:
+      count_keys = [
+        ("fuzzy_batch_edge_count", "fbec"),
+        ("upper_batch_edge_count", "ubec"),
+        ("batch_graph_count", "bgc")]
+    else:
+      count_keys = [("batch_graph_count", "bgc")]
+      name = self.name
+
+    for k, s in count_keys:
       if k in self.wl2_batch_size:
         v = self.wl2_batch_size[k]
         bc += f"_{s}_{v}"
@@ -341,22 +356,32 @@ class StoredGraphDatasetManager(GraphDatasetManager):
       if not batch_dir.exists():
         os.makedirs(batch_dir)
 
-      batches = super()._get_wl2_batches(name, idxs)
+      batches = super()._get_wl2_batches(
+        name, idxs if graph_count != 1 else None)
 
       with open(batch_dir / bn, "wb") as f:
         pickle.dump(batches, f)
-
-      return batches
-    elif not self.no_wl2_load:
+    elif self.no_wl2_load:  # Used for preprocessing managers.
+      return
+    else:
       with open(batch_dir / bn, "rb") as f:
-        return pickle.load(f)
+        batches = pickle.load(f)
 
-  def prepare_wl2_batches(self):
+    if graph_count == 1:
+      self._wl2_batch_dataset = batches
+      self._wl2_dataset = None
+      if idxs is not None:
+        return (batches[0][idxs], batches[1], batches[2])
+
+    return batches
+
+  def prepare_wl2_batches(self, all_batch=False):
     assert self.wl2_batch_cache
 
-    print(f"Preparing full dataset batches of {self.name}...")
-    self.get_all(output_type="wl2")
-    gc.collect()
+    if all_batch:
+      print(f"Preparing full dataset batches of {self.name}...")
+      self.get_all(output_type="wl2")
+      gc.collect()
 
     for ok in range(self.outer_k or 1):
       for ik in range(self.inner_k or 1):

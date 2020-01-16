@@ -7,7 +7,7 @@ import ltag.evaluation.models as models
 import ltag.evaluation.datasets as ds
 
 epochs = 500
-repeat = 5  # fewer repeats for now.
+repeat = 3  # fewer repeats for now.
 
 mf = models.AvgWL2GCN_Binary
 dsm = ds.NCI1_8
@@ -30,4 +30,5 @@ def summarize(eval_dir_name):
   return summary.summarize_evaluation(evaluate.eval_dir_base / eval_dir_name)
 
 if __name__ == "__main__":
-  run()
+  # run()
+  resume("2020-01-15_14-31-53_NCI1_AvgWL2GCN")

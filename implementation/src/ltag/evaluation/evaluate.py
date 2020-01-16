@@ -51,7 +51,7 @@ def train(
 
 def evaluate(
   model_factory, ds_manager,
-  outer_k=None, repeat=10, epochs=500,
+  outer_k=None, repeat=3, epochs=500,
   patience=50, stopping_min_delta=0.0001,
   restore_best=False, label=None,
   eval_dir=None, verbose=2):

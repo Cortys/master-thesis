@@ -190,7 +190,6 @@ def to_wl2_ds(
   lazy=False, preencoded=False,
   as_list=False, log=False):
   ds_size = len(graphs)
-  il = np.arange(ds_size)
   y_shape = ys.shape
   y_dim = y_shape[1:] if len(y_shape) > 1 else []
   dim_wl2 = 3 + dim_node_features + dim_edge_features
@@ -198,57 +197,65 @@ def to_wl2_ds(
   if log:
     print(
       "Batching", ds_size, "preencoded" if preencoded else "raw", "graphs.",
+      f"b_gc={batch_graph_count}",
       f"dim_wl2={dim_wl2}",
       f"(node={dim_node_features}, edge={dim_edge_features})")
 
-  def gen():
-    b_gs = []
-    b_ys = []
-    e_count = 0
+  if batch_graph_count > 1:
+    def gen():
+      b_gs = []
+      b_ys = []
+      e_count = 0
 
-    if ds_size > 0:
-      enc_next = graphs[il[0]] if preencoded else wl2_encode(
-        graphs[il[0]],
-        dim_node_features, dim_edge_features, neighborhood)
-
-    for i_pos, i in enumerate(il):
-      enc = enc_next
-      y = ys[i]
-      if i_pos + 1 < ds_size:
-        enc_next = graphs[il[i_pos + 1]] if preencoded else wl2_encode(
-          graphs[il[i_pos + 1]],
+      if ds_size > 0:
+        enc_next = graphs[0] if preencoded else wl2_encode(
+          graphs[0],
           dim_node_features, dim_edge_features, neighborhood)
-      else:
-        enc_next = None
 
-      b_gs.append(enc)
-      b_ys.append(y)
+      for i in range(ds_size):
+        enc = enc_next
+        y = ys[i]
+        if i + 1 < ds_size:
+          enc_next = graphs[i + 1] if preencoded else wl2_encode(
+            graphs[i + 1],
+            dim_node_features, dim_edge_features, neighborhood)
+        else:
+          enc_next = None
 
-      e_count += len(enc[0])
-      e_count_next = (
-        e_count if enc_next is None
-        else e_count + len(enc_next[0]))
+        b_gs.append(enc)
+        b_ys.append(y)
 
-      if (
-        len(b_gs) >= batch_graph_count
-        or e_count >= fuzzy_batch_edge_count
-        or (len(b_gs) > 0 and e_count_next >= upper_batch_edge_count)):
+        e_count += len(enc[0])
+        e_count_next = (
+          e_count if enc_next is None
+          else e_count + len(enc_next[0]))
+
+        if (
+          len(b_gs) >= batch_graph_count
+          or e_count >= fuzzy_batch_edge_count
+          or (len(b_gs) > 0 and e_count_next >= upper_batch_edge_count)):
+          if log:
+            print("Batch with", len(b_gs), "graphs and", e_count, "edges.")
+          yield (make_wl2_batch(b_gs), b_ys)
+          e_count = 0
+          b_gs = []
+          b_ys = []
+
+      if len(b_gs) > 0:
         if log:
-          print("Batch with", len(b_gs), "graphs and", e_count, "edges.")
+          print("Batch with", len(b_gs), "graphs and", e_count, "edges with.")
         yield (make_wl2_batch(b_gs), b_ys)
-        e_count = 0
-        b_gs = []
-        b_ys = []
-
-    if len(b_gs) > 0:
-      if log:
-        print("Batch with", len(b_gs), "graphs and", e_count, "edges with.")
-      yield (make_wl2_batch(b_gs), b_ys)
+  else:
+    def gen():
+      for i in range(ds_size):
+        yield (make_wl2_batch([graphs[i]]), [ys[i]])
 
   if lazy and not as_list:
     batches = gen
   else:
-    batches = list(gen())
+    batches_list = list(gen())
+    batches = np.empty(len(batches_list), dtype='O')
+    batches[:] = batches_list
 
     if as_list:
       return batches, dim_wl2, y_dim

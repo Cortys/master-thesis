@@ -3,13 +3,14 @@ from __future__ import absolute_import, division, print_function,\
 
 import multiprocessing as mp
 import argparse
+import funcy as fy
 
 import ltag.evaluation.datasets as datasets
 
-def prepare_ds(i):
-  manager = datasets.stored[i](no_wl2_load=True)
+def prepare_ds(d, all=False):
+  manager = getattr(datasets, d)(no_wl2_load=True)
   print(f"Preparing {manager.name}...")
-  manager.prepare_wl2_batches()
+  manager.prepare_wl2_batches(all_batch=all)
 
 
 if __name__ == "__main__":
@@ -18,12 +19,31 @@ if __name__ == "__main__":
   parser.add_argument(
     "-p", "--parallel", action="store_true",
     help="Preprocess datasets in parallel.")
+  parser.add_argument(
+    "-a", "--all", action="store_true",
+    help="Also batch the entire dataset.")
+  parser.add_argument(
+    "-d", "--dataset", action="append",
+    help="Prepare this dataset.")
   args = parser.parse_args()
   p = mp.cpu_count() if args.parallel else 1
 
-  print(f"Preparing all stored datasets with parallelism {p}...")
+  if args.dataset is None or len(args.dataset) == 0:
+    ds = datasets.stored
+  else:
+    ds = args.dataset
+
+  dsl = len(ds)
+
+  print(f"Will prepare {dsl} stored datasets with parallelism {p}:")
+  for d in ds:
+    print(f"- {d}")
+
+  print("Starting...")
 
   with mp.Pool(p) as p:
-    p.map(prepare_ds, range(len(datasets.stored)))
+    p.starmap(
+      prepare_ds,
+      zip(ds, fy.repeat(args.all)))
 
   print("Prepared all stored datasets.")
