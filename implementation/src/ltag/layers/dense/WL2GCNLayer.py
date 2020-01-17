@@ -6,15 +6,22 @@ from tensorflow import keras
 
 import ltag.ops as ops
 
+local_hashes = {
+  "multiply": tf.multiply,
+  "add": tf.add
+}
+
 class WL2GCNLayer(keras.layers.Layer):
   def __init__(
     self, out_dim, in_dim=None,
-    act="relu", bias=False):
+    act="relu", bias=False, local_hash="multiply"):
     super().__init__()
     self.out_dim = out_dim
     self.in_dim = in_dim
     self.act = keras.activations.get(act)
     self.bias = bias
+    self.local_hash_name = local_hash
+    self.local_hash = local_hashes[local_hash]
 
   def get_config(self):
     base_config = super().get_config()
@@ -22,14 +29,12 @@ class WL2GCNLayer(keras.layers.Layer):
     base_config["in_dim"] = self.in_dim
     base_config["act"] = keras.activations.serialize(self.act)
     base_config["bias"] = self.bias
+    base_config["local_hash"] = self.local_hash_name
 
     return base_config
 
   def build(self, input_shape):
-    if self.bias:
-      X_shape, mask_shape, n_shape = input_shape
-    else:
-      X_shape, n_shape = input_shape
+    X_shape, mask_shape, n_shape = input_shape
 
     edge_dim = X_shape[-1]
 
@@ -51,7 +56,7 @@ class WL2GCNLayer(keras.layers.Layer):
   def call(self, input):
     X, mask, n = input
 
-    X_prop = ops.aggregate_edge_features(X, tf.multiply)
+    X_prop = ops.aggregate_edge_features(X, self.local_hash)
 
     XW = tf.linalg.matmul(X, self.W)
     XW_prop = tf.linalg.matmul(X_prop, self.W_prop)

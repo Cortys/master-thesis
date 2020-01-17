@@ -132,9 +132,11 @@ def create_graph_from_tu_data(
 
   for i, node in enumerate(nodes):
     features = []
+    label = None
 
     if graph_data["node_labels"] != []:
       features.extend(I_n[graph_data["node_labels"][i] - 1])
+      label = graph_data["node_labels"][i]
 
     if graph_data["node_attrs"] != []:
       features.extend(graph_data["node_attrs"][i])
@@ -142,14 +144,19 @@ def create_graph_from_tu_data(
     if len(features) == 0:
       features = [1]
 
-    G.add_node(node, features=features)
+    if label is None:
+      G.add_node(node, features=features)
+    else:
+      G.add_node(node, features=features, label=label)
 
   for i, edge in enumerate(edges):
     n1, n2 = edge
     features = []
+    label = None
 
     if graph_data["edge_labels"] != []:
       features.extend(I_e[graph_data["edge_labels"][i] - 1])
+      label = graph_data["edge_labels"][i]
 
     if graph_data["edge_attrs"] != []:
       features.extend(graph_data["edge_attrs"][i])
@@ -158,6 +165,10 @@ def create_graph_from_tu_data(
       features = [1]
 
     G.add_edge(n1, n2, features=features)
+    if label is None:
+      G.add_edge(n1, n2, features=features)
+    else:
+      G.add_edge(n1, n2, features=features, label=label)
 
   return G
 

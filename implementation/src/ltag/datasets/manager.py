@@ -7,15 +7,18 @@ import numpy as np
 import pickle
 import funcy as fy
 from sklearn.model_selection import train_test_split, StratifiedKFold
-
 import gc
 
 import ltag.chaining.pipeline as cp
 import ltag.datasets.utils as ds_utils
 from ltag.utils import NumpyEncoder
 
-# Implementation adapted from https://github.com/diningphil/gnn-comparison.
+import warnings
+# Ignore future warnings caused by grakel:
+warnings.simplefilter(action='ignore', category=FutureWarning)
+import grakel as gk
 
+# Implementation adapted from https://github.com/diningphil/gnn-comparison.
 
 class GraphDatasetManager:
   def __init__(
@@ -23,7 +26,9 @@ class GraphDatasetManager:
     seed=42, holdout_test_size=0.1,
     dense_batch_size=50,
     wl2_neighborhood=1, wl2_cache=True,
-    wl2_batch_size={}, **kwargs):
+    wl2_batch_size={},
+    grakel_labels=False,
+    **kwargs):
 
     self.kfold_class = kfold_class
     self.holdout_test_size = holdout_test_size
@@ -31,6 +36,7 @@ class GraphDatasetManager:
     self.wl2_neighborhood = wl2_neighborhood
     self.wl2_cache = wl2_cache
     self.wl2_batch_size = wl2_batch_size
+    self.grakel_labels = grakel_labels
 
     self.outer_k = outer_k
     assert (outer_k is not None and outer_k > 0) or outer_k is None
@@ -233,6 +239,18 @@ class GraphDatasetManager:
 
       ds = ds_utils.to_dense_ds(graphs, targets)
       ds = ds.batch(self.dense_batch_size)
+    elif output_type == "grakel":
+      graphs, targets = self.dataset
+
+      if idxs is not None:
+        graphs = graphs[idxs]
+        targets = targets[idxs]
+
+      lb = "label" if self.grakel_labels else None
+
+      return gk.graph_from_networkx(
+        graphs, node_labels_tag=lb,
+        edge_labels_tag=lb), targets
     elif output_type == "wl2":
       batches = self._get_wl2_batches(ds_name, idxs)
 
@@ -426,6 +444,10 @@ def synthetic_dataset(f):
       ef = 0
       t = 0
 
+    graphs_a = np.empty(len(graphs), dtype="O")
+    graphs_a[:] = graphs
+    y_a = np.array(y)
+
     print(f"Created {n} graphs.")
 
     class M(SyntheticGraphDatasetManager):
@@ -435,7 +457,7 @@ def synthetic_dataset(f):
       _dim_target = t
 
       def _load_dataset(self):
-        return np.array(graphs), np.array(y)
+        return graphs_a, y_a
 
     cName = "".join(
       x for x in n.title()

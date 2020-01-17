@@ -63,10 +63,6 @@ def AvgWL2GCN_Binary(dsm):
   in_dim = dsm.dim_wl2_features()
 
   hidden = [
-    [b] * l
-    for b, l in cart([8, 32], [1, 3])]
-
-  hidden = [
     [8], [8, 8, 8],
     [32], [32, 32]
   ]
@@ -75,4 +71,19 @@ def AvgWL2GCN_Binary(dsm):
     layer_dims=[[in_dim, *h, 1] for h in hidden],
     bias=[True],
     learning_rate=[0.0001]
+  )
+
+@binary_classifier(models.AvgWL2GCN)
+def AvgWL2GCN_Binary_2(dsm):
+  in_dim = dsm.dim_wl2_features()
+
+  hidden = [
+    [8, 8, 8],
+    [32], [32, 32, 32]
+  ]
+
+  return cart(
+    layer_dims=[[in_dim, *h, 1] for h in hidden],
+    bias=[True],
+    learning_rate=[0.001]
   )

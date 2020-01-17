@@ -6,15 +6,23 @@ from tensorflow import keras
 
 import ltag.ops as ops
 
+local_hashes = {
+  "multiply": tf.multiply,
+  "add": tf.add
+}
+
 class WL2GCNLayer(keras.layers.Layer):
   def __init__(
     self, out_dim, in_dim=None,
-    act="relu", bias=True):
+    act="relu", bias=True,
+    local_hash="multiply"):
     super().__init__()
     self.out_dim = out_dim
     self.in_dim = in_dim
     self.act = keras.activations.get(act)
     self.bias = bias
+    self.local_hash_name = local_hash
+    self.local_hash = local_hashes[local_hash]
 
   def get_config(self):
     base_config = super().get_config()
@@ -22,6 +30,7 @@ class WL2GCNLayer(keras.layers.Layer):
     base_config["in_dim"] = self.in_dim
     base_config["act"] = keras.activations.serialize(self.act)
     base_config["bias"] = self.bias
+    base_config["local_hash"] = self.local_hash_name
 
     return base_config
 
@@ -49,7 +58,7 @@ class WL2GCNLayer(keras.layers.Layer):
     X, ref_a, ref_b, e_map, v_count = input
 
     X_prop = ops.aggregate_edge_features_using_refs(
-      X, ref_a, ref_b, tf.multiply)
+      X, ref_a, ref_b, self.local_hash)
 
     XW = tf.linalg.matmul(X, self.W)
     XW_prop = tf.linalg.matmul(X_prop, self.W_prop)
