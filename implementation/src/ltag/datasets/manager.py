@@ -27,6 +27,7 @@ class GraphDatasetManager:
     dense_batch_size=50,
     wl2_neighborhood=1, wl2_cache=True,
     wl2_batch_size={},
+    wl2_indices=False,
     grakel_labels=False,
     **kwargs):
 
@@ -36,6 +37,7 @@ class GraphDatasetManager:
     self.wl2_neighborhood = wl2_neighborhood
     self.wl2_cache = wl2_cache
     self.wl2_batch_size = wl2_batch_size
+    self.wl2_indices = wl2_indices
     self.grakel_labels = grakel_labels
 
     self.outer_k = outer_k
@@ -65,7 +67,8 @@ class GraphDatasetManager:
 
     wl2_graphs = np.array([
       ds_utils.wl2_encode(
-        g, self._dim_node_features, self._dim_edge_features, neighborhood)
+        g, self._dim_node_features, self._dim_edge_features,
+        neighborhood, with_indices=self.wl2_indices)
       for g in graphs])
 
     print(f"Encoded WL2 graphs.")
@@ -211,6 +214,7 @@ class GraphDatasetManager:
       graphs, targets,
       dim_node_features=self._dim_node_features,
       dim_edge_features=self._dim_edge_features,
+      with_indices=self.wl2_indices,
       as_list=True,
       preencoded=self.wl2_cache,
       neighborhood=self.wl2_neighborhood,
@@ -351,6 +355,9 @@ class StoredGraphDatasetManager(GraphDatasetManager):
         return (batches[0][idxs], batches[1], batches[2])
 
     bc = f"n_{self.wl2_neighborhood}"
+
+    if self.wl2_indices:
+      bc += "_idx"
 
     if graph_count != 1:
       count_keys = [

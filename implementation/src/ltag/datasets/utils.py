@@ -45,7 +45,8 @@ def eid_lookup(e_ids, i, j):
   return e_ids[(i, j)]
 
 def wl2_encode(
-  g, dim_node_features=None, dim_edge_features=None, neighborhood=1):
+  g, dim_node_features=None, dim_edge_features=None,
+  neighborhood=1, with_indices=False):
   """
     Takes a graph with node and edge features and converts it
     into a edge + row/col ref list for sparse WL2 implementations.
@@ -103,10 +104,14 @@ def wl2_encode(
     ref_b.append(n_b)
 
   n = g.order()
+  res = x, ref_a, ref_b, max_ref_dim, n
 
-  return x, ref_a, ref_b, max_ref_dim, n
+  if with_indices:
+    res += (list(g_p.edges),)
 
-def make_wl2_batch(encoded_graphs):
+  return res
+
+def make_wl2_batch(encoded_graphs, with_indices=False):
   "Takes a sequence of graphs that were encoded via `wl2_encode`."
   max_ref_dim = np.max([g[3] for g in encoded_graphs])
 
@@ -115,9 +120,14 @@ def make_wl2_batch(encoded_graphs):
   b_ref_b = []
   b_e_map = []
   b_n = []
+  b_idx = []
   e_offset = 0
 
-  for i, (x, ref_a, ref_b, _, n) in enumerate(encoded_graphs):
+  for i, e in enumerate(encoded_graphs):
+    if with_indices:
+      b_idx += e[5]
+      e = e[:-1]
+    x, ref_a, ref_b, _, n = e
     e_count = len(x)
     b_x += x
     b_ref_a += [np.pad(
@@ -132,11 +142,16 @@ def make_wl2_batch(encoded_graphs):
     b_n.append(n)
     e_offset += e_count
 
-  return (
+  res = (
     np.array(b_x),
     np.array(b_ref_a), np.array(b_ref_b),
     np.array(b_e_map),
     np.array(b_n))
+
+  if with_indices:
+    res += (b_idx,)
+
+  return res
 
 def get_graph_feature_dims(g):
   dim_node_features = 0
@@ -187,6 +202,7 @@ def to_wl2_ds(
   upper_batch_edge_count=120000,
   batch_graph_count=100,
   neighborhood=1,
+  with_indices=False,
   lazy=False, preencoded=False,
   as_list=False, log=False):
   ds_size = len(graphs)
@@ -210,7 +226,8 @@ def to_wl2_ds(
       if ds_size > 0:
         enc_next = graphs[0] if preencoded else wl2_encode(
           graphs[0],
-          dim_node_features, dim_edge_features, neighborhood)
+          dim_node_features, dim_edge_features,
+          neighborhood, with_indices)
 
       for i in range(ds_size):
         enc = enc_next
@@ -218,7 +235,8 @@ def to_wl2_ds(
         if i + 1 < ds_size:
           enc_next = graphs[i + 1] if preencoded else wl2_encode(
             graphs[i + 1],
-            dim_node_features, dim_edge_features, neighborhood)
+            dim_node_features, dim_edge_features,
+            neighborhood, with_indices)
         else:
           enc_next = None
 
@@ -236,7 +254,7 @@ def to_wl2_ds(
           or (len(b_gs) > 0 and e_count_next >= upper_batch_edge_count)):
           if log:
             print("Batch with", len(b_gs), "graphs and", e_count, "edges.")
-          yield (make_wl2_batch(b_gs), b_ys)
+          yield (make_wl2_batch(b_gs, with_indices), b_ys)
           e_count = 0
           b_gs = []
           b_ys = []
@@ -244,11 +262,11 @@ def to_wl2_ds(
       if len(b_gs) > 0:
         if log:
           print("Batch with", len(b_gs), "graphs and", e_count, "edges with.")
-        yield (make_wl2_batch(b_gs), b_ys)
+        yield (make_wl2_batch(b_gs, with_indices), b_ys)
   else:
     def gen():
       for i in range(ds_size):
-        yield (make_wl2_batch([graphs[i]]), [ys[i]])
+        yield (make_wl2_batch([graphs[i]], with_indices), [ys[i]])
 
   if lazy and not as_list:
     batches = gen
