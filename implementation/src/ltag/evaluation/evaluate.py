@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function,\
   unicode_literals
 
 import os
+import gc
 import json
 from timeit import default_timer as timer
 import warnings
@@ -9,6 +10,7 @@ from pathlib import Path
 from datetime import datetime
 from tensorflow import keras
 import funcy as fy
+import tensorflow as tf
 
 from ltag.utils import NumpyEncoder
 import ltag.evaluation.summary as summary
@@ -195,6 +197,8 @@ def evaluate(
       t_end_fold = timer()
       dur_fold = t_end_fold - t_start_fold
       print(time_str(), f"- Evaluated fold {fold_str} in {dur_fold}s.")
+      tf.keras.backend.clear_session()
+      gc.collect()
   finally:
     t_end_eval = timer()
     dur_eval = t_end_eval - t_start_eval

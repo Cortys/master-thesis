@@ -152,7 +152,7 @@ def triangle_dataset():
     [i, j, 0]
     for i in range(0, 10)
     for j in range(0, 10)
-    # for k in range(10, 20)
+    for k in range(10, 20)
   ]
   configs = configs[1:]
 
@@ -169,3 +169,14 @@ def twothree_dataset():
   nx.add_cycle(g3, range(3))
 
   return [g2, g3], np.array([-1, 1])
+
+@synthetic_dataset
+def threesix_dataset():
+  g3 = nx.Graph()
+  nx.add_cycle(g3, range(3))
+  nx.add_cycle(g3, range(3, 6))
+
+  g6 = nx.Graph()
+  nx.add_cycle(g6, range(6))
+
+  return [g3, g6], np.array([0, 1])

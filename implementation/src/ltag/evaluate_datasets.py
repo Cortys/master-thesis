@@ -6,18 +6,20 @@ import ltag.evaluation.summary as summary
 import ltag.evaluation.models as models
 import ltag.evaluation.datasets as ds
 
-epochs = 1000
-repeat = 3  # fewer repeats for now.
+epochs = 500
+patience = 50
+repeat = 1  # fewer repeats for now.
 
-mf = models.AvgWL2GCN_Binary_2
-dsm = ds.Mutag_8
+mf = models.AvgWL2GCN_Binary_3x32
+dsm = ds.DD_2
 
 def quick_run(**kwargs):
   evaluate.quick_evaluate(mf, dsm(), **kwargs)
 
 def run(**kwargs):
   evaluate.evaluate(
-    mf, dsm(), epochs=epochs, repeat=repeat,
+    mf, dsm(), epochs=epochs, patience=patience,
+    repeat=repeat,
     **kwargs)
 
 def resume(eval_dir_name, **kwargs):

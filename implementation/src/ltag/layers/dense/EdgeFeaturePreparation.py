@@ -35,7 +35,7 @@ class EdgeFeaturePreparation(keras.layers.Layer):
 
     A_e = tf.expand_dims(A, axis=-1)
 
-    AX_e = tf.concat([A_e, X_e], axis=-1)
+    AX_e = tf.concat([X_e, A_e], axis=-1)
 
     if self.sparse:
       AX_e = tf.sparse.from_dense(AX_e)

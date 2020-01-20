@@ -32,10 +32,17 @@ def pipeline_step(f):
 
   f = tolerant(f)
 
-  def step(*args, **kwargs1):
+  @fy.wraps(f)
+  def step(*args, prefix=None, **kwargs1):
     @fy.wraps(f)
     def execute(input, **kwargs2):
       kwargs = fy.merge(kwargs2, kwargs1)
+
+      if prefix is not None:
+        p = prefix + "_"
+        for k, v in kwargs2.items():
+          if k.startswith(p):
+            kwargs[k[len(p):]] = v
 
       return f(input, *args, **kwargs)
 

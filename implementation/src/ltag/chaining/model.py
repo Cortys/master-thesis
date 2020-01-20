@@ -39,13 +39,22 @@ def model_step(f):
 
   return pipeline.pipeline_step(wrapper)
 
-def create_model(name, steps, **kwargs):
+def create_model(name, steps, extend_at=None, **kwargs):
   modelFactory = pipeline.create_pipeline([*steps, as_model(name)], **kwargs)
 
-  def extend(name, additional_steps, **additional_kwargs):
+  def extend(name, additional_steps, at=None, **additional_kwargs):
     ext_kwargs = fy.merge(kwargs, additional_kwargs)
+    at = at or extend_at
+    if at is not None and at != "end":
+      before = steps[:at]
+      after = steps[at:]
+    else:
+      before = steps
+      after = []
 
-    return create_model(name, steps + additional_steps, **ext_kwargs)
+    return create_model(
+      name, before + additional_steps + after,
+      extend_at=extend_at, **ext_kwargs)
 
   modelFactory.extend = extend
   modelFactory.name = name
@@ -53,12 +62,17 @@ def create_model(name, steps, **kwargs):
   return modelFactory
 
 @model_step
-def with_layers(inputs, layer, layer_dims, **kwargs):
+def with_layers(inputs, layer, layer_dims, layer_args=None, **kwargs):
   layer = pipeline.tolerant(layer)
   h = inputs
 
   for i in range(1, len(layer_dims)):
-    h = layer(in_dim=layer_dims[i - 1], out_dim=layer_dims[i], **kwargs)(h)
+    if layer_args is None or layer_args[i - 1] is None:
+      args = kwargs
+    else:
+      args = fy.merge(kwargs, layer_args[i - 1])
+
+    h = layer(in_dim=layer_dims[i - 1], out_dim=layer_dims[i], **args)(h)
 
   return h
 

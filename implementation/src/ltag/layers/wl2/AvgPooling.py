@@ -6,13 +6,13 @@ from tensorflow import keras
 
 class AvgPooling(keras.layers.Layer):
   def __init__(
-    self, squeeze_output=False):
+    self, normalize_pool=True):
     super().__init__()
-    self.squeeze_output = squeeze_output
+    self.normalize_pool = normalize_pool
 
   def get_config(self):
     base_config = super().get_config()
-    base_config["squeeze_output"] = self.squeeze_output
+    base_config["normalize_pool"] = self.normalize_pool
 
     return base_config
 
@@ -21,13 +21,13 @@ class AvgPooling(keras.layers.Layer):
 
     N = tf.shape(v_count)[0]
 
-    y = tf.math.unsorted_segment_mean(Y, e_map, num_segments=N)
+    if self.normalize_pool:
+      y = tf.math.unsorted_segment_mean(Y, e_map, num_segments=N)
+    else:
+      y = tf.math.unsorted_segment_sum(Y, e_map, num_segments=N)
 
     # y = tf.math.divide_no_nan(
     #   y,
     #   tf.expand_dims(tf.cast(v_count, tf.float32), axis=1))
-
-    if self.squeeze_output:
-      y = tf.squeeze(y, axis=-1)
 
     return y

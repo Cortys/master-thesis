@@ -2,12 +2,13 @@ from __future__ import absolute_import, division, print_function,\
   unicode_literals
 
 import os
+import gc
 import json
 import numpy as np
 import pickle
 import funcy as fy
+import networkx as nx
 from sklearn.model_selection import train_test_split, StratifiedKFold
-import gc
 
 import ltag.chaining.pipeline as cp
 import ltag.datasets.utils as ds_utils
@@ -28,7 +29,7 @@ class GraphDatasetManager:
     wl2_neighborhood=1, wl2_cache=True,
     wl2_batch_size={},
     wl2_indices=False,
-    grakel_labels=False,
+    one_labels=True,
     **kwargs):
 
     self.kfold_class = kfold_class
@@ -38,7 +39,7 @@ class GraphDatasetManager:
     self.wl2_cache = wl2_cache
     self.wl2_batch_size = wl2_batch_size
     self.wl2_indices = wl2_indices
-    self.grakel_labels = grakel_labels
+    self.one_labels = one_labels
 
     self.outer_k = outer_k
     assert (outer_k is not None and outer_k > 0) or outer_k is None
@@ -78,7 +79,12 @@ class GraphDatasetManager:
   @property
   def dataset(self):
     if self._dataset is None:
-        self._dataset = self._load_dataset()
+      self._dataset = graphs, ys = self._load_dataset()
+
+      if self.one_labels:
+        for g in graphs:
+          print(g)
+          nx.set_node_attributes(g, 1, "label")
 
     return self._dataset
 
@@ -250,11 +256,8 @@ class GraphDatasetManager:
         graphs = graphs[idxs]
         targets = targets[idxs]
 
-      lb = "label" if self.grakel_labels else None
-
       return gk.graph_from_networkx(
-        graphs, node_labels_tag=lb,
-        edge_labels_tag=lb), targets
+        graphs, node_labels_tag="label"), targets
     elif output_type == "wl2":
       batches = self._get_wl2_batches(ds_name, idxs)
 
@@ -386,6 +389,9 @@ class StoredGraphDatasetManager(GraphDatasetManager):
 
       with open(batch_dir / bn, "wb") as f:
         pickle.dump(batches, f)
+
+      if self.no_wl2_load:
+        return
     elif self.no_wl2_load:  # Used for preprocessing managers.
       return
     else:
