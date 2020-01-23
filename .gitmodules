@@ -4,6 +4,3 @@
 [submodule "implementation/libs/sagpool"]
 	path = implementation/libs/sagpool
 	url = https://github.com/Cortys/SAGPool
-[submodule "implementation/libs/localwl"]
-	path = implementation/libs/localwl
-	url = https://github.com/chrsmrrs/localwl.git
