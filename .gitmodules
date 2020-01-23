@@ -4,3 +4,9 @@
 [submodule "implementation/libs/sagpool"]
 	path = implementation/libs/sagpool
 	url = https://github.com/Cortys/SAGPool
+[submodule "implementation/libs/glocalwl"]
+	path = implementation/libs/glocalwl
+	url = https://github.com/chrsmrrs/glocalwl.git
+[submodule "implementation/libs/gnn-comparison"]
+	path = implementation/libs/gnn-comparison
+	url = https://github.com/diningphil/gnn-comparison.git
