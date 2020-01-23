@@ -47,7 +47,7 @@ def neighborhood_mask(AX_e, degree=1):
   return tf.expand_dims(tf.where(mask_p == 0, 0.0, 1.0), -1)
 
 @tf.function
-def aggregate_edge_features(X, agg):
+def wl2_convolution_dense(X, agg):
   X_shape = tf.shape(X)
   n = X_shape[-2]
 
@@ -63,7 +63,7 @@ def aggregate_edge_features(X, agg):
   return tf.reduce_sum(X_prod, axis=-2)
 
 @tf.function
-def aggregate_edge_features_using_refs(X, ref_a, ref_b, agg):
+def wl2_convolution(X, ref_a, ref_b, agg):
   X_a = tf.gather(X, ref_a, axis=0, batch_dims=1)
   X_b = tf.gather(X, ref_b, axis=0, batch_dims=1)
   X_ab = agg(X_a, X_b)
@@ -71,10 +71,31 @@ def aggregate_edge_features_using_refs(X, ref_a, ref_b, agg):
 
   return X_agg
 
+@tf.function
+def wl2_convolution_compact(X, ref_a, ref_b, backref, agg):
+  X_a = tf.gather(X, ref_a, axis=0)
+  X_b = tf.gather(X, ref_b, axis=0)
+  X_ab = agg(X_a, X_b)
+  X_shape = tf.shape(X)
+  backref = tf.expand_dims(backref, axis=-1)
+  X_agg = tf.scatter_nd(backref, X_ab, shape=X_shape)
+
+  return X_agg
+
+
 # import ltag.datasets.synthetic as synthetic
 #
-# ds = synthetic.triangle_dataset(output_type="wl2", batch_graph_count=1)
+# ds = synthetic.triangle_dataset()(wl2_batch_size={
+#   "batch_graph_count": 100
+# })
 #
-# (X, ref_a, ref_b, e_map, v_count), y = list(ds)[0]
+# (X, ref_a, ref_b, backref, e_map, v_count), y = list(ds.get_all(output_type="wl2c"))[0]
 #
-# print(aggregate_edge_features_using_refs(X, ref_a, ref_b, tf.multiply))
+# (X2, ref_a2, ref_b2, e_map, v_count), y = list(ds.get_all(output_type="wl2"))[0]
+#
+# c = wl2_convolution(X2, ref_a2, ref_b2, tf.multiply)
+# cc = wl2_convolution_compact(X, ref_a, ref_b, backref, tf.multiply)
+#
+# # print(c)
+# # print(cc)
+# print(tf.reduce_min(tf.where(c == cc, 1, 0)))

@@ -26,8 +26,8 @@ Proteins_6 = fy.partial(
   tu.Proteins,
   wl2_neighborhood=6,
   wl2_batch_size={
-    "fuzzy_batch_edge_count": 10000,
-    "upper_batch_edge_count": 30000,
+    "fuzzy_batch_edge_count": 20000,
+    "upper_batch_edge_count": 50000,
     "batch_graph_count": 20
   })
 
@@ -35,25 +35,40 @@ DD_2 = fy.partial(
   tu.DD,
   wl2_neighborhood=2,
   wl2_batch_size={
-    "batch_graph_count": 1
+    "fuzzy_batch_edge_count": 30000,
+    "upper_batch_edge_count": 60000,
+    "batch_graph_count": 10
   })
 
-chemical = [
+chemical_binary = [
   "Mutag_8",
   "NCI1_8",
   "Proteins_6",
   "DD_2"
 ]
+chemical = chemical_binary
+
+# Social:
+
+RedditBinary_1 = fy.partial(
+  tu.RedditBinary,
+  wl2_neighborhood=1,
+  wl2_batch_size={
+    "fuzzy_batch_edge_count": 50000,
+    "upper_batch_edge_count": 100000,
+    "batch_graph_count": 5
+  }
+)
+
+social_binary = [
+  RedditBinary_1
+]
+social = social_binary
 
 # Other categories:
 
-stored = chemical
+stored = chemical + social
 
-binary = [
-  "Mutag_8",
-  "NCI1_8",
-  "Proteins_6",
-  "DD_2"
-]
+binary = chemical_binary + social_binary
 
 all = stored

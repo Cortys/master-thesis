@@ -84,7 +84,3 @@ class Collab(manager.TUDatasetManager):
   _dim_edge_features = 1
   _dim_target = 3
   _max_num_nodes = 492
-
-# d = Mutag()
-# import networkx as nx
-# d.dataset[0][0].edges(data=True)

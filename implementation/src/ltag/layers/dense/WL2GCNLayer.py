@@ -56,7 +56,7 @@ class WL2GCNLayer(keras.layers.Layer):
   def call(self, input):
     X, mask, n = input
 
-    X_prop = ops.aggregate_edge_features(X, self.local_hash)
+    X_prop = ops.wl2_convolution_dense(X, self.local_hash)
 
     XW = tf.linalg.matmul(X, self.W)
     XW_prop = tf.linalg.matmul(X_prop, self.W_prop)

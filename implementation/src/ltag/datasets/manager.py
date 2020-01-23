@@ -8,6 +8,7 @@ import numpy as np
 import pickle
 import funcy as fy
 import networkx as nx
+import tensorflow as tf
 from sklearn.model_selection import train_test_split, StratifiedKFold
 
 import ltag.chaining.pipeline as cp
@@ -51,6 +52,7 @@ class GraphDatasetManager:
 
     self._dataset = None
     self._wl2_dataset = None
+    self._wl2c_dataset = None
     self._splits = None
 
     self._setup(**kwargs)
@@ -76,6 +78,21 @@ class GraphDatasetManager:
 
     return wl2_graphs, targets
 
+  def _load_wl2c_dataset(self, neighborhood):
+    graphs, targets = self.dataset
+
+    print(f"Encoding {self.name} as WL2c with neighborhood {neighborhood}...")
+
+    wl2_graphs = np.array([
+      ds_utils.wl2_encode(
+        g, self._dim_node_features, self._dim_edge_features,
+        neighborhood, compact=True)
+      for g in graphs])
+
+    print(f"Encoded WL2c graphs.")
+
+    return wl2_graphs, targets
+
   @property
   def dataset(self):
     if self._dataset is None:
@@ -83,7 +100,6 @@ class GraphDatasetManager:
 
       if self.one_labels:
         for g in graphs:
-          print(g)
           nx.set_node_attributes(g, 1, "label")
 
     return self._dataset
@@ -94,6 +110,13 @@ class GraphDatasetManager:
       self._wl2_dataset = self._load_wl2_dataset(self.wl2_neighborhood)
 
     return self._wl2_dataset
+
+  @property
+  def wl2c_dataset(self):
+    if self._wl2c_dataset is None:
+      self._wl2c_dataset = self._load_wl2c_dataset(self.wl2_neighborhood)
+
+    return self._wl2c_dataset
 
   @property
   def splits(self):
@@ -221,7 +244,27 @@ class GraphDatasetManager:
       dim_node_features=self._dim_node_features,
       dim_edge_features=self._dim_edge_features,
       with_indices=self.wl2_indices,
-      as_list=True,
+      as_list=True,  # no laziness due to slow wl2 batching
+      preencoded=self.wl2_cache,
+      neighborhood=self.wl2_neighborhood,
+      **self.wl2_batch_size)
+
+    return batches
+
+  def _get_wl2c_batches(self, name, idxs=None):
+    graphs, targets = self.wl2c_dataset if self.wl2_cache else self.dataset
+
+    if idxs is not None:
+      graphs = graphs[idxs]
+      targets = targets[idxs]
+
+    batches = ds_utils.to_wl2_ds(
+      graphs, targets,
+      dim_node_features=self._dim_node_features,
+      dim_edge_features=self._dim_edge_features,
+      with_indices=self.wl2_indices,
+      lazy=self.wl2_cache,  # wl2c preencoded graphs can be batched quickly
+      compact=True,
       preencoded=self.wl2_cache,
       neighborhood=self.wl2_neighborhood,
       **self.wl2_batch_size)
@@ -264,7 +307,20 @@ class GraphDatasetManager:
       if batches is None:
         return
 
+      if isinstance(batches, tf.data.Dataset):
+        return batches
+
       ds = ds_utils.wl2_batches_to_dataset(*batches)
+    elif output_type == "wl2c":
+      batches = self._get_wl2c_batches(ds_name, idxs)
+
+      if batches is None:
+        return
+
+      if isinstance(batches, tf.data.Dataset):
+        return batches
+
+      ds = ds_utils.wl2_batches_to_dataset(*batches, compact=True)
 
     ds.name = ds_name
 
@@ -323,6 +379,23 @@ class StoredGraphDatasetManager(GraphDatasetManager):
         os.makedirs(wl2_dir)
 
         wl2_dataset = super()._load_wl2_dataset(neighborhood)
+
+        with open(wl2_dir / f"{self.name}.pickle", "wb") as f:
+          pickle.dump(wl2_dataset, f)
+
+          return wl2_dataset
+    else:
+      with open(wl2_dir / f"{self.name}.pickle", "rb") as f:
+        return pickle.load(f)
+
+  def _load_wl2c_dataset(self, neighborhood):
+    wl2_dir = self.root_dir / "wl2c" / f"n_{neighborhood}"
+
+    if not (wl2_dir / f"{self.name}.pickle").exists():
+      if not wl2_dir.exists():
+        os.makedirs(wl2_dir)
+
+        wl2_dataset = super()._load_wl2c_dataset(neighborhood)
 
         with open(wl2_dir / f"{self.name}.pickle", "wb") as f:
           pickle.dump(wl2_dataset, f)
@@ -406,25 +479,32 @@ class StoredGraphDatasetManager(GraphDatasetManager):
 
     return batches
 
-  def prepare_wl2_batches(self, all_batch=False):
-    assert self.wl2_batch_cache
-
-    if all_batch:
-      print(f"Preparing full dataset batches of {self.name}...")
-      self.get_all(output_type="wl2")
-      gc.collect()
-
-    for ok in range(self.outer_k or 1):
-      for ik in range(self.inner_k or 1):
-        print(f"Preparing train fold {ok} {ik} of {self.name}...")
-        self.get_train_fold(ok, ik, output_type="wl2")
+  def prepare_wl2_batches(self, all_batch=False, normal=False, compact=True):
+    if normal:
+      assert self.wl2_batch_cache
+      print("Normal WL2 encode...")
+      if all_batch:
+        print(f"Preparing full dataset batches of {self.name}...")
+        self.get_all(output_type="wl2")
         gc.collect()
 
-      print(f"Preparing test fold {ok} of {self.name}...")
-      self.get_test_fold(ok, output_type="wl2")
-      gc.collect()
+      for ok in range(self.outer_k or 1):
+        for ik in range(self.inner_k or 1):
+          print(f"Preparing train fold {ok} {ik} of {self.name}...")
+          self.get_train_fold(ok, ik, output_type="wl2")
+          gc.collect()
 
-    print("Prepared all batch folds.")
+        print(f"Preparing test fold {ok} of {self.name}...")
+        self.get_test_fold(ok, output_type="wl2")
+        gc.collect()
+
+      print("Prepared all normal batch folds.")
+
+    if compact:
+      print(f"Starting compact WL2 encode of {self.name}...")
+      self.wl2c_dataset
+      gc.collect()
+      print(f"Compact WL2 encode of {self.name} completed.")
 
   def _process(self):
     raise NotImplementedError

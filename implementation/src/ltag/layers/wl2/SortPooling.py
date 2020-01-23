@@ -23,7 +23,9 @@ class SortPooling(keras.layers.Layer):
       trainable=True, initializer=tf.initializers.Ones)
 
   def call(self, io):
-    (X, ref_a, ref_b, e_map, v_count), Y = io
+    inputs, Y = io
+    e_map = inputs[-2]
+    v_count = inputs[-1]
 
     Y = tf.squeeze(Y, axis=-1)
     N = tf.shape(v_count)[0]

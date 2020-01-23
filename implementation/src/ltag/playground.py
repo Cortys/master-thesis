@@ -47,10 +47,10 @@ def proteins_experient():
   model_class = models.AvgWL2GCN
   dsm = eval_ds.Proteins_6()
 
-  model_class = models.with_fc(model_class)
+  # model_class = models.with_fc(model_class)
   model = model_class(
     act="sigmoid", squeeze_output=False,
-    conv_layer_dims=[dsm.dim_wl2_features(), 32, 32],
+    conv_layer_dims=[dsm.dim_wl2_features(), 32, 32, 1],
     fc_layer_dims=[32, 32, 1],
     bias=True)
 
@@ -86,7 +86,7 @@ def dd_experient():
 
   ds_raw = dsm.get_all(
     output_type=model_class.input_type)
-  ds = ds_raw.shuffle(1200)
+  ds = ds_raw
 
   evaluate.train(
     model, ds, verbose=1,
@@ -120,13 +120,38 @@ def nci1_experient():
   print(model.evaluate(test))
   return model.predict(test)
 
+def reddit_experient():
+  model_class = models.AvgWL2GCN
+  dsm = eval_ds.RedditBinary_1()
+
+  model = model_class(
+    act="sigmoid", squeeze_output=True,
+    layer_dims=[dsm.dim_wl2_features(), 64, 64, 64, 1],
+    bias=True)
+
+  opt = keras.optimizers.Adam(0.00001)
+
+  model.compile(
+    optimizer=opt,
+    loss="binary_crossentropy",
+    metrics=["accuracy"])
+
+  ds_raw = dsm.get_all(
+    output_type=model_class.input_type)
+  ds = ds_raw
+
+  evaluate.train(
+    model, ds, verbose=1, epochs=1000,
+    label=f"{dsm.name}_{model.name}")
+  print(model.evaluate(ds))
+
 def wl2_power_experiment():
   model_class = models.AvgWL2GCN
-  model_class = models.with_fc(model_class)
+  # model_class = models.with_fc(model_class)
   dsm = synthetic.threesix_dataset()(
     wl2_neighborhood=1)  # ok(3, 2, 1)
 
-  if model_class.input_type == "wl2":
+  if model_class.input_type == "wl2c":
     in_dim = dsm.dim_wl2_features()
   else:
     in_dim = dsm.dim_node_features
@@ -138,9 +163,9 @@ def wl2_power_experiment():
 
   model = model_class(
     act="sigmoid", squeeze_output=True,
-    layer_dims=[in_dim, 4],
-    fc_layer_dims=[4, 1],
-    local_hash="add",
+    layer_dims=[in_dim, 4, 1],
+    fc_layer_dims=[1, 2, 1],
+    local_hash="multiply",
     neighborhood_mask=1,  # ok(3, 2), nok(-1, 1)
     bias=False)
 
@@ -163,9 +188,7 @@ def wl2_power_experiment():
     model.predict(dsm.get_all(output_type=model_class.input_type)))
 
 
-# nci1_experient()
-# dsm = synthetic.threesix_dataset()(
-#   wl2_neighborhood=1)
+reddit_experient()
 #
 # list(dsm.get_all(output_type="grakel")[0])
 #
@@ -178,7 +201,7 @@ def wl2_power_experiment():
 # k.transform(list(dsm.get_all(output_type="grakel")[0])[:1])
 
 # eval_main.run(verbose=1)
-eval_main.quick_run(verbose=1)
+# eval_main.quick_run(verbose=1)
 # eval_main.resume(
 #   "2020-01-15_14-26-15_NCI1_AvgWL2GCN_quick",
 #   verbose=1)

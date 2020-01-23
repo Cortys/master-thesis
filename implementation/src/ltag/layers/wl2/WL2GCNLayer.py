@@ -13,12 +13,13 @@ local_hashes = {
 
 class WL2GCNLayer(keras.layers.Layer):
   def __init__(
-    self, out_dim, in_dim=None,
+    self, out_dim, in_dim=None, compact=True,
     act="relu", bias=True,
     local_hash="multiply"):
     super().__init__()
     self.out_dim = out_dim
     self.in_dim = in_dim
+    self.compact = compact
     self.act = keras.activations.get(act)
     self.bias = bias
     self.local_hash_name = local_hash
@@ -55,10 +56,14 @@ class WL2GCNLayer(keras.layers.Layer):
         trainable=True, initializer=tf.initializers.Zeros)
 
   def call(self, input):
-    X, ref_a, ref_b, e_map, v_count = input
-
-    X_prop = ops.aggregate_edge_features_using_refs(
-      X, ref_a, ref_b, self.local_hash)
+    if self.compact:
+      X, ref_a, ref_b, backref, e_map, v_count = input
+      X_prop = ops.wl2_convolution_compact(
+        X, ref_a, ref_b, backref, self.local_hash)
+    else:
+      X, ref_a, ref_b, e_map, v_count = input
+      X_prop = ops.wl2_convolution(
+        X, ref_a, ref_b, self.local_hash)
 
     XW = tf.linalg.matmul(X, self.W)
     XW_prop = tf.linalg.matmul(X_prop, self.W_prop)
@@ -70,4 +75,7 @@ class WL2GCNLayer(keras.layers.Layer):
 
     X_out = self.act(XW_comb)
 
-    return X_out, ref_a, ref_b, e_map, v_count
+    if self.compact:
+      return X_out, ref_a, ref_b, backref, e_map, v_count
+    else:
+      return X_out, ref_a, ref_b, e_map, v_count

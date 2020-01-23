@@ -5,6 +5,7 @@ import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
 import networkx as nx
+import funcy as fy
 
 import ltag.chaining.pipeline as cp
 
@@ -46,7 +47,7 @@ def eid_lookup(e_ids, i, j):
 
 def wl2_encode(
   g, dim_node_features=None, dim_edge_features=None,
-  neighborhood=1, with_indices=False):
+  neighborhood=1, with_indices=False, compact=False):
   """
     Takes a graph with node and edge features and converts it
     into a edge + row/col ref list for sparse WL2 implementations.
@@ -69,6 +70,7 @@ def wl2_encode(
   x = []
   ref_a = []
   ref_b = []
+  backref = []
   max_ref_dim = 0
   e_ids = {}
 
@@ -90,63 +92,107 @@ def wl2_encode(
     nbs = (
       ([a] if a == b else [a, b])
       + list(nx.common_neighbors(g_p, a, b)))
-    n_a = np.array([eid_lookup(e_ids, a, k) for k in nbs])
-    n_b = np.array([eid_lookup(e_ids, b, k) for k in nbs])
+    n_a = [eid_lookup(e_ids, a, k) for k in nbs]
+    n_b = [eid_lookup(e_ids, b, k) for k in nbs]
     nbs_count = len(nbs)
-
-    if nbs_count > max_ref_dim:
-      max_ref_dim = nbs_count
 
     x.append(np.concatenate(
       ([1, 0, 0], f, e_zero) if a == b else
       ([0], [1, 0] if in_g else [0, 1], n_zero, f)))
-    ref_a.append(n_a)
-    ref_b.append(n_b)
+
+    if compact:
+      ref_a += n_a
+      ref_b += n_b
+      backref += [e_ids[edge]] * nbs_count
+    else:
+      if nbs_count > max_ref_dim:
+        max_ref_dim = nbs_count
+
+      ref_a.append(np.array(n_a))
+      ref_b.append(np.array(n_b))
 
   n = g.order()
-  res = x, ref_a, ref_b, max_ref_dim, n
+  res = (
+    np.array(x),
+    np.array(ref_a), np.array(ref_b),
+    np.array(backref if compact else max_ref_dim),
+    n)
 
   if with_indices:
     res += (list(g_p.edges),)
 
   return res
 
-def make_wl2_batch(encoded_graphs, with_indices=False):
+def make_wl2_batch(encoded_graphs, dim_wl2, with_indices=False, compact=False):
   "Takes a sequence of graphs that were encoded via `wl2_encode`."
-  max_ref_dim = np.max([g[3] for g in encoded_graphs])
+  if not compact:
+    max_ref_dim = np.max([g[3] for g in encoded_graphs])
 
-  b_x = []
-  b_ref_a = []
-  b_ref_b = []
-  b_e_map = []
-  b_n = []
-  b_idx = []
+  x_len = 0
+  r_len = 0
+  for e in encoded_graphs:
+    x = e[0]
+    r = e[1]
+    x_len += len(x)
+    r_len += len(r)
+
+  b_x = np.empty((x_len, dim_wl2), dtype=float)
+  if compact:
+    b_ref_a = np.empty((r_len,), dtype=int)
+    b_ref_b = np.empty((r_len,), dtype=int)
+    b_backref = np.empty((r_len,), dtype=int)
+  else:
+    b_ref_a = np.empty((r_len, max_ref_dim), dtype=int)
+    b_ref_b = np.empty((r_len, max_ref_dim), dtype=int)
+
+  b_e_map = np.empty((x_len,), dtype=float)
+  b_n = np.empty(len(encoded_graphs))
+  b_idx = np.empty((x_len, 2), dtype=int)
   e_offset = 0
+  r_offset = 0
 
   for i, e in enumerate(encoded_graphs):
     if with_indices:
-      b_idx += e[5]
-      e = e[:-1]
-    x, ref_a, ref_b, _, n = e
-    e_count = len(x)
-    b_x += x
-    b_ref_a += [np.pad(
-      r + e_offset,
-      (0, max_ref_dim - len(r)), "constant", constant_values=-1)
-      for r in ref_a]
-    b_ref_b += [np.pad(
-      r + e_offset,
-      (0, max_ref_dim - len(r)), "constant", constant_values=-1)
-      for r in ref_b]
-    b_e_map += [i] * e_count
-    b_n.append(n)
-    e_offset += e_count
+      x, ref_a, ref_b, backref, n, idx = e
+      e_count = len(x)
+      next_e_offset = e_offset + e_count
+      b_idx[e_offset:next_e_offset] = idx
+    else:
+      x, ref_a, ref_b, backref, n = e
+      e_count = len(x)
+      next_e_offset = e_offset + e_count
 
-  res = (
-    np.array(b_x),
-    np.array(b_ref_a), np.array(b_ref_b),
-    np.array(b_e_map),
-    np.array(b_n))
+    if e_count == 0:  # discard empty graphs
+      continue
+
+    r_count = len(ref_a)
+    next_r_offset = r_offset + r_count
+    b_x[e_offset:next_e_offset] = x
+    b_e_map[e_offset:next_e_offset] = [i] * e_count
+    b_n[i] = n
+
+    if compact:
+      b_ref_a[r_offset:next_r_offset] = ref_a + e_offset
+      b_ref_b[r_offset:next_r_offset] = ref_b + e_offset
+      b_backref[r_offset:next_r_offset] = backref + e_offset
+    else:
+      for i_r in range(r_count):
+        r_a = ref_a[i_r]
+        r_b = ref_b[i_r]
+        b_ref_a[r_offset + i_r, :] = np.pad(
+          r_a + e_offset,
+          (0, max_ref_dim - len(r_a)), "constant", constant_values=-1)
+        b_ref_b[r_offset + i_r, :] = np.pad(
+          r_b + e_offset,
+          (0, max_ref_dim - len(r_b)), "constant", constant_values=-1)
+
+    e_offset = next_e_offset
+    r_offset = next_r_offset
+
+  if compact:
+    res = (b_x, b_ref_a, b_ref_b, b_backref, b_e_map, b_n)
+  else:
+    res = (b_x, b_ref_a, b_ref_b, b_e_map, b_n)
 
   if with_indices:
     res += (b_idx,)
@@ -173,7 +219,7 @@ def get_graph_feature_dims(g):
 
   return dim_node_features, dim_edge_features
 
-def wl2_batches_to_dataset(batches, dim_wl2, y_dim):
+def wl2_batches_to_dataset(batches, dim_wl2, y_dim, compact=False):
   if callable(batches):
     batch_gen = batches
   else:
@@ -181,17 +227,32 @@ def wl2_batches_to_dataset(batches, dim_wl2, y_dim):
       for b in batches:
         yield b
 
-  return tf.data.Dataset.from_generator(
-    batch_gen,
-    output_types=((
-      tf.float32, tf.int32, tf.int32, tf.int32, tf.int32), tf.float32),
-    output_shapes=((
-      tf.TensorShape([None, dim_wl2]),
-      tf.TensorShape([None, None]),
-      tf.TensorShape([None, None]),
-      tf.TensorShape([None]),
-      tf.TensorShape([None])),
-      tf.TensorShape([None, *y_dim])))
+  if compact:
+    return tf.data.Dataset.from_generator(
+      batch_gen,
+      output_types=((
+        tf.float32, tf.int32, tf.int32, tf.int32, tf.int32, tf.int32),
+        tf.float32),
+      output_shapes=((
+        tf.TensorShape([None, dim_wl2]),
+        tf.TensorShape([None]),
+        tf.TensorShape([None]),
+        tf.TensorShape([None]),
+        tf.TensorShape([None]),
+        tf.TensorShape([None])),
+        tf.TensorShape([None, *y_dim])))
+  else:
+    return tf.data.Dataset.from_generator(
+      batch_gen,
+      output_types=((
+        tf.float32, tf.int32, tf.int32, tf.int32, tf.int32), tf.float32),
+      output_shapes=((
+        tf.TensorShape([None, dim_wl2]),
+        tf.TensorShape([None, None]),
+        tf.TensorShape([None, None]),
+        tf.TensorShape([None]),
+        tf.TensorShape([None])),
+        tf.TensorShape([None, *y_dim])))
 
 @cp.tolerant
 def to_wl2_ds(
@@ -203,6 +264,7 @@ def to_wl2_ds(
   batch_graph_count=100,
   neighborhood=1,
   with_indices=False,
+  compact=False,
   lazy=False, preencoded=False,
   as_list=False, log=False):
   ds_size = len(graphs)
@@ -210,12 +272,26 @@ def to_wl2_ds(
   y_dim = y_shape[1:] if len(y_shape) > 1 else []
   dim_wl2 = 3 + dim_node_features + dim_edge_features
 
-  if log:
-    print(
-      "Batching", ds_size, "preencoded" if preencoded else "raw", "graphs.",
-      f"b_gc={batch_graph_count}",
-      f"dim_wl2={dim_wl2}",
-      f"(node={dim_node_features}, edge={dim_edge_features})")
+  print(
+    "Batching", ds_size,
+    "preencoded" if preencoded else "raw",
+    "compact" if compact else "non-compact",
+    "graphs.",
+    f"b_gc={batch_graph_count}",
+    f"dim_wl2={dim_wl2}",
+    f"(node={dim_node_features}, edge={dim_edge_features})")
+
+  if compact:
+    encoder = fy.partial(wl2_encode, compact=True)
+    batcher = fy.partial(
+      make_wl2_batch, compact=True,
+      dim_wl2=dim_wl2, with_indices=with_indices)
+    ds_conv = fy.partial(wl2_batches_to_dataset, compact=True)
+  else:
+    encoder = wl2_encode
+    batcher = fy.partial(
+      make_wl2_batch, dim_wl2=dim_wl2, with_indices=with_indices)
+    ds_conv = wl2_batches_to_dataset
 
   if batch_graph_count > 1:
     def gen():
@@ -224,7 +300,7 @@ def to_wl2_ds(
       e_count = 0
 
       if ds_size > 0:
-        enc_next = graphs[0] if preencoded else wl2_encode(
+        enc_next = graphs[0] if preencoded else encoder(
           graphs[0],
           dim_node_features, dim_edge_features,
           neighborhood, with_indices)
@@ -233,7 +309,7 @@ def to_wl2_ds(
         enc = enc_next
         y = ys[i]
         if i + 1 < ds_size:
-          enc_next = graphs[i + 1] if preencoded else wl2_encode(
+          enc_next = graphs[i + 1] if preencoded else encoder(
             graphs[i + 1],
             dim_node_features, dim_edge_features,
             neighborhood, with_indices)
@@ -252,23 +328,19 @@ def to_wl2_ds(
           len(b_gs) >= batch_graph_count
           or e_count >= fuzzy_batch_edge_count
           or (len(b_gs) > 0 and e_count_next >= upper_batch_edge_count)):
-          if log:
-            print("Batch with", len(b_gs), "graphs and", e_count, "edges.")
-          yield (make_wl2_batch(b_gs, with_indices), b_ys)
+          yield (batcher(b_gs), b_ys)
           e_count = 0
           b_gs = []
           b_ys = []
 
       if len(b_gs) > 0:
-        if log:
-          print("Batch with", len(b_gs), "graphs and", e_count, "edges with.")
-        yield (make_wl2_batch(b_gs, with_indices), b_ys)
+        yield (batcher(b_gs), b_ys)
   else:
     def gen():
       for i in range(ds_size):
-        yield (make_wl2_batch([graphs[i]], with_indices), [ys[i]])
+        yield (batcher([graphs[i]]), [ys[i]])
 
-  if lazy and not as_list:
+  if lazy:
     batches = gen
   else:
     batches_list = list(gen())
@@ -278,7 +350,7 @@ def to_wl2_ds(
     if as_list:
       return batches, dim_wl2, y_dim
 
-  return wl2_batches_to_dataset(batches, dim_wl2, y_dim)
+  return ds_conv(batches, dim_wl2, y_dim)
 
 
 def draw_graph(g, y, with_features=False):

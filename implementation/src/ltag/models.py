@@ -5,7 +5,6 @@ import tensorflow as tf
 from tensorflow import keras
 import funcy as fy
 
-import ltag.chaining.pipeline as cp
 import ltag.chaining.model as cm
 import ltag.layers.dense as ld
 import ltag.layers.wl2 as lwl2
@@ -29,10 +28,22 @@ def gnn_wl2_inputs():
 
   return X, ref_a, ref_b, e_map, v_count
 
+@cm.model_inputs
+def gnn_wl2c_inputs():
+  X = keras.Input(shape=(None,), dtype=tf.float32, name="X")
+  ref_a = keras.Input(shape=(), dtype=tf.int32, name="ref_a")
+  ref_b = keras.Input(shape=(), dtype=tf.int32, name="ref_b")
+  backref = keras.Input(shape=(), dtype=tf.int32, name="backref")
+  e_map = keras.Input(shape=(), dtype=tf.int32, name="e_map")
+  v_count = keras.Input(shape=(), dtype=tf.int32, name="v_count")
+
+  return X, ref_a, ref_b, backref, e_map, v_count
+
 
 input_types = {
   "dense": gnn_dense_inputs,
-  "wl2": gnn_wl2_inputs
+  "wl2": gnn_wl2_inputs,
+  "wl2c": gnn_wl2c_inputs
 }
 
 @cm.model_step
@@ -88,7 +99,7 @@ DenseWL2GCN = gnn_model("DenseWL2GCN", [
 WL2GCN = gnn_model("WL2GCN", [
   cm.with_layers(lwl2.WL2GCNLayer, prefix="conv"),
   select_features],
-  input_type="wl2")
+  input_type="wl2c")
 
 # Averaging GNNs:
 
