@@ -2,10 +2,18 @@
 
 cd "${BASH_SOURCE%/*}" || exit
 
-JUPYTER_TOKEN=${JUPYTER_TOKEN:-$(cat JUPYTER_TOKEN)}
-JUPYTER_URL="http://localhost:8888/?token=$JUPYTER_TOKEN"
+if [ -z "$LTAG_CONTAINER_NAME" ]; then
+	LTAG_CONTAINER_NAME="ltag"
+fi
 
-if [ ! -z "$(docker ps -aqf "name=ltag")" ]; then
+if [ -z "$JUPYTER_PORT" ]; then
+	JUPYTER_PORT=8888
+fi
+
+JUPYTER_TOKEN=${JUPYTER_TOKEN:-$(cat JUPYTER_TOKEN)}
+JUPYTER_URL="http://localhost:$JUPYTER_PORT/?token=$JUPYTER_TOKEN"
+
+if [ ! -z "$(docker ps -aqf "name=$LTAG_CONTAINER_NAME")" ]; then
 	echo "Notebook already started. See ${JUPYTER_URL}" >&2
 	exit 1
 fi
@@ -25,7 +33,7 @@ if [ "$2" == "rebuild" ]; then
 fi
 
 if [ "$VARIANT" == "tensorflow" ]; then
-	ARGS="-u $(id -u):$(id -g)"
+	ARGS="-p 6006:6006 -u $(id -u):$(id -g)"
 fi
 
 trap 'kill %1; exit 0' SIGINT
@@ -47,9 +55,8 @@ mkdir -p evaluations
 mkdir -p libs
 mkdir -p data
 
-docker run --runtime=nvidia --rm --name ltag \
-	-p 8888:8888 \
-	-p 6006:6006 \
+docker run --runtime=nvidia --rm --name $LTAG_CONTAINER_NAME \
+	-p $JUPYTER_PORT:8888 \
 	-v $(pwd)/src:/ltag \
 	-v $(pwd)/logs:/logs \
 	-v $(pwd)/evaluations:/evaluations \
