@@ -1,2 +1,3 @@
+export LTAG_VARIANT=torch
 export LTAG_CONTAINER_NAME=ltag-torch
 export JUPYTER_PORT=8889

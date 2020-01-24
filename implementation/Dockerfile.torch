@@ -15,5 +15,8 @@ RUN pip install --no-cache-dir torch-scatter \
 	&& pip install --no-cache-dir torch-spline-conv \
 	&& pip install torch-geometric
 
+ADD requirements.torch.txt requirements.txt
+RUN pip install -r requirements.txt
+
 WORKDIR /ltag
 CMD ["bash", "-c", "jupyter lab --notebook-dir=/ltag --ip 0.0.0.0 --no-browser --allow-root"]

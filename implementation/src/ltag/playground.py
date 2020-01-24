@@ -47,11 +47,10 @@ def proteins_experient():
   model_class = models.AvgWL2GCN
   dsm = eval_ds.Proteins_6()
 
-  # model_class = models.with_fc(model_class)
   model = model_class(
     act="sigmoid", squeeze_output=False,
-    conv_layer_dims=[dsm.dim_wl2_features(), 32, 32, 1],
-    fc_layer_dims=[32, 32, 1],
+    conv_layer_dims=[dsm.dim_wl2_features(), 64, 64, 64, 1],
+    vert_only_pool=False,
     bias=True)
 
   opt = keras.optimizers.Adam(0.0001)
@@ -127,6 +126,7 @@ def reddit_experient():
   model = model_class(
     act="sigmoid", squeeze_output=True,
     layer_dims=[dsm.dim_wl2_features(), 64, 64, 64, 1],
+    vert_only_pool=True,
     bias=True)
 
   opt = keras.optimizers.Adam(0.00001)
@@ -188,7 +188,7 @@ def wl2_power_experiment():
     model.predict(dsm.get_all(output_type=model_class.input_type)))
 
 
-reddit_experient()
+proteins_experient()
 #
 # list(dsm.get_all(output_type="grakel")[0])
 #

@@ -18,7 +18,7 @@ if [ ! -z "$(docker ps -aqf "name=$LTAG_CONTAINER_NAME")" ]; then
 	exit 1
 fi
 
-DEFAULT_VARIANT=tensorflow
+DEFAULT_VARIANT=${LTAG_VARIANT:-"tensorflow"}
 VARIANT=${1:-$DEFAULT_VARIANT}
 ARGS=""
 REBUILD=""

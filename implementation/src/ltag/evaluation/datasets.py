@@ -54,9 +54,9 @@ RedditBinary_1 = fy.partial(
   tu.RedditBinary,
   wl2_neighborhood=1,
   wl2_batch_size={
-    "fuzzy_batch_edge_count": 50000,
-    "upper_batch_edge_count": 100000,
-    "batch_graph_count": 5
+    "fuzzy_batch_edge_count": 100000,
+    "upper_batch_edge_count": 200000,
+    "batch_graph_count": 10
   }
 )
 
