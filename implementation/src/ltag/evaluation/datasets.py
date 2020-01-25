@@ -61,7 +61,7 @@ RedditBinary_1 = fy.partial(
 )
 
 social_binary = [
-  RedditBinary_1
+  "RedditBinary_1"
 ]
 social = social_binary
 

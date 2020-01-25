@@ -9,4 +9,4 @@
 	url = https://github.com/chrsmrrs/glocalwl.git
 [submodule "implementation/libs/gnn-comparison"]
 	path = implementation/libs/gnn-comparison
-	url = https://github.com/diningphil/gnn-comparison.git
+	url = https://github.com/Cortys/gnn-comparison.git
