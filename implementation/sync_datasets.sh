@@ -2,7 +2,7 @@
 
 cd "${BASH_SOURCE%/*}" || exit
 
-FROM_NAME=${1:-"main"}
+FROM_NAME=${1:-"splits"}
 
 if [ "$FROM_NAME" == "main" ]; then
 	FROM=./data/tu
@@ -15,7 +15,7 @@ elif [ "$FROM_NAME" == "splits" ]; then
 	TARGETS="./data/tu ./libs/gnn-comparison/DATA"
 else
 	echo "Unknown dataset location name '$FROM_NAME'."
-	echo "Use either 'main' (default), 'comp' or 'splits'."
+	echo "Use either 'main', 'comp' or 'splits' (default)."
 	exit 1
 fi
 
