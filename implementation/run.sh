@@ -13,8 +13,8 @@ fi
 JUPYTER_TOKEN=${JUPYTER_TOKEN:-$(cat JUPYTER_TOKEN)}
 JUPYTER_URL="http://localhost:$JUPYTER_PORT/?token=$JUPYTER_TOKEN"
 
-if [ ! -z "$(docker ps -aqf "name=$LTAG_CONTAINER_NAME")" ]; then
-	echo "Notebook already started. See ${JUPYTER_URL}" >&2
+if [ ! -z "$(docker ps -aqf "name=^$LTAG_CONTAINER_NAME\$")" ]; then
+	echo "Notebook already started in container ${LTAG_CONTAINER_NAME}. See ${JUPYTER_URL}" >&2
 	exit 1
 fi
 
@@ -47,7 +47,7 @@ if [ "$REBUILD" == "1" ]; then
 fi
 
 echo "Starting Notebook at ${JUPYTER_URL} ..."
-echo "Using additional ARGS='$ARGS' with variant $VARIANT."
+echo "Using additional ARGS='$ARGS' with variant $VARIANT and container name $LTAG_CONTAINER_NAME."
 echo "Type \"rm\" to clean logs."
 
 mkdir -p logs

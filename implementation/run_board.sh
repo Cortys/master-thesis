@@ -9,4 +9,4 @@ if [ -z "$LTAG_CONTAINER_NAME" ]; then
 fi
 
 echo "Starting board at http://localhost:6006/"
-docker exec -it $USER $(docker ps -aqf "name=$LTAG_CONTAINER_NAME") tensorboard --logdir $LOGDIR --bind_all
+docker exec -it $USER $(docker ps -aqf "name=^$LTAG_CONTAINER_NAME\$") tensorboard --logdir $LOGDIR --bind_all
