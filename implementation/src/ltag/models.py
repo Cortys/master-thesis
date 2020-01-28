@@ -101,6 +101,11 @@ WL2GCN = gnn_model("WL2GCN", [
   select_features],
   input_type="wl2c")
 
+CWL2GCN = gnn_model("CWL2GCN", [
+  cm.with_layers(lwl2.CWL2GCNLayer, prefix="conv"),
+  select_features],
+  input_type="wl2c")
+
 # Averaging GNNs:
 
 AvgDenseGCN = DenseGCN.extend("AvgDenseGCN", [
@@ -109,6 +114,8 @@ AvgDenseWL2GCN = DenseWL2GCN.extend("AvgDenseWL2GCN", [
   cm.with_layer(ld.AvgEdgePooling, with_inputs=True)])
 
 AvgWL2GCN = WL2GCN.extend("AvgWL2GCN", [
+  cm.with_layer(lwl2.AvgPooling, with_inputs=True)])
+AvgCWL2GCN = CWL2GCN.extend("AvgWCL2GCN", [
   cm.with_layer(lwl2.AvgPooling, with_inputs=True)])
 
 # Max GNNs:

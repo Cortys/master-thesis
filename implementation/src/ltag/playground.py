@@ -20,10 +20,10 @@ def mutag_experient():
   model_class = models.AvgWL2GCN
   dsm = eval_ds.Mutag_8()
 
-  model_class = models.with_fc(model_class)
+  # model_class = models.with_fc(model_class)
   model = model_class(
     act="sigmoid", squeeze_output=True,
-    conv_layer_dims=[dsm.dim_wl2_features(), 64, 64, 64],
+    conv_layer_dims=[dsm.dim_wl2_features(), 64, 64, 64, 1],
     fc_layer_dims=[64, 64, 1],
     bias=True)
 
@@ -60,11 +60,11 @@ def proteins_experient():
     loss="binary_crossentropy",
     metrics=["accuracy"])
 
-  ds = dsm.get_all(
-    output_type=model_class.input_type)
+  ds, ds_val = dsm.get_train_fold(
+    1, output_type=model_class.input_type)
 
   evaluate.train(
-    model, ds, verbose=1,
+    model, ds, ds_val, verbose=1,
     label=f"{dsm.name}_{model.name}")
 
 def dd_experient():
@@ -93,14 +93,16 @@ def dd_experient():
   print(model.evaluate(ds))
 
 def nci1_experient():
-  model_class = models.AvgWL2GCN
+  model_class = models.AvgCWL2GCN
   dsm = eval_ds.NCI1_8()
 
-  model_class = models.with_fc(model_class)
   model = model_class(
-    act="sigmoid", squeeze_output=True,
-    conv_layer_dims=[dsm.dim_wl2_features(), 64, 64, 64],
-    fc_layer_dims=[64, 64, 1],
+    act="sigmoid", local_act="relu",
+    conv_layer_dims=[dsm.dim_wl2_features(), 64, 64, 64, 1],
+    # conv_layer_args=[None, None, None, {
+    #   "act": "sigmoid"
+    # }],
+    squeeze_output=True,
     bias=True)
 
   opt = keras.optimizers.Adam(0.0001)
@@ -110,14 +112,13 @@ def nci1_experient():
     loss="binary_crossentropy",
     metrics=["accuracy"])
 
-  train, val = dsm.get_train_fold(9, output_type=model_class.input_type)
-  test = dsm.get_test_fold(9, output_type=model_class.input_type)
+  train, val = dsm.get_train_fold(0, output_type=model_class.input_type)
+  test = dsm.get_test_fold(0, output_type=model_class.input_type)
 
   evaluate.train(
-    model, train, val, verbose=1, epochs=500,
+    model, train, test, verbose=1, epochs=500,
     label=f"{dsm.name}_{model.name}")
-  print(model.evaluate(test))
-  return model.predict(test)
+  # print(model.evaluate(test))
 
 def reddit_experient():
   model_class = models.AvgWL2GCN
@@ -188,7 +189,7 @@ def wl2_power_experiment():
     model.predict(dsm.get_all(output_type=model_class.input_type)))
 
 
-proteins_experient()
+nci1_experient()
 #
 # list(dsm.get_all(output_type="grakel")[0])
 #
