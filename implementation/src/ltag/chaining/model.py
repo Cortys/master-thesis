@@ -61,10 +61,24 @@ def create_model(name, steps, extend_at=None, **kwargs):
 
   return modelFactory
 
-@model_step
-def with_layers(inputs, layer, layer_dims, layer_args=None, **kwargs):
+@pipeline.pipeline_step
+def with_layers(
+  io, layer, layer_dims=[], layer_args=None,
+  stack_tf=None, stack_tf_lookup=None,
+  **kwargs):
+  input, output = io
   layer = pipeline.tolerant(layer)
-  h = inputs
+  hs = [output]
+
+  if stack_tf is not None:
+    if stack_tf_lookup is not None:
+      stack_tf = stack_tf_lookup[stack_tf]
+
+    if not callable(stack_tf):
+      raise TypeError(
+        "Stack transformers need to be callable or resolve to a callable.")
+
+    stack_tf = pipeline.tolerant(stack_tf)
 
   for i in range(1, len(layer_dims)):
     if layer_args is None or layer_args[i - 1] is None:
@@ -72,9 +86,19 @@ def with_layers(inputs, layer, layer_dims, layer_args=None, **kwargs):
     else:
       args = fy.merge(kwargs, layer_args[i - 1])
 
-    h = layer(in_dim=layer_dims[i - 1], out_dim=layer_dims[i], **args)(h)
+    in_dim = layer_dims[i - 1]
+    out_dim = layer_dims[i]
+    h = hs[i - 1]
 
-  return h
+    if stack_tf is not None:
+      h, in_dim, out_dim = stack_tf(
+        h, in_dim, out_dim,
+        input=input, hs=hs, layer_dims=layer_dims, i=i)
+
+    hs.append(
+      layer(in_dim=in_dim, out_dim=out_dim, **args)(h))
+
+  return input, hs[-1]
 
 @pipeline.pipeline_step
 def with_layer(io, layer, with_inputs=False, **kwargs):
@@ -83,3 +107,20 @@ def with_layer(io, layer, with_inputs=False, **kwargs):
   p = io if with_inputs else output
 
   return input, pipeline.tolerant(layer)(**kwargs)(p)
+
+
+# Layer Stack Transformers:
+
+def stack_tf_seq(*transformers):
+  transformers = [pipeline.tolerant(t) for t in transformers]
+
+  def tf_seq(h, in_dim, out_dim, **kwargs):
+    for t in transformers:
+      h, in_dim, out_dim = t(h, in_dim, out_dim, *kwargs)
+
+    return h, in_dim, out_dim
+
+  return tf_seq
+
+def add_input_tf(h, in_dim, out_dim, input):
+  return (input, h), in_dim, out_dim

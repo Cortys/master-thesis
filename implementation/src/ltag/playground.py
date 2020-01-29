@@ -99,9 +99,7 @@ def nci1_experient():
   model = model_class(
     act="sigmoid", local_act="relu",
     conv_layer_dims=[dsm.dim_wl2_features(), 64, 64, 64, 1],
-    # conv_layer_args=[None, None, None, {
-    #   "act": "sigmoid"
-    # }],
+    conv_stack_tf="keep_input",
     squeeze_output=True,
     bias=True)
 
