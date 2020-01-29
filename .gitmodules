@@ -6,7 +6,7 @@
 	url = https://github.com/Cortys/SAGPool
 [submodule "implementation/libs/glocalwl"]
 	path = implementation/libs/glocalwl
-	url = https://github.com/chrsmrrs/glocalwl.git
+	url = https://github.com/Cortys/glocalwl.git
 [submodule "implementation/libs/gnn-comparison"]
 	path = implementation/libs/gnn-comparison
 	url = https://github.com/Cortys/gnn-comparison.git
