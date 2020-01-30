@@ -5,18 +5,20 @@ import tensorflow as tf
 from tensorflow import keras
 
 import ltag.ops as ops
+from ltag.layers.DenseLayer import DenseLayer
 
 class CWL2GCNLayer(keras.layers.Layer):
   def __init__(
     self, out_dim, in_dim=None,
     act="relu", bias=True,
-    local_act="relu"):
+    local_act="relu", intersperse_dense=False):
     super().__init__()
     self.out_dim = out_dim
     self.in_dim = in_dim
     self.act = keras.activations.get(act)
     self.local_act = keras.activations.get(local_act)
     self.bias = bias
+    self.intersperse_dense = intersperse_dense
 
   def get_config(self):
     base_config = super().get_config()
@@ -25,6 +27,7 @@ class CWL2GCNLayer(keras.layers.Layer):
     base_config["act"] = keras.activations.serialize(self.act)
     base_config["local_act"] = keras.activations.serialize(self.local_act)
     base_config["bias"] = self.bias
+    base_config["intersperse_dense"] = self.intersperse_dense
 
     return base_config
 
@@ -54,6 +57,11 @@ class CWL2GCNLayer(keras.layers.Layer):
         "b_prop", shape=[self.out_dim],
         trainable=True, initializer=tf.initializers.Zeros)
 
+    if self.intersperse_dense:
+      self.dense_layer = DenseLayer(
+        in_dim=self.out_dim, out_dim=self.out_dim,
+        act=self.act, bias=self.bias)
+
   def call(self, input):
     X, ref_a, ref_b, backref, e_map, v_count = input
 
@@ -78,5 +86,8 @@ class CWL2GCNLayer(keras.layers.Layer):
       XW_comb = XW + X_conv
 
     X_out = self.act(XW_comb)
+
+    if self.intersperse_dense:
+      X_out = self.dense_layer(X_out)
 
     return X_out, ref_a, ref_b, backref, e_map, v_count
