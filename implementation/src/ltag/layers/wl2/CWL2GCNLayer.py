@@ -10,7 +10,7 @@ from ltag.layers.DenseLayer import DenseLayer
 class CWL2GCNLayer(keras.layers.Layer):
   def __init__(
     self, out_dim, in_dim=None,
-    act="relu", bias=True,
+    act="relu", bias=True, shared_W_back=False,
     local_act="relu", intersperse_dense=False):
     super().__init__()
     self.out_dim = out_dim
@@ -18,6 +18,7 @@ class CWL2GCNLayer(keras.layers.Layer):
     self.act = keras.activations.get(act)
     self.local_act = keras.activations.get(local_act)
     self.bias = bias
+    self.shared_W_back = shared_W_back
     self.intersperse_dense = intersperse_dense
 
   def get_config(self):
@@ -27,6 +28,7 @@ class CWL2GCNLayer(keras.layers.Layer):
     base_config["act"] = keras.activations.serialize(self.act)
     base_config["local_act"] = keras.activations.serialize(self.local_act)
     base_config["bias"] = self.bias
+    base_config["shared_W_back"] = self.shared_W_back
     base_config["intersperse_dense"] = self.intersperse_dense
 
     return base_config
@@ -42,9 +44,12 @@ class CWL2GCNLayer(keras.layers.Layer):
     self.W = self.add_weight(
       "W", shape=[edge_dim, self.out_dim],
       trainable=True, initializer=tf.initializers.GlorotUniform)
-    self.W_back = self.add_weight(
-      "W_back", shape=[edge_dim, self.out_dim],
-      trainable=True, initializer=tf.initializers.GlorotUniform)
+    if self.shared_W_back:
+      self.W_back = self.W
+    else:
+      self.W_back = self.add_weight(
+        "W_back", shape=[edge_dim, self.out_dim],
+        trainable=True, initializer=tf.initializers.GlorotUniform)
     self.W_prop = self.add_weight(
       "W_prop", shape=[edge_dim, self.out_dim],
       trainable=True, initializer=tf.initializers.GlorotUniform)
