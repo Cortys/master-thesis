@@ -108,6 +108,11 @@ def with_layer(io, layer, with_inputs=False, **kwargs):
 
   return input, pipeline.tolerant(layer)(**kwargs)(p)
 
+@pipeline.pipeline_step
+def merge_ios(ios):
+  input = ios[0][0]
+
+  return input, (io[1] for io in ios)
 
 # Layer Stack Transformers:
 

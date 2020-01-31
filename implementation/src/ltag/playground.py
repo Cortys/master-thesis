@@ -93,13 +93,14 @@ def dd_experient():
   print(model.evaluate(ds))
 
 def nci1_experient():
-  model_class = models.AvgCWL2GCN
+  model_class = models.SagCWL2GCN
   dsm = eval_ds.NCI1_8()
 
   model = model_class(
     act="sigmoid", local_act="relu",
     conv_layer_dims=[dsm.dim_wl2_features(), 64, 64, 64, 1],
-    conv_stack_tf="keep_input",
+    # conv_stack_tf="keep_input",
+    att_conv_layer_dims=[dsm.dim_wl2_features(), 1],
     squeeze_output=True,
     bias=True)
 
@@ -114,7 +115,7 @@ def nci1_experient():
   test = dsm.get_test_fold(0, output_type=model_class.input_type)
 
   evaluate.train(
-    model, train, test, verbose=1, epochs=500,
+    model, train, test, verbose=1, epochs=1000,
     label=f"{dsm.name}_{model.name}")
   # print(model.evaluate(test))
 

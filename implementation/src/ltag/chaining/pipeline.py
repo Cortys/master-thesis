@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function,\
 
 import funcy as fy
 import inspect
+import collections as coll
 
 def tolerant(f):
   if hasattr(f, "__tolerant__"):
@@ -69,6 +70,17 @@ def pipeline_start(f):
 def to_executable_step(f):
   if hasattr(f, "__pipeline_step__"):
     return f()
+
+  if isinstance(f, coll.Iterable):
+    pipelines = [(
+      create_pipeline(s) if isinstance(s, coll.Iterable)
+      else to_executable_step(s))
+      for s in f]
+
+    def split_step(input, **kwargs):
+      return [p(input, **kwargs) for p in pipelines]
+
+    return split_step
 
   return tolerant(f)
 

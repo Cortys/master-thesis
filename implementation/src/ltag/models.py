@@ -131,3 +131,16 @@ MaxDenseGCN = DenseGCN.extend("MaxDenseGCN", [
 # SortPool GNNs:
 SortWL2GCN = WL2GCN.extend("SortWL2GCN", [
   cm.with_layer(lwl2.SortPooling, with_inputs=True)])
+
+# SagPool GNNs:
+SagCWL2GCN = gnn_model("SagCWL2GCN", [
+  ([
+    with_layers(lwl2.CWL2GCNLayer, prefix="conv"),
+    select_features
+  ], [
+    with_layers(lwl2.CWL2GCNLayer, prefix="att_conv"),
+    select_features
+  ]),
+  cm.merge_ios,
+  cm.with_layer(lwl2.SagPooling, with_inputs=True)],
+  input_type="wl2c")
