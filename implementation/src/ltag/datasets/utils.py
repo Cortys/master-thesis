@@ -353,17 +353,33 @@ def to_wl2_ds(
   return ds_conv(batches, dim_wl2, y_dim)
 
 
-def draw_graph(g, y, with_features=False):
+def vec_to_unit(feat):
+  u = 0
+  for i, s in enumerate(np.clip(feat, 0, 1), 1):
+    u += (2 ** -i) * s
+
+  return u
+
+def draw_graph(g, y, with_features=False, with_feature_colors=True):
   plt.figure()
   plt.title('Label: {}'.format(y))
 
-  g = g.copy()
+  cmap = plt.get_cmap("hsv")
+  node_color = [
+    vec_to_unit(d.get("features", []))
+    for n, d in g.nodes(data=True)] if with_feature_colors else "#1f78b4"
 
   if with_features:
-    nx.relabel_nodes(g, dict([
-      (n, f"{n}: " + str(data.get("features")))
+    labels = {
+      n: f"{n}:" + str(data.get("features"))
       for n, data in g.nodes(data=True)
-    ]))
+    }
+    nx.draw_spring(
+      g, labels=labels,
+      node_color=node_color, vmin=0, vmax=1, cmap=cmap)
+  else:
+    nx.draw_spring(
+      g, with_labels=True,
+      node_color=node_color, vmin=0, vmax=1, cmap=cmap)
 
-  nx.draw_spring(g, with_labels=True)
   plt.show()

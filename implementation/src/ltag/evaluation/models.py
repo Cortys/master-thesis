@@ -1,12 +1,9 @@
 from __future__ import absolute_import, division, print_function,\
   unicode_literals
 
-import itertools
-import funcy as fy
-
 import ltag.models as models
-from ltag.evaluation.model_factories import (
-  cart, cart_merge, binary_classifier)
+from ltag.evaluation.model_factories import binary_classifier
+from ltag.utils import cart, cart_merge
 
 @binary_classifier(models.AvgWL2GCN)
 def AvgWL2GCN_Binary(dsm):

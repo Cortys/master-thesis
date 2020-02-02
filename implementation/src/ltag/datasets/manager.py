@@ -343,3 +343,9 @@ class GraphDatasetManager:
       name_suffix=f"_val-{outer_idx}-{inner_idx}")
 
     return train_ds, val_ds
+
+  def draw(self, idx, with_features=False):
+    gs, ys = self.dataset
+    g = gs[idx]
+    y = ys[idx]
+    return ds_utils.draw_graph(g, y, with_features=with_features)

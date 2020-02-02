@@ -186,8 +186,47 @@ def wl2_power_experiment():
     list(dsm.get_all(output_type="dense"))[0][1].numpy(),
     model.predict(dsm.get_all(output_type=model_class.input_type)))
 
+def synthetic_experiment2():
+  model_class = models.SagCWL2GCN
+  dsm = synthetic.noisy_triangle_classification_dataset(stored=True)(
+    wl2_neighborhood=2)
 
-wl2_power_experiment()
+  if model_class.input_type == "wl2c":
+    in_dim = dsm.dim_wl2_features()
+  else:
+    in_dim = dsm.dim_node_features
+
+  if in_dim == 0:
+    in_dim = 1
+
+  opt = keras.optimizers.Adam(0.0005)
+
+  model = model_class(
+    act="sigmoid", squeeze_output=True,
+    conv_layer_dims=[in_dim, 32, 32, 32, 1],
+    att_conv_layer_dims=[in_dim, 32, 1],
+    bias=True)
+
+  model.compile(
+    optimizer=opt,
+    loss="binary_crossentropy",
+    metrics=["accuracy"])
+
+  ds = dsm.get_all(
+    output_type=model_class.input_type,
+    shuffle=True)
+
+  evaluate.train(
+    model, ds, verbose=2,
+    epochs=1000,
+    label=f"{dsm.name}_{model.name}")
+
+  print(
+    list(dsm.get_all(output_type="dense"))[0][1].numpy(),
+    model.predict(dsm.get_all(output_type=model_class.input_type)))
+
+
+synthetic_experiment2()
 #
 # list(dsm.get_all(output_type="grakel")[0])
 #

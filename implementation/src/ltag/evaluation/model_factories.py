@@ -59,14 +59,3 @@ def logistic_regression(
     metrics=["mae"])
 
   return model
-
-def cart(*pos_params, **params):
-  "Lazyly computes the cartesian product of the given lists or dicts."
-  if len(pos_params) > 0:
-    return itertools.product(*pos_params)
-
-  return (dict(zip(params, x)) for x in itertools.product(*params.values()))
-
-def cart_merge(*dicts):
-  "Lazyly computes all possible merge combinations of the given dicts."
-  return (fy.merge(*c) for c in itertools.product(*dicts))

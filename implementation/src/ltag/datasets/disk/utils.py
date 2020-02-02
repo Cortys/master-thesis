@@ -6,6 +6,7 @@ from collections import defaultdict
 from contextlib import ExitStack
 import numpy as np
 import networkx as nx
+import funcy as fy
 
 # Implementation adapted from https://github.com/diningphil/gnn-comparison.
 
@@ -193,12 +194,12 @@ def store_graphs_as_tu_data(graphs, targets, name, raw_dir):
 
       for n, data in g.nodes(data=True):
         indicator.write(f"{i}\n")
-        feat = ",".join(data.get("features", []))
+        feat = ",".join(fy.map(str, data.get("features", [])))
         node_attrs.write(f"{feat}\n")
         v_lookup[n] = v_offset
         v_offset += 1
 
       for u, v, data in g.edges(data=True):
         edges.write(f"{v_lookup[u]},{v_lookup[v]}\n")
-        feat = ",".join(data.get("features", []))
+        feat = ",".join(fy.map(str, data.get("features", [])))
         edge_attrs.write(f"{feat}\n")
