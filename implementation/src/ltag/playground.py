@@ -7,7 +7,7 @@ import numpy as np
 import sklearn as sk
 
 import ltag.models as models
-import ltag.datasets.synthetic as synthetic
+import ltag.datasets.synthetic.datasets as synthetic
 import ltag.evaluation.datasets as eval_ds
 import ltag.evaluation.evaluate as evaluate
 import ltag.evaluate_datasets as eval_main
@@ -146,9 +146,9 @@ def reddit_experient():
   print(model.evaluate(ds))
 
 def wl2_power_experiment():
-  model_class = models.AvgWL2GCN
+  model_class = models.AvgCWL2GCN
   # model_class = models.with_fc(model_class)
-  dsm = synthetic.threesix_dataset()(
+  dsm = synthetic.threesix_dataset(stored=True)(
     wl2_neighborhood=1)  # ok(3, 2, 1)
 
   if model_class.input_type == "wl2c":
@@ -165,7 +165,6 @@ def wl2_power_experiment():
     act="sigmoid", squeeze_output=True,
     layer_dims=[in_dim, 4, 1],
     fc_layer_dims=[1, 2, 1],
-    local_hash="multiply",
     neighborhood_mask=1,  # ok(3, 2), nok(-1, 1)
     bias=False)
 
@@ -188,7 +187,7 @@ def wl2_power_experiment():
     model.predict(dsm.get_all(output_type=model_class.input_type)))
 
 
-nci1_experient()
+wl2_power_experiment()
 #
 # list(dsm.get_all(output_type="grakel")[0])
 #

@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function,\
   unicode_literals
 
-import ltag.datasets.disk.tu.manager as manager
+import ltag.datasets.disk.manager as manager
 
 # Implementation adapted from https://github.com/diningphil/gnn-comparison.
 

@@ -88,7 +88,7 @@ def wl2_convolution_compact(X, ref_a, ref_b, backref, agg, with_back=False):
   return X_agg
 
 
-# import ltag.datasets.synthetic as synthetic
+# import ltag.datasets.synthetic.datasets as synthetic
 #
 # ds = synthetic.threesix_dataset()(wl2_batch_size={
 #   "batch_graph_count": 100

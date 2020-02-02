@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function,\
 
 import funcy as fy
 
-import ltag.datasets.disk.tu.datasets as tu
+import ltag.datasets.disk.datasets as tu
 
 # Chemical:
 

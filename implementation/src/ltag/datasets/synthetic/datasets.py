@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function,\
 import numpy as np
 import networkx as nx
 
-from ltag.datasets.manager import synthetic_dataset
+from ltag.datasets.synthetic.manager import synthetic_dataset
 
 def unzip(tuples):
   return list(zip(*tuples))

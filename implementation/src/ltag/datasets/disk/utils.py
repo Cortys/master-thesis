@@ -1,16 +1,11 @@
 from __future__ import absolute_import, division, print_function,\
   unicode_literals
 
-import io
+import os
 from collections import defaultdict
-import requests
-import zipfile
-from pathlib import Path
-import pickle
+from contextlib import ExitStack
 import numpy as np
 import networkx as nx
-
-from ltag.datasets.manager import StoredGraphDatasetManager
 
 # Implementation adapted from https://github.com/diningphil/gnn-comparison.
 
@@ -71,7 +66,7 @@ def parse_tu_data(name, raw_dir):
     with open(node_attrs_path, "r") as f:
       for i, line in enumerate(f.readlines(), 1):
         line = line.rstrip("\n")
-        nums = line.split(",")
+        nums = line.split(",") if line != "" else []
         node_attr = np.array([float(n) for n in nums])
         graph_id = indicator[i]
         node_attrs[graph_id].append(node_attr)
@@ -80,7 +75,7 @@ def parse_tu_data(name, raw_dir):
     with open(edge_attrs_path, "r") as f:
       for i, line in enumerate(f.readlines(), 1):
         line = line.rstrip("\n")
-        nums = line.split(",")
+        nums = line.split(",") if line != "" else []
         edge_attr = np.array([float(n) for n in nums])
         graph_id = indicator[edge_indicator[i][0]]
         edge_attrs[graph_id].append(edge_attr)
@@ -172,37 +167,38 @@ def create_graph_from_tu_data(
 
   return G
 
-class TUDatasetManager(StoredGraphDatasetManager):
-  URL = (
-    "https://ls11-www.cs.tu-dortmund.de/"
-    + "people/morris/graphkerneldatasets/{name}.zip")
-  classification = True
-  data_dir = Path("../data/tu")
+def store_graphs_as_tu_data(graphs, targets, name, raw_dir):
+  base_dir = raw_dir / name
 
-  def _download(self):
-    url = self.URL.format(name=self.name)
-    response = requests.get(url)
-    stream = io.BytesIO(response.content)
-    with zipfile.ZipFile(stream) as z:
-      for fname in z.namelist():
-        z.extract(fname, self.raw_dir)
+  indicator_path = base_dir / f'{name}_graph_indicator.txt'
+  edges_path = base_dir / f'{name}_A.txt'
+  graph_labels_path = base_dir / f'{name}_graph_labels.txt'
+  node_attrs_path = base_dir / f'{name}_node_attributes.txt'
+  edge_attrs_path = base_dir / f'{name}_edge_attributes.txt'
 
-  def _process(self):
-    graphs_data, num_node_labels, num_edge_labels = parse_tu_data(
-      self.name, self.raw_dir)
-    targets = graphs_data.pop("graph_labels")
+  if not base_dir.exists():
+    os.makedirs(base_dir)
 
-    graphs, out_targets = [], []
-    for i, target in enumerate(targets, 1):
-      graph_data = {k: v[i] for (k, v) in graphs_data.items()}
-      G = create_graph_from_tu_data(
-        graph_data, num_node_labels, num_edge_labels)
+  with\
+      open(indicator_path, "w") as indicator,\
+      open(edges_path, "w") as edges,\
+      open(graph_labels_path, "w") as graph_labels,\
+      open(node_attrs_path, "w") as node_attrs,\
+      open(edge_attrs_path, "w") as edge_attrs:
+    v_offset = 1
 
-      if G.number_of_nodes() > 1 and G.number_of_edges() > 0:
-        graphs.append(G)
-        out_targets.append(target)
+    for i, (g, target) in enumerate(zip(graphs, targets), 1):
+      v_lookup = {}
+      graph_labels.write(f"{target}\n")
 
-    dataset = (np.array(graphs), np.array(out_targets))
+      for n, data in g.nodes(data=True):
+        indicator.write(f"{i}\n")
+        feat = ",".join(data.get("features", []))
+        node_attrs.write(f"{feat}\n")
+        v_lookup[n] = v_offset
+        v_offset += 1
 
-    with open(self.processed_dir / f"{self.name}.pickle", "wb") as f:
-      pickle.dump(dataset, f)
+      for u, v, data in g.edges(data=True):
+        edges.write(f"{v_lookup[u]},{v_lookup[v]}\n")
+        feat = ",".join(data.get("features", []))
+        edge_attrs.write(f"{feat}\n")
