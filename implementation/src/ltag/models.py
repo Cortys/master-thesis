@@ -53,7 +53,7 @@ def select_features(inputs):
 
 @cm.model_step
 def squeeze_output(X, squeeze_output=False):
-  return tf.squeeze(X, -1)
+  return tf.squeeze(X, -1) if squeeze_output else X
 
 def gnn_model(name, steps, input_type="dense"):
   m = cm.create_model(name, [

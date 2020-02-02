@@ -48,7 +48,7 @@ def proteins_experient():
   dsm = eval_ds.Proteins_6()
 
   model = model_class(
-    act="sigmoid", squeeze_output=False,
+    act="sigmoid", squeeze_output=True,
     conv_layer_dims=[dsm.dim_wl2_features(), 64, 64, 64, 1],
     vert_only_pool=False,
     bias=True)
