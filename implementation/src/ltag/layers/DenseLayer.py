@@ -7,17 +7,20 @@ import funcy as fy
 class DenseLayer(keras.layers.Dense):
   def __init__(
     self, in_dim, out_dim, act="linear",
+    W_regularizer=None, b_regularizer=None,
     bias=False, wrapped_input=False, **kwargs):
     kwargs = fy.project(kwargs, [
       "units", "input_shape", "activation", "use_bias",
       "kernel_initializer", "bias_initializer",
-      "kernel_regularizer", "bias_regularizer", "activity_regularizer",
+      "kernel_regularizer", "bias_regularizer",
       "kernel_constraint", "bias_constraint"])
 
     # keras.layer.Dense arg names have precedence over their aliases:
     kwargs = fy.merge(dict(
       units=out_dim, input_shape=(in_dim,),
-      activation=act, use_bias=bias
+      activation=act, use_bias=bias,
+      kernel_regularizer=W_regularizer,
+      bias_regularizer=b_regularizer
     ), kwargs)
 
     super().__init__(**kwargs)

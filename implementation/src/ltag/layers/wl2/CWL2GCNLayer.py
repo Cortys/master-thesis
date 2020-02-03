@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function,\
 
 import tensorflow as tf
 from tensorflow import keras
+from tensorflow.keras import regularizers as regs
 
 import ltag.ops as ops
 from ltag.layers.DenseLayer import DenseLayer
@@ -11,6 +12,9 @@ class CWL2GCNLayer(keras.layers.Layer):
   def __init__(
     self, out_dim, in_dim=None,
     act="relu", bias=True, shared_W_back=False,
+    W_regularizer=None, W_prop_regularizer=None,
+    W_back_regularizer=None,
+    b_regularizer=None, b_prop_regularizer=None,
     local_act="relu", intersperse_dense=False):
     super().__init__()
     self.out_dim = out_dim
@@ -20,6 +24,11 @@ class CWL2GCNLayer(keras.layers.Layer):
     self.bias = bias
     self.shared_W_back = shared_W_back
     self.intersperse_dense = intersperse_dense
+    self.W_regularizer = regs.get(W_regularizer)
+    self.W_prop_regularizer = regs.get(W_prop_regularizer)
+    self.W_back_regularizer = regs.get(W_back_regularizer)
+    self.b_regularizer = regs.get(b_regularizer)
+    self.b_prop_regularizer = regs.get(b_prop_regularizer)
 
   def get_config(self):
     base_config = super().get_config()
@@ -30,6 +39,11 @@ class CWL2GCNLayer(keras.layers.Layer):
     base_config["bias"] = self.bias
     base_config["shared_W_back"] = self.shared_W_back
     base_config["intersperse_dense"] = self.intersperse_dense
+    base_config["W_regularizer"] = regs.serialize(self.W_regularizer)
+    base_config["W_prop_regularizer"] = regs.serialize(self.W_prop_regularizer)
+    base_config["W_back_regularizer"] = regs.serialize(self.W_back_regularizer)
+    base_config["b_regularizer"] = regs.serialize(self.b_regularizer)
+    base_config["b_prop_regularizer"] = regs.serialize(self.b_prop_regularizer)
 
     return base_config
 
@@ -43,28 +57,35 @@ class CWL2GCNLayer(keras.layers.Layer):
 
     self.W = self.add_weight(
       "W", shape=[edge_dim, self.out_dim],
+      regularizer=self.W_regularizer,
       trainable=True, initializer=tf.initializers.GlorotUniform)
     if self.shared_W_back:
       self.W_back = self.W
     else:
       self.W_back = self.add_weight(
         "W_back", shape=[edge_dim, self.out_dim],
+        regularizer=self.W_back_regularizer,
         trainable=True, initializer=tf.initializers.GlorotUniform)
     self.W_prop = self.add_weight(
       "W_prop", shape=[edge_dim, self.out_dim],
+      regularizer=self.W_prop_regularizer,
       trainable=True, initializer=tf.initializers.GlorotUniform)
 
     if self.bias:
       self.b = self.add_weight(
         "b", shape=[self.out_dim],
+        regularizer=self.b_regularizer,
         trainable=True, initializer=tf.initializers.Zeros)
       self.b_prop = self.add_weight(
         "b_prop", shape=[self.out_dim],
+        regularizer=self.b_prop_regularizer,
         trainable=True, initializer=tf.initializers.Zeros)
 
     if self.intersperse_dense:
       self.dense_layer = DenseLayer(
         in_dim=self.out_dim, out_dim=self.out_dim,
+        W_regularizer=self.W_regularizer,
+        b_regularizer=self.b_regularizer,
         act=self.act, bias=self.bias)
 
   def call(self, input):
