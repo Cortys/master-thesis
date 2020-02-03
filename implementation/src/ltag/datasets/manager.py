@@ -25,7 +25,8 @@ class GraphDatasetManager:
     wl2_neighborhood=1, wl2_cache=True,
     wl2_batch_size={},
     wl2_indices=False,
-    one_labels=True,
+    node_one_labels=True,
+    edge_one_labels=False,
     **kwargs):
 
     self.kfold_class = kfold_class
@@ -35,7 +36,8 @@ class GraphDatasetManager:
     self.wl2_cache = wl2_cache
     self.wl2_batch_size = wl2_batch_size
     self.wl2_indices = wl2_indices
-    self.one_labels = one_labels
+    self.node_one_labels = node_one_labels
+    self.edge_one_labels = edge_one_labels
 
     self.outer_k = outer_k
     assert (outer_k is not None and outer_k > 0) or outer_k is None
@@ -66,6 +68,7 @@ class GraphDatasetManager:
     wl2_graphs = np.array([
       ds_utils.wl2_encode(
         g, self._dim_node_features, self._dim_edge_features,
+        self._num_node_labels, self._num_edge_labels,
         neighborhood, with_indices=self.wl2_indices)
       for g in graphs])
 
@@ -80,7 +83,9 @@ class GraphDatasetManager:
 
     wl2_graphs = np.array([
       ds_utils.wl2_encode(
-        g, self._dim_node_features, self._dim_edge_features,
+        g,
+        self._dim_node_features, self._dim_edge_features,
+        self._num_node_labels, self._num_edge_labels,
         neighborhood, compact=True)
       for g in graphs])
 
@@ -91,11 +96,26 @@ class GraphDatasetManager:
   @property
   def dataset(self):
     if self._dataset is None:
-      self._dataset = graphs, ys = self._load_dataset()
+      graphs, ys, d_nf, d_ef, n_nl, n_el = self._load_dataset()
+      self._dataset = graphs, ys
 
-      if self.one_labels:
+      if (
+        self._num_node_labels != n_nl or self._num_edge_labels != n_el
+        or self.dim_node_features != d_nf or self._dim_edge_features != d_ef):
+        raise Exception(
+          "Loaded node or edge dimensions do not match with manager metadata. "
+          + f"nf: {self.dim_node_features}, {d_nf} - "
+          + f"ef: {self._dim_edge_features}, {d_ef} - "
+          + f"nl: {self._num_node_labels}, {n_nl} - "
+          + f"el: {self._num_edge_labels}, {n_el}")
+
+      if self._num_node_labels == 0 and self.node_one_labels:
         for g in graphs:
-          nx.set_node_attributes(g, 1, "label")
+          nx.set_node_attributes(g, 1, "label_one")
+
+      if self._num_edge_labels == 0 and self.edge_one_labels:
+        for g in graphs:
+          nx.set_edge_attributes(g, 1, "label_one")
 
     return self._dataset
 
@@ -139,9 +159,25 @@ class GraphDatasetManager:
   def dim_edge_features(self):
     return self._dim_edge_features
 
+  @property
+  def num_node_labels(self):
+    return self._num_node_labels
+
+  @property
+  def num_edge_labels(self):
+    return self._num_edge_labels
+
+  @classmethod
+  def dim_dense_features(cls):
+    f = cls._dim_node_features + cls._num_node_labels
+
+    return f if f > 0 else 1
+
   @classmethod
   def dim_wl2_features(cls):
-    return 3 + cls._dim_node_features + cls._dim_edge_features
+    return (
+      3 + cls._dim_node_features + cls._dim_edge_features
+      + cls._num_node_labels + cls._num_edge_labels)
 
   @property
   def max_num_nodes(self):
@@ -228,7 +264,10 @@ class GraphDatasetManager:
     return splits
 
   def _get_wl2_batches(self, name, idxs=None):
-    graphs, targets = self.wl2_dataset if self.wl2_cache else self.dataset
+    if self.wl2_cache:
+      graphs, targets = self.wl2_dataset
+    else:
+      graphs, targets = self.dataset
 
     if idxs is not None:
       graphs = graphs[idxs]
@@ -238,6 +277,8 @@ class GraphDatasetManager:
       graphs, targets,
       dim_node_features=self._dim_node_features,
       dim_edge_features=self._dim_edge_features,
+      num_node_labels=self._num_node_labels,
+      num_edge_labels=self._num_edge_labels,
       with_indices=self.wl2_indices,
       as_list=True,  # no laziness due to slow wl2 batching
       preencoded=self.wl2_cache,
@@ -247,7 +288,10 @@ class GraphDatasetManager:
     return batches
 
   def _get_wl2c_batches(self, name, idxs=None):
-    graphs, targets = self.wl2c_dataset if self.wl2_cache else self.dataset
+    if self.wl2_cache:
+      graphs, targets = self.wl2c_dataset
+    else:
+      graphs, targets = self.dataset
 
     if idxs is not None:
       graphs = graphs[idxs]
@@ -257,6 +301,8 @@ class GraphDatasetManager:
       graphs, targets,
       dim_node_features=self._dim_node_features,
       dim_edge_features=self._dim_edge_features,
+      num_node_labels=self._num_node_labels,
+      num_edge_labels=self._num_edge_labels,
       with_indices=self.wl2_indices,
       lazy=self.wl2_cache,  # wl2c preencoded graphs can be batched quickly
       compact=True,
@@ -285,7 +331,8 @@ class GraphDatasetManager:
         graphs = graphs[idxs]
         targets = targets[idxs]
 
-      ds = ds_utils.to_dense_ds(graphs, targets)
+      ds = ds_utils.to_dense_ds(
+        graphs, targets, self._dim_node_features, self._num_node_labels)
       ds = ds.batch(self.dense_batch_size)
     elif output_type == "grakel":
       graphs, targets = self.dataset
@@ -294,8 +341,24 @@ class GraphDatasetManager:
         graphs = graphs[idxs]
         targets = targets[idxs]
 
+      if self._num_node_labels > 0:
+        node_labels_tag = "label"
+      elif self.node_one_labels:
+        node_labels_tag = "label_one"
+      else:
+        node_labels_tag = None
+
+      if self._num_edge_labels > 0:
+        edge_labels_tag = "label"
+      elif self.edge_one_labels:
+        edge_labels_tag = "label_one"
+      else:
+        edge_labels_tag = None
+
       return gk.graph_from_networkx(
-        graphs, node_labels_tag="label"), targets
+        graphs,
+        node_labels_tag=node_labels_tag,
+        edge_labels_tag=edge_labels_tag), targets
     elif output_type == "wl2":
       batches = self._get_wl2_batches(ds_name, idxs)
 

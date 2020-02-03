@@ -154,7 +154,7 @@ def wl2_power_experiment():
   if model_class.input_type == "wl2c":
     in_dim = dsm.dim_wl2_features()
   else:
-    in_dim = dsm.dim_node_features
+    in_dim = dsm.dim_dense_features()
 
   if in_dim == 0:
     in_dim = 1
@@ -189,21 +189,22 @@ def wl2_power_experiment():
 def synthetic_experiment2():
   model_class = models.SagCWL2GCN
   dsm = synthetic.noisy_triangle_classification_dataset(stored=True)(
-    wl2_neighborhood=2)
+    wl2_neighborhood=2,
+    wl2_batch_size=dict(batch_graph_count=200))
 
   if model_class.input_type == "wl2c":
     in_dim = dsm.dim_wl2_features()
   else:
-    in_dim = dsm.dim_node_features
+    in_dim = dsm.dim_dense_features()
 
   if in_dim == 0:
     in_dim = 1
 
-  opt = keras.optimizers.Adam(0.0005)
+  opt = keras.optimizers.Adam(0.0001)
 
   model = model_class(
     act="sigmoid", squeeze_output=True,
-    conv_layer_dims=[in_dim, 32, 32, 32, 1],
+    layer_dims=[in_dim, 32, 32, 32, 1],
     att_conv_layer_dims=[in_dim, 32, 1],
     bias=True)
 
@@ -218,7 +219,7 @@ def synthetic_experiment2():
 
   evaluate.train(
     model, ds, verbose=2,
-    epochs=1000,
+    epochs=1000, patience=100,
     label=f"{dsm.name}_{model.name}")
 
   print(
@@ -226,7 +227,10 @@ def synthetic_experiment2():
     model.predict(dsm.get_all(output_type=model_class.input_type)))
 
 
-synthetic_experiment2()
+# nci1_experient()
+dsm = synthetic.noisy_triangle_classification_dataset(stored=True)()
+list(dsm.get_all(output_type="grakel")[0])[:10]
+
 #
 # list(dsm.get_all(output_type="grakel")[0])
 #

@@ -21,6 +21,8 @@ def parse_tu_data(name, raw_dir):
 
   unique_node_labels = set()
   unique_edge_labels = set()
+  dim_node_features = 0
+  dim_edge_features = 0
 
   indicator, edge_indicator = [-1], [(-1, -1)]
   graph_nodes = defaultdict(list)
@@ -71,6 +73,7 @@ def parse_tu_data(name, raw_dir):
         node_attr = np.array([float(n) for n in nums])
         graph_id = indicator[i]
         node_attrs[graph_id].append(node_attr)
+        dim_node_features = node_attr.shape[0]
 
   if edge_attrs_path.exists():
     with open(edge_attrs_path, "r") as f:
@@ -80,6 +83,7 @@ def parse_tu_data(name, raw_dir):
         edge_attr = np.array([float(n) for n in nums])
         graph_id = indicator[edge_indicator[i][0]]
         edge_attrs[graph_id].append(edge_attr)
+        dim_edge_features = edge_attr.shape[0]
 
   graph_labels = []
   with open(graph_labels_path, "r") as f:
@@ -115,67 +119,68 @@ def parse_tu_data(name, raw_dir):
     "node_attrs": node_attrs,
     "edge_labels": edge_labels,
     "edge_attrs": edge_attrs
-  }, num_node_labels, num_edge_labels
+  }, dim_node_features, dim_edge_features, num_node_labels, num_edge_labels
 
-def create_graph_from_tu_data(
-  graph_data, num_node_labels, num_edge_labels):
+def create_graph_from_tu_data(graph_data):
   nodes = graph_data["graph_nodes"]
   edges = graph_data["graph_edges"]
 
   G = nx.Graph()
-  I_n = np.eye(num_node_labels)
-  I_e = np.eye(num_edge_labels)
 
   for i, node in enumerate(nodes):
-    features = []
-    label = None
+    data = dict(features=[])
 
     if graph_data["node_labels"] != []:
-      features.extend(I_n[graph_data["node_labels"][i] - 1])
-      label = graph_data["node_labels"][i]
+      data["label"] = graph_data["node_labels"][i]
 
     if graph_data["node_attrs"] != []:
-      features.extend(graph_data["node_attrs"][i])
+      data["features"] = graph_data["node_attrs"][i]
 
-    if len(features) == 0:
-      features = [1]
-
-    if label is None:
-      G.add_node(node, features=features)
-    else:
-      G.add_node(node, features=features, label=label)
+    G.add_node(node, **data)
 
   for i, edge in enumerate(edges):
     n1, n2 = edge
-    features = []
-    label = None
+    data = dict(features=[])
 
     if graph_data["edge_labels"] != []:
-      features.extend(I_e[graph_data["edge_labels"][i] - 1])
-      label = graph_data["edge_labels"][i]
+      data["label"] = graph_data["edge_labels"][i]
 
     if graph_data["edge_attrs"] != []:
-      features.extend(graph_data["edge_attrs"][i])
+      data["features"] = graph_data["edge_attrs"][i]
 
-    if len(features) == 0:
-      features = [1]
-
-    G.add_edge(n1, n2, features=features)
-    if label is None:
-      G.add_edge(n1, n2, features=features)
-    else:
-      G.add_edge(n1, n2, features=features, label=label)
+    G.add_edge(n1, n2, **data)
 
   return G
 
-def store_graphs_as_tu_data(graphs, targets, name, raw_dir):
+def store_graphs_as_tu_data(
+  graphs, targets,
+  dim_node_features=1, dim_edge_features=1,
+  num_node_labels=1, num_edge_labels=1,
+  name=None, raw_dir=None):
+  if raw_dir is None or name is None:
+    raise Exception("Missing dataset name or destination raw_dir.")
+
   base_dir = raw_dir / name
 
   indicator_path = base_dir / f'{name}_graph_indicator.txt'
   edges_path = base_dir / f'{name}_A.txt'
   graph_labels_path = base_dir / f'{name}_graph_labels.txt'
-  node_attrs_path = base_dir / f'{name}_node_attributes.txt'
-  edge_attrs_path = base_dir / f'{name}_edge_attributes.txt'
+  if num_node_labels > 0:
+    node_labels_path = base_dir / f'{name}_node_labels.txt'
+  else:
+    node_labels_path = os.devnull
+  if num_edge_labels > 0:
+    edge_labels_path = base_dir / f'{name}_edge_labels.txt'
+  else:
+    edge_labels_path = os.devnull
+  if dim_node_features > 0:
+    node_attrs_path = base_dir / f'{name}_node_attributes.txt'
+  else:
+    node_attrs_path = os.devnull
+  if dim_edge_features > 0:
+    edge_attrs_path = base_dir / f'{name}_edge_attributes.txt'
+  else:
+    edge_attrs_path = os.devnull
 
   if not base_dir.exists():
     os.makedirs(base_dir)
@@ -184,6 +189,8 @@ def store_graphs_as_tu_data(graphs, targets, name, raw_dir):
       open(indicator_path, "w") as indicator,\
       open(edges_path, "w") as edges,\
       open(graph_labels_path, "w") as graph_labels,\
+      open(node_labels_path, "w") as node_labels,\
+      open(edge_labels_path, "w") as edge_labels,\
       open(node_attrs_path, "w") as node_attrs,\
       open(edge_attrs_path, "w") as edge_attrs:
     v_offset = 1
@@ -196,6 +203,9 @@ def store_graphs_as_tu_data(graphs, targets, name, raw_dir):
         indicator.write(f"{i}\n")
         feat = ",".join(fy.map(str, data.get("features", [])))
         node_attrs.write(f"{feat}\n")
+        label = data.get("label")
+        if label is not None:
+          node_labels.write(f"{label}\n")
         v_lookup[n] = v_offset
         v_offset += 1
 
@@ -203,3 +213,6 @@ def store_graphs_as_tu_data(graphs, targets, name, raw_dir):
         edges.write(f"{v_lookup[u]},{v_lookup[v]}\n")
         feat = ",".join(fy.map(str, data.get("features", [])))
         edge_attrs.write(f"{feat}\n")
+        label = data.get("label")
+        if label is not None:
+          edge_labels.write(f"{label}\n")

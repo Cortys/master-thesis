@@ -10,11 +10,26 @@ import funcy as fy
 import ltag.chaining.pipeline as cp
 
 @cp.tolerant
-def to_dense_ds(graphs, ys, ragged=False, sparse=False):
-  x = [[
-    data.get("features", [1])
-    for _, data in g.nodes(data=True)]
-    for g in graphs]
+def to_dense_ds(
+  graphs, ys,
+  dim_node_features, num_node_labels,
+  ragged=False, sparse=False):
+
+  if dim_node_features == 0 and num_node_labels == 0:
+    x = [np.ones((g.order(), 1)) for g in graphs]
+  elif num_node_labels == 0:
+    x = [
+      [f for _, f in g.nodes(data="features")]
+      for g in graphs]
+  else:
+    I_n = np.eye(num_node_labels)
+    n_zero = np.zeros(dim_node_features)
+    x = [[
+      np.concatenate((
+        I_n[data["label"] - 1],
+        data.get("features", n_zero)))
+      for _, data in g.nodes(data=True)]
+      for g in graphs]
 
   adjs = [nx.to_numpy_array(g) for g in graphs]
 
@@ -46,7 +61,9 @@ def eid_lookup(e_ids, i, j):
   return e_ids[(i, j)]
 
 def wl2_encode(
-  g, dim_node_features=None, dim_edge_features=None,
+  g,
+  dim_node_features=None, dim_edge_features=None,
+  num_node_labels=None, num_edge_labels=None,
   neighborhood=1, with_indices=False, compact=False):
   """
     Takes a graph with node and edge features and converts it
@@ -60,12 +77,27 @@ def wl2_encode(
   if dim_edge_features is None:
     dim_edge_features = 0
 
-  n_zero = np.zeros(dim_node_features)
-  e_zero = np.zeros(dim_edge_features)
+  if num_node_labels is None:
+    dim_edge_features = 0
+
+  if num_edge_labels is None:
+    num_edge_labels = 0
+
+  dim_node_wl2 = dim_node_features + num_node_labels
+  dim_edge_wl2 = dim_edge_features + num_edge_labels
+  n_zero_f = np.zeros(dim_node_features)
+  n_zero_l = np.zeros(num_node_labels)
+  e_zero_f = np.zeros(dim_edge_features)
+  e_zero_l = np.zeros(num_edge_labels)
+  I_n = np.eye(num_node_labels)
+  I_e = np.eye(num_edge_labels)
 
   for node, data in g.nodes(data=True):
     g_p.add_edge(node, node)
-    g.add_edge(node, node, features=data.get("features", n_zero))
+    g.add_edge(
+      node, node,
+      features=data.get("features", n_zero_f),
+      label=data.get("label"))
 
   x = []
   ref_a = []
@@ -81,13 +113,22 @@ def wl2_encode(
     a, b = edge
     in_g = g.has_edge(a, b)
     if not in_g:
-      f = e_zero
+      f = e_zero_f
+      lab = e_zero_l
     elif (
-      (a != b and dim_edge_features == 0)
-      or (a == b and dim_node_features == 0)):
+      (a != b and dim_edge_wl2 == 0)
+      or (a == b and dim_node_wl2 == 0)):
       f = []
+      lab = []
     else:
-      f = g.get_edge_data(a, b).get("features", e_zero)
+      d = g.get_edge_data(a, b)
+      f = d.get("features", e_zero_f)
+      if a == b and num_node_labels > 0:
+        lab = I_n[d["label"] - 1]
+      elif a != b and num_edge_labels > 0:
+        lab = I_e[d["label"] - 1]
+      else:
+        lab = []
 
     nbs = (
       ([a] if a == b else [a, b])
@@ -97,8 +138,8 @@ def wl2_encode(
     nbs_count = len(nbs)
 
     x.append(np.concatenate(
-      ([1, 0, 0], f, e_zero) if a == b else
-      ([0], [1, 0] if in_g else [0, 1], n_zero, f)))
+      ([1, 0, 0], lab, f, e_zero_l, e_zero_f) if a == b else
+      ([0], [1, 0] if in_g else [0, 1], n_zero_l, n_zero_f, lab, f)))
 
     if compact:
       ref_a += n_a
@@ -259,6 +300,8 @@ def to_wl2_ds(
   graphs, ys,
   dim_node_features,
   dim_edge_features,
+  num_node_labels,
+  num_edge_labels,
   fuzzy_batch_edge_count=100000,
   upper_batch_edge_count=120000,
   batch_graph_count=100,
@@ -266,11 +309,12 @@ def to_wl2_ds(
   with_indices=False,
   compact=False,
   lazy=False, preencoded=False,
-  as_list=False, log=False):
+  as_list=False):
   ds_size = len(graphs)
   y_shape = ys.shape
   y_dim = y_shape[1:] if len(y_shape) > 1 else []
-  dim_wl2 = 3 + dim_node_features + dim_edge_features
+  dim_wl2 = 3 + dim_node_features + dim_edge_features\
+      + num_node_labels + num_edge_labels
 
   print(
     "Batching", ds_size,
@@ -279,7 +323,8 @@ def to_wl2_ds(
     "graphs.",
     f"b_gc={batch_graph_count}",
     f"dim_wl2={dim_wl2}",
-    f"(node={dim_node_features}, edge={dim_edge_features})")
+    f"(node={dim_node_features}+{num_node_labels},",
+    f"edge={dim_edge_features}+{num_edge_labels})")
 
   if compact:
     encoder = fy.partial(wl2_encode, compact=True)
@@ -303,6 +348,7 @@ def to_wl2_ds(
         enc_next = graphs[0] if preencoded else encoder(
           graphs[0],
           dim_node_features, dim_edge_features,
+          num_node_labels, num_edge_labels,
           neighborhood, with_indices)
 
       for i in range(ds_size):
@@ -312,6 +358,7 @@ def to_wl2_ds(
           enc_next = graphs[i + 1] if preencoded else encoder(
             graphs[i + 1],
             dim_node_features, dim_edge_features,
+            num_node_labels, num_edge_labels,
             neighborhood, with_indices)
         else:
           enc_next = None

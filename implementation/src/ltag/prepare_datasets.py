@@ -10,7 +10,7 @@ import ltag.evaluation.datasets as datasets
 def prepare_ds(d, all=False):
   manager = getattr(datasets, d)(no_wl2_load=True)
   print(f"Preparing {manager.name}...")
-  manager.prepare_wl2_batches(all_batch=all)
+  manager.prepare_wl2_batches()
 
 
 if __name__ == "__main__":
@@ -19,9 +19,6 @@ if __name__ == "__main__":
   parser.add_argument(
     "-p", "--parallel", action="store_true",
     help="Preprocess datasets in parallel.")
-  parser.add_argument(
-    "-a", "--all", action="store_true",
-    help="Also batch the entire dataset.")
   parser.add_argument(
     "-d", "--dataset", action="append",
     help="Prepare this dataset.")
@@ -44,6 +41,6 @@ if __name__ == "__main__":
   with mp.Pool(p) as p:
     p.starmap(
       prepare_ds,
-      zip(ds, fy.repeat(args.all)))
+      zip(ds))
 
   print("Prepared all stored datasets.")

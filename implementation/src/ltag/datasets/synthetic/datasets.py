@@ -110,13 +110,12 @@ def triangle_graph(a=1, b=1, mix=1):
   g = nx.Graph()
   i = 0
   ab_split = a * 3
-  e = np.eye(2)
 
   for _ in range(a + b):
     t = range(i, i + 3)
 
     g.add_nodes_from(
-      t, features=(e[0 if i < ab_split else 1]))
+      t, label=(0 if i < ab_split else 1))
     nx.add_cycle(g, t)
     i += 3
 
@@ -135,9 +134,9 @@ def triangle_graph(a=1, b=1, mix=1):
     g.add_edge(pairing_a + j * 3 + 2, pairing_b + j * 3 + 2)
 
   for _ in range(mix):
-    g.add_node(i, features=e[0])
-    g.add_node(i + 1, features=e[0])
-    g.add_node(i + 2, features=e[1])
+    g.add_node(i, label=0)
+    g.add_node(i + 1, label=0)
+    g.add_node(i + 2, label=1)
     nx.add_cycle(g, range(i, i + 3))
     i += 3
 
@@ -185,14 +184,13 @@ def threesix_dataset():
 
 def noisy_triangle_graph(sl, sr, d, y):
   g = nx.Graph()
-  Id = np.eye(2)
   y_not = 1 - y
   t_nodes = np.arange(3)
   l_nodes = np.arange(sl)
   r_nodes = np.arange(sr) + sl
 
-  g.add_nodes_from(l_nodes, features=Id[y], label=y)
-  g.add_nodes_from(r_nodes, features=Id[y_not], label=y_not)
+  g.add_nodes_from(l_nodes, label=y)
+  g.add_nodes_from(r_nodes, label=y_not)
   nx.add_cycle(g, t_nodes)
 
   def try_adding_non_triangle_edge(g, nodes):
@@ -218,8 +216,8 @@ def noisy_triangle_graph(sl, sr, d, y):
   return g, y
 
 @synthetic_dataset
-def noisy_triangle_classification_dataset():
-  with local_seed(1337):
+def noisy_triangle_classification_dataset(seed=1337):
+  with local_seed(seed):
     sizes = range(3, 10)
     balances = [(1, 1), (1, 2), (1, 3), (2, 3)]
     dens = [0.25, 0.5]

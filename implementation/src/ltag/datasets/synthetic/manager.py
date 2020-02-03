@@ -24,9 +24,9 @@ class StoredSyntheticDatasetManager(TUDatasetManager):
   data_dir = Path("../data/synthetic")
 
   def _download(self):
-    graphs, targets = self._generate_dataset()
+    ds = self._generate_dataset()
 
-    store_graphs_as_tu_data(graphs, targets, self.name, self.raw_dir)
+    store_graphs_as_tu_data(*ds, self.name, self.raw_dir)
 
   def _generate_dataset(self):
    raise NotImplementedError
@@ -41,18 +41,46 @@ def synthetic_dataset(f):
       graphs_a = np.empty(len(graphs), dtype="O")
       graphs_a[:] = graphs
       y_a = np.array(y)
+      n_labels = set()
+      e_labels = set()
+
+      for g in graphs:
+        for n, d in g.nodes(data=True):
+          if "label" in d:
+            n_labels.add(d["label"])
+
+        for u, v, d in g.edges(data=True):
+          if "label" in d:
+            e_labels.add(d["label"])
+
+      n_nl = (
+        max(n_labels) if n_labels != set() else 0)
+      if n_nl != 0 and min(n_labels) == 0:
+        n_nl += 1
+
+      n_el = (
+        max(e_labels) if e_labels != set() else 0)
+      if n_el != 0 and min(e_labels) == 0:
+        n_el += 1
+
+      if len(graphs) > 0:
+        d_nf, d_ef = ds_utils.get_graph_feature_dims(graphs[0])
+      else:
+        d_nf = 0
+        d_ef = 0
 
       print(f"Generated {n} graphs.")
-      return graphs_a, y_a
+      return graphs_a, y_a, d_nf, d_ef, n_nl, n_el
 
     if stored:
       base = StoredSyntheticDatasetManager
     else:
       base = SyntheticDatasetManager
-      graphs, y = generate()
+      graphs, y, d_nf, d_ef, n_nl, n_el = generate()
+      t = y.shape[-1]
 
       def generate():
-        return graphs, y
+        return graphs, y, d_nf, d_ef, n_nl, n_el
 
     class M(base):
       name = n
@@ -62,22 +90,17 @@ def synthetic_dataset(f):
 
     if stored:
       m = M()
-      graphs, y = m._load_dataset()
-
-    if len(graphs) > 0:
-      nf, ef = ds_utils.get_graph_feature_dims(graphs[0])
+      graphs, y, d_nf, d_ef, n_nl, n_el = m._load_dataset()
       t = y.shape[-1]
-    else:
-      nf = 0
-      ef = 0
-      t = 0
 
     cName = "".join(
       x for x in n.title()
       if not x.isspace() and x != "_")
     M.__name__ = cName + "Manager"
-    M._dim_node_features = nf
-    M._dim_edge_features = ef
+    M._dim_node_features = d_nf
+    M._dim_edge_features = d_ef
+    M._num_node_labels = n_nl
+    M._num_edge_labels = n_el
     M._dim_target = t
 
     return M

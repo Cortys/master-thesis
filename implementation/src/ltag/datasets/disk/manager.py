@@ -195,15 +195,14 @@ class TUDatasetManager(StoredGraphDatasetManager):
         z.extract(fname, self.raw_dir)
 
   def _process(self):
-    graphs_data, num_node_labels, num_edge_labels = parse_tu_data(
+    graphs_data, d_nf, d_ef, n_nl, n_el = parse_tu_data(
       self.name, self.raw_dir)
     targets = graphs_data.pop("graph_labels")
 
     graphs, out_targets = [], []
     for i, target in enumerate(targets, 1):
       graph_data = {k: v[i] for (k, v) in graphs_data.items()}
-      G = create_graph_from_tu_data(
-        graph_data, num_node_labels, num_edge_labels)
+      G = create_graph_from_tu_data(graph_data)
 
       if G.number_of_nodes() > 1 and G.number_of_edges() > 0:
         graphs.append(G)
@@ -211,7 +210,7 @@ class TUDatasetManager(StoredGraphDatasetManager):
 
     graphs_a = np.empty(len(graphs), dtype="O")
     graphs_a[:] = graphs
-    dataset = graphs_a, np.array(out_targets)
+    dataset = graphs_a, np.array(out_targets), d_nf, d_ef, n_nl, n_el
 
     with open(self.processed_dir / f"{self.name}.pickle", "wb") as f:
       pickle.dump(dataset, f)
