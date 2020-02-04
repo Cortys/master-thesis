@@ -12,6 +12,7 @@ import pickle
 import numpy as np
 
 from ltag.utils import NumpyEncoder
+from ltag.chaining.pipeline import tolerant
 from ltag.datasets.manager import GraphDatasetManager
 from ltag.datasets.disk.utils import (
   parse_tu_data, create_graph_from_tu_data)
@@ -83,6 +84,25 @@ class StoredGraphDatasetManager(GraphDatasetManager):
       json.dump(splits[:], f, cls=NumpyEncoder)
 
     return splits
+
+  def _compute_gram_matrix(self, output_fn):
+    k_name = output_fn.__name__
+    gram_dir = self.root_dir / "gram" / k_name
+    gram_filename = gram_dir / "gram.pickle"
+
+    if gram_filename.exists():
+      with open(gram_filename, "rb") as f:
+        return pickle.load(f)
+
+    if not gram_dir.exists():
+      os.makedirs(gram_dir)
+
+    gram = super()._compute_gram_matrix(output_fn)
+
+    with open(gram_filename) as f:
+      pickle.dump(gram, f)
+
+    return gram
 
   def _get_wl2_batches(self, name, idxs=None):
     if not self.wl2_batch_cache:

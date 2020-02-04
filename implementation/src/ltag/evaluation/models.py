@@ -1,11 +1,11 @@
 from __future__ import absolute_import, division, print_function,\
   unicode_literals
 
-import ltag.models as models
+import ltag.models.gnn as gnn_models
 from ltag.evaluation.model_factories import binary_classifier
 from ltag.utils import cart, cart_merge
 
-@binary_classifier(models.AvgWL2GCN)
+@binary_classifier(gnn_models.AvgWL2GCN)
 def AvgWL2GCN_Binary(dsm):
   "Small hyperparam space for averaging WL2GCNs + binary classification."
   in_dim = dsm.dim_wl2_features()
@@ -21,7 +21,7 @@ def AvgWL2GCN_Binary(dsm):
     learning_rate=[0.0001]
   )
 
-@binary_classifier(models.AvgWL2GCN)
+@binary_classifier(gnn_models.AvgWL2GCN)
 def AvgWL2GCN_Binary_3x32(dsm):
   "Like AvgWL2GCN_Binary but only one hyperparam config."
   in_dim = dsm.dim_wl2_features()
@@ -36,7 +36,7 @@ def AvgWL2GCN_Binary_3x32(dsm):
     learning_rate=[0.0001]
   )
 
-@binary_classifier(models.with_fc(models.AvgWL2GCN))
+@binary_classifier(gnn_models.with_fc(gnn_models.AvgWL2GCN))
 def AvgWL2GCN_FC_Binary(dsm):
   "Small hyperparam space for averaging FC WL2GCNs + binary classification."
   in_dim = dsm.dim_wl2_features()

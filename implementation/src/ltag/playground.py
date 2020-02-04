@@ -6,7 +6,7 @@ from tensorflow import keras
 import numpy as np
 import sklearn as sk
 
-import ltag.models as models
+import ltag.models.gnn as gnn_models
 import ltag.datasets.synthetic.datasets as synthetic
 import ltag.evaluation.datasets as eval_ds
 import ltag.evaluation.evaluate as evaluate
@@ -17,10 +17,10 @@ import grakel as gk
 # -%% codecell
 
 def mutag_experient():
-  model_class = models.AvgWL2GCN
+  model_class = gnn_models.AvgWL2GCN
   dsm = eval_ds.Mutag_8()
 
-  # model_class = models.with_fc(model_class)
+  # model_class = gnn_models.with_fc(model_class)
   model = model_class(
     act="sigmoid", squeeze_output=True,
     conv_layer_dims=[dsm.dim_wl2_features(), 64, 64, 64, 1],
@@ -44,7 +44,7 @@ def mutag_experient():
   print(model.evaluate(ds))
 
 def proteins_experient():
-  model_class = models.AvgWL2GCN
+  model_class = gnn_models.AvgWL2GCN
   dsm = eval_ds.Proteins_6()
 
   model = model_class(
@@ -68,7 +68,7 @@ def proteins_experient():
     label=f"{dsm.name}_{model.name}")
 
 def dd_experient():
-  model_class = models.AvgWL2GCN
+  model_class = gnn_models.AvgWL2GCN
   dsm = eval_ds.DD_2()
 
   model = model_class(
@@ -93,7 +93,7 @@ def dd_experient():
   print(model.evaluate(ds))
 
 def nci1_experient():
-  model_class = models.SagCWL2GCN
+  model_class = gnn_models.SagCWL2GCN
   dsm = eval_ds.NCI1_8()
 
   model = model_class(
@@ -120,7 +120,7 @@ def nci1_experient():
   # print(model.evaluate(test))
 
 def reddit_experient():
-  model_class = models.AvgWL2GCN
+  model_class = gnn_models.AvgWL2GCN
   dsm = eval_ds.RedditBinary_1()
 
   model = model_class(
@@ -146,8 +146,8 @@ def reddit_experient():
   print(model.evaluate(ds))
 
 def wl2_power_experiment():
-  model_class = models.AvgCWL2GCN
-  # model_class = models.with_fc(model_class)
+  model_class = gnn_models.AvgCWL2GCN
+  # model_class = gnn_models.with_fc(model_class)
   dsm = synthetic.threesix_dataset(stored=True)(
     wl2_neighborhood=1)  # ok(3, 2, 1)
 
@@ -187,7 +187,7 @@ def wl2_power_experiment():
     model.predict(dsm.get_all(output_type=model_class.input_type)))
 
 def synthetic_experiment2():
-  model_class = models.SagCWL2GCN
+  model_class = gnn_models.SagCWL2GCN
   dsm = synthetic.noisy_triangle_classification_dataset(stored=True)(
     wl2_neighborhood=2,
     wl2_batch_size=dict(batch_graph_count=200))
@@ -200,12 +200,18 @@ def synthetic_experiment2():
   if in_dim == 0:
     in_dim = 1
 
-  opt = keras.optimizers.Adam(0.0001)
+  opt = keras.optimizers.Adam(0.0005)
+  # reg = keras.regularizers.l1(0.00001)
 
   model = model_class(
     act="sigmoid", squeeze_output=True,
     layer_dims=[in_dim, 32, 32, 32, 1],
     att_conv_layer_dims=[in_dim, 32, 1],
+    W_regularizer=None,
+    W_prop_regularizer=None,
+    W_back_regularizer=None,
+    b_regularizer=None,
+    b_prop_regularizer=None,
     bias=True)
 
   model.compile(
@@ -219,17 +225,16 @@ def synthetic_experiment2():
 
   evaluate.train(
     model, ds, verbose=2,
-    epochs=1000, patience=100,
+    epochs=2000, patience=2000,
     label=f"{dsm.name}_{model.name}")
 
   print(
     list(dsm.get_all(output_type="dense"))[0][1].numpy(),
     model.predict(dsm.get_all(output_type=model_class.input_type)))
 
-
-# nci1_experient()
-dsm = synthetic.noisy_triangle_classification_dataset(stored=True)()
-list(dsm.get_all(output_type="grakel")[0])[:10]
+#
+# dsm = synthetic.noisy_triangle_classification_dataset(stored=True)()
+# list(dsm.get_all(output_type="grakel")[0])[:10]
 
 #
 # list(dsm.get_all(output_type="grakel")[0])

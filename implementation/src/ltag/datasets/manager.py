@@ -312,8 +312,12 @@ class GraphDatasetManager:
 
     return batches
 
+  def _compute_gram_matrix(self, output_fn):
+    return output_fn(self)
+
   def get_all(
-    self, output_type="dense", idxs=None, shuffle=False, name_suffix=""):
+    self, output_type="dense", idxs=None, train_idxs=None,
+    shuffle=False, name_suffix=""):
     ds_name = self.name + name_suffix
 
     if shuffle:
@@ -359,6 +363,12 @@ class GraphDatasetManager:
         graphs,
         node_labels_tag=node_labels_tag,
         edge_labels_tag=edge_labels_tag), targets
+    # Custom kernel:
+    elif callable(output_type):
+      _, targets = self.dataset
+      gram = self._compute_gram_matrix(output_type)
+      train_idxs = idxs if train_idxs is None else train_idxs
+      return gram[idxs, train_idxs], targets[idxs]
     elif output_type == "wl2":
       batches = self._get_wl2_batches(ds_name, idxs)
 
@@ -366,6 +376,7 @@ class GraphDatasetManager:
         return
 
       if isinstance(batches, tf.data.Dataset):
+        batches.name = ds_name
         return batches
 
       ds = ds_utils.wl2_batches_to_dataset(*batches)
@@ -376,6 +387,7 @@ class GraphDatasetManager:
         return
 
       if isinstance(batches, tf.data.Dataset):
+        batches.name = ds_name
         return batches
 
       ds = ds_utils.wl2_batches_to_dataset(*batches, compact=True)
@@ -389,8 +401,16 @@ class GraphDatasetManager:
     outer_idx = outer_idx or 0
 
     idxs = self.splits[outer_idx]["test"]
+    # Training indices are required to fetch kernel gram matrices:
+    if callable(output_type):
+      train_idxs = self.splits[outer_idx]["model_selection"][0]["train"]
+    else:
+      train_idxs = None
 
-    return self.get_all(output_type, idxs, name_suffix=f"_test-{outer_idx}")
+    return self.get_all(
+      output_type, idxs,
+      train_idxs=train_idxs,
+      name_suffix=f"_test-{outer_idx}")
 
   def get_train_fold(
     self, outer_idx, inner_idx=None, output_type="dense"):
@@ -398,11 +418,13 @@ class GraphDatasetManager:
     inner_idx = inner_idx or 0
 
     idxs = self.splits[outer_idx]["model_selection"][inner_idx]
+    train_idxs = idxs["train"]
     train_ds = self.get_all(
-      output_type, idxs["train"],
+      output_type, train_idxs,
       name_suffix=f"_train-{outer_idx}-{inner_idx}")
     val_ds = self.get_all(
       output_type, idxs["validation"],
+      train_idxs=train_idxs,
       name_suffix=f"_val-{outer_idx}-{inner_idx}")
 
     return train_ds, val_ds
