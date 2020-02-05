@@ -5,15 +5,11 @@ import numpy as np
 import funcy as fy
 import networkx as nx
 import tensorflow as tf
+import grakel as gk
 from sklearn.model_selection import train_test_split, StratifiedKFold
 
 import ltag.chaining.pipeline as cp
 import ltag.datasets.utils as ds_utils
-
-import warnings
-# Ignore future warnings caused by grakel:
-warnings.simplefilter(action='ignore', category=FutureWarning)
-import grakel as gk
 
 # Implementation adapted from https://github.com/diningphil/gnn-comparison.
 
@@ -367,8 +363,11 @@ class GraphDatasetManager:
     elif callable(output_type):
       _, targets = self.dataset
       gram = self._compute_gram_matrix(output_type)
-      train_idxs = idxs if train_idxs is None else train_idxs
-      return gram[idxs, train_idxs], targets[idxs]
+      if idxs is not None:
+        train_idxs = idxs if train_idxs is None else train_idxs
+        gram, targets = gram[idxs, :][:, train_idxs], targets[idxs]
+
+      return gram, targets
     elif output_type == "wl2":
       batches = self._get_wl2_batches(ds_name, idxs)
 

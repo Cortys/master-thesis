@@ -79,7 +79,7 @@ def evaluate(
         "patience": patience,
         "stopping_min_delta": stopping_min_delta,
         "restore_best": restore_best,
-        "ds_type": ds_type,
+        "ds_type": ds_type if not callable(ds_type) else ds_type.__name__,
         "ds_name": ds_name,
         "mf_name": mf_name,
         "start_time": t,

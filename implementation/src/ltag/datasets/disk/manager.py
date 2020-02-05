@@ -99,7 +99,7 @@ class StoredGraphDatasetManager(GraphDatasetManager):
 
     gram = super()._compute_gram_matrix(output_fn)
 
-    with open(gram_filename) as f:
+    with open(gram_filename, "wb") as f:
       pickle.dump(gram, f)
 
     return gram

@@ -69,7 +69,7 @@ def synthetic_dataset(f):
         d_nf = 0
         d_ef = 0
 
-      print(f"Generated {n} graphs.")
+      print(f"Generated {len(graphs)} graphs.")
       return graphs_a, y_a, d_nf, d_ef, n_nl, n_el
 
     if stored:

@@ -1,18 +1,22 @@
 from __future__ import absolute_import, division, print_function,\
   unicode_literals
 
+import warnings
+# Ignore future warnings caused by grakel:
+warnings.simplefilter(action='ignore', category=FutureWarning)
+
 import tensorflow as tf
 from tensorflow import keras
 import numpy as np
 import sklearn as sk
+import grakel as gk
 
 import ltag.models.gnn as gnn_models
+import ltag.models.kernel as kernel_models
 import ltag.datasets.synthetic.datasets as synthetic
 import ltag.evaluation.datasets as eval_ds
 import ltag.evaluation.evaluate as evaluate
 import ltag.evaluate_datasets as eval_main
-
-import grakel as gk
 
 # -%% codecell
 
@@ -120,30 +124,30 @@ def nci1_experient():
   # print(model.evaluate(test))
 
 def reddit_experient():
-  model_class = gnn_models.AvgWL2GCN
+  model_class = gnn_models.SagCWL2GCN
   dsm = eval_ds.RedditBinary_1()
 
   model = model_class(
-    act="sigmoid", squeeze_output=True,
-    layer_dims=[dsm.dim_wl2_features(), 64, 64, 64, 1],
-    vert_only_pool=True,
+    act="sigmoid", local_act="sigmoid", squeeze_output=True,
+    conv_layer_dims=[dsm.dim_wl2_features(), 40, 40, 40, 1],
+    att_conv_layer_dims=[dsm.dim_wl2_features(), 1],
+    conv_stack_tf="keep_input",
     bias=True)
 
-  opt = keras.optimizers.Adam(0.00001)
+  opt = keras.optimizers.Adam(0.0007)
 
   model.compile(
     optimizer=opt,
     loss="binary_crossentropy",
     metrics=["accuracy"])
 
-  ds_raw = dsm.get_all(
-    output_type=model_class.input_type)
-  ds = ds_raw
+  train, val = dsm.get_train_fold(0, output_type=model_class.input_type)
+  test = dsm.get_test_fold(0, output_type=model_class.input_type)
 
   evaluate.train(
-    model, ds, verbose=1, epochs=1000,
+    model, train, test, verbose=2, epochs=1000,
     label=f"{dsm.name}_{model.name}")
-  print(model.evaluate(ds))
+  print(model.evaluate(test))
 
 def wl2_power_experiment():
   model_class = gnn_models.AvgCWL2GCN
@@ -200,7 +204,7 @@ def synthetic_experiment2():
   if in_dim == 0:
     in_dim = 1
 
-  opt = keras.optimizers.Adam(0.0005)
+  opt = keras.optimizers.Adam(0.001)
   # reg = keras.regularizers.l1(0.00001)
 
   model = model_class(
@@ -232,9 +236,24 @@ def synthetic_experiment2():
     list(dsm.get_all(output_type="dense"))[0][1].numpy(),
     model.predict(dsm.get_all(output_type=model_class.input_type)))
 
-#
-# dsm = synthetic.noisy_triangle_classification_dataset(stored=True)()
-# list(dsm.get_all(output_type="grakel")[0])[:10]
+
+def kernel_experiment():
+  model_class = kernel_models.WL_sp
+  model = model_class(C=0.001)
+  dsm = synthetic.noisy_triangle_classification_dataset()()
+
+  for i in range(10):
+    ds, ds_val = dsm.get_train_fold(
+      i, output_type=model_class.input_type)
+    ds_test = dsm.get_test_fold(
+      i, output_type=model_class.input_type)
+    #ds = dsm.get_all(output_type=model_class.input_type)
+    print(i)
+    print(evaluate.train(model, ds, ds_val, label=f"{dsm.name}_{model.name}"))
+    print(model.evaluate(ds_test))
+
+
+kernel_experiment()
 
 #
 # list(dsm.get_all(output_type="grakel")[0])
