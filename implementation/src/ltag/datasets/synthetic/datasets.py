@@ -218,13 +218,13 @@ def noisy_triangle_graph(sl, sr, d, y):
 @synthetic_dataset
 def noisy_triangle_classification_dataset(seed=1337):
   with local_seed(seed):
-    sizes = [28, 30, 32] # range(3, 10)
-    balances = [(1, 1), (0.5, 1.5)]
-    dens = [0.15, 0.3]
+    sizes = range(3, 10)
+    balances = [(1, 1), (1, 3)]
+    dens = [0.25, 0.5]
     classes = [0, 1]
 
-    max_verts = 64
-    repeat = 10
+    max_verts = 33
+    repeat = 4
     configs = [
       (s * l, s * r, d, y)
       for s, (l, r), d, y in cart(sizes, balances, dens, classes)

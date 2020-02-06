@@ -23,6 +23,7 @@ class GraphDatasetManager:
     wl2_indices=False,
     node_one_labels=True,
     edge_one_labels=False,
+    with_holdout=True,
     **kwargs):
 
     self.kfold_class = kfold_class
@@ -34,6 +35,7 @@ class GraphDatasetManager:
     self.wl2_indices = wl2_indices
     self.node_one_labels = node_one_labels
     self.edge_one_labels = edge_one_labels
+    self.with_holdout = with_holdout
 
     self.outer_k = outer_k
     assert (outer_k is not None and outer_k > 0) or outer_k is None
@@ -396,13 +398,18 @@ class GraphDatasetManager:
     return ds
 
   def get_test_fold(
-    self, outer_idx, output_type="dense"):
+    self, outer_idx, inner_idx=None, output_type="dense"):
     outer_idx = outer_idx or 0
+    inner_idx = inner_idx or 0
 
     idxs = self.splits[outer_idx]["test"]
     # Training indices are required to fetch kernel gram matrices:
     if callable(output_type):
-      train_idxs = self.splits[outer_idx]["model_selection"][0]["train"]
+      ms = self.splits[outer_idx]["model_selection"][inner_idx]
+      train_idxs = ms["train"]
+
+      if not self.with_holdout:
+        train_idxs = np.concatenate([train_idxs, ms["validation"]])
     else:
       train_idxs = None
 
@@ -418,12 +425,18 @@ class GraphDatasetManager:
 
     idxs = self.splits[outer_idx]["model_selection"][inner_idx]
     train_idxs = idxs["train"]
+    val_idxs = idxs["validation"]
+
+    if not self.with_holdout:
+      return self.get_all(
+        output_type, np.concatenate([train_idxs, val_idxs]),
+        name_suffix=f"_trainval-{outer_idx}-{inner_idx}")
+
     train_ds = self.get_all(
       output_type, train_idxs,
       name_suffix=f"_train-{outer_idx}-{inner_idx}")
     val_ds = self.get_all(
-      output_type, idxs["validation"],
-      train_idxs=train_idxs,
+      output_type, val_idxs, train_idxs=train_idxs,
       name_suffix=f"_val-{outer_idx}-{inner_idx}")
 
     return train_ds, val_ds

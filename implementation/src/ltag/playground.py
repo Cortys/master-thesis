@@ -193,8 +193,9 @@ def wl2_power_experiment():
 def synthetic_experiment2():
   model_class = gnn_models.SagCWL2GCN
   dsm = synthetic.noisy_triangle_classification_dataset(stored=True)(
+    with_holdout=False,
     wl2_neighborhood=2,
-    wl2_batch_size=dict(batch_graph_count=200))
+    wl2_batch_size=dict(batch_graph_count=208))
 
   if model_class.input_type == "wl2c":
     in_dim = dsm.dim_wl2_features()
@@ -204,13 +205,14 @@ def synthetic_experiment2():
   if in_dim == 0:
     in_dim = 1
 
-  opt = keras.optimizers.Adam(0.001)
+  opt = keras.optimizers.Adam(0.0003)
   # reg = keras.regularizers.l1(0.00001)
 
   model = model_class(
-    act="sigmoid", squeeze_output=True,
+    act="sigmoid", local_act="relu",
+    squeeze_output=True,
     layer_dims=[in_dim, 32, 32, 32, 1],
-    att_conv_layer_dims=[in_dim, 32, 1],
+    att_conv_layer_dims=[in_dim, 32, 32, 1],
     W_regularizer=None,
     W_prop_regularizer=None,
     W_back_regularizer=None,
@@ -223,36 +225,35 @@ def synthetic_experiment2():
     loss="binary_crossentropy",
     metrics=["accuracy"])
 
-  ds = dsm.get_all(
-    output_type=model_class.input_type,
-    shuffle=True)
+  i = 9
+  ds = dsm.get_train_fold(
+    i, output_type=model_class.input_type)
+  ds_test = dsm.get_test_fold(
+    i, output_type=model_class.input_type)
 
   evaluate.train(
-    model, ds, verbose=2,
+    model, ds, ds_test, verbose=2,
     epochs=2000, patience=2000,
     label=f"{dsm.name}_{model.name}")
-
-  print(
-    list(dsm.get_all(output_type="dense"))[0][1].numpy(),
-    model.predict(dsm.get_all(output_type=model_class.input_type)))
 
 
 def kernel_experiment():
   model_class = kernel_models.WL_sp
   model = model_class(C=0.001)
-  dsm = synthetic.noisy_triangle_classification_dataset()()
+  dsm = synthetic.noisy_triangle_classification_dataset(stored=True)(
+    with_holdout=False)
 
   for i in range(10):
-    ds, ds_val = dsm.get_train_fold(
+    ds = dsm.get_train_fold(
       i, output_type=model_class.input_type)
     ds_test = dsm.get_test_fold(
       i, output_type=model_class.input_type)
     #ds = dsm.get_all(output_type=model_class.input_type)
     print(i)
-    print(evaluate.train(model, ds, ds_val, label=f"{dsm.name}_{model.name}"))
-    print(model.evaluate(ds_test))
+    print(evaluate.train(model, ds, ds_test, label=f"{dsm.name}_{model.name}"))
 
 
+# synthetic_experiment2()
 kernel_experiment()
 
 #
