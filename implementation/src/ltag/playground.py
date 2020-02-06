@@ -238,7 +238,7 @@ def synthetic_experiment2():
 
 
 def kernel_experiment():
-  model_class = kernel_models.WL_sp
+  model_class = kernel_models.LWL2
   model = model_class(C=0.001)
   dsm = synthetic.noisy_triangle_classification_dataset(stored=True)(
     with_holdout=False)
