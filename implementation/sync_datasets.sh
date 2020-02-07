@@ -30,16 +30,16 @@ function sync_datasets() {
 if [ "$FROM_NAME" == "main" ]; then
 	TU_FROM="./data/tu"
 	SYN_FROM="./data/synthetic"
-	TU_TARGETS="./ds_splits/tu ./libs/gnn-comparison/DATA"
-	SYN_TARGETS="./ds_splits/synthetic ./libs/gnn-comparison/SYN_DATA"
+	TU_TARGETS="./ds_repo/tu ./libs/gnn-comparison/DATA"
+	SYN_TARGETS="./ds_repo/synthetic ./libs/gnn-comparison/SYN_DATA"
 elif [ "$FROM_NAME" == "comp" ]; then
 	TU_FROM="./libs/gnn-comparison/DATA"
 	SYN_FROM="./libs/gnn-comparison/SYN_DATA"
-	TU_TARGETS="./ds_splits/tu ./data/tu"
-	SYN_TARGETS="./ds_splits/synthetic ./data/synthetic"
+	TU_TARGETS="./ds_repo/tu ./data/tu"
+	SYN_TARGETS="./ds_repo/synthetic ./data/synthetic"
 elif [ "$FROM_NAME" == "splits" ]; then
-	TU_FROM="./ds_splits/tu"
-	SYN_FROM="./ds_splits/synthetic"
+	TU_FROM="./ds_repo/tu"
+	SYN_FROM="./ds_repo/synthetic"
 	TU_TARGETS="./data/tu ./libs/gnn-comparison/DATA"
 	SYN_TARGETS="./data/synthetic ./libs/gnn-comparison/SYN_DATA"
 else
@@ -49,16 +49,16 @@ else
 fi
 
 echo "Syncing tu dataset splits..."
-# sync_datasets "$TU_FROM" "$TU_TARGETS" "*/processed/*_splits.json"
+sync_datasets "$TU_FROM" "$TU_TARGETS" "*/processed/*_splits.json"
 echo "Synced tu dataset splits."
 echo
 
 echo "Syncing synthetic dataset splits..."
-# sync_datasets "$SYN_FROM" "$SYN_TARGETS" "*/processed/*_splits.json"
+sync_datasets "$SYN_FROM" "$SYN_TARGETS" "*/processed/*_splits.json"
 echo "Synced synthetic dataset splits."
 echo
 echo "Syncing synthetic dataset raw encodings..."
-# sync_datasets "$SYN_FROM" "$SYN_TARGETS" "*/raw"
+sync_datasets "$SYN_FROM" "$SYN_TARGETS" "*/raw"
 echo "Synced synthetic dataset raw encodings."
 echo
 
