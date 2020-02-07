@@ -4,6 +4,7 @@ from __future__ import absolute_import, division, print_function,\
 import funcy as fy
 
 import ltag.datasets.disk.datasets as tu
+import ltag.datasets.synthetic.datasets as syn
 
 # Chemical:
 
@@ -65,10 +66,24 @@ social_binary = [
 ]
 social = social_binary
 
+# Synthetic:
+
+noisy_triangle_classification_2 = fy.partial(
+  syn.noisy_triangle_classification_dataset(stored=True),
+  wl2_neighborhood=2,
+  wl2_batch_size={
+    "batch_graph_count": 208
+  })
+
+synthetic_binary = [
+  "noisy_triangle_classification_2"
+]
+synthetic = synthetic_binary
+stored_synthetic = synthetic
+dynamic_synthetic = []
+
 # Other categories:
 
-stored = chemical + social
-
-binary = chemical_binary + social_binary
-
-all = stored
+stored = chemical + social + stored_synthetic
+binary = chemical_binary + social_binary + synthetic_binary
+all = stored + dynamic_synthetic

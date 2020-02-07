@@ -8,6 +8,10 @@ import grakel as gk
 
 import ltag.chaining.model as cm
 
+class History:
+  def __init__(self, history):
+    self.history = history
+
 class KernelModel:
   def __init__(self, classification=True, **hp):
     if classification:
@@ -34,7 +38,7 @@ class KernelModel:
       val = self.svm.score(*validation_data)
       history["val_" + self.metric_name] = [val]
 
-    return dict(history=history)
+    return History(history)
 
   def evaluate(self, test_data):
     return [self.svm.score(*test_data)]

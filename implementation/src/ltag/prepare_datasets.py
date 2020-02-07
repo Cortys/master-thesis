@@ -3,7 +3,10 @@ from __future__ import absolute_import, division, print_function,\
 
 import multiprocessing as mp
 import argparse
-import funcy as fy
+
+import warnings
+# Ignore future warnings caused by grakel:
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
 import ltag.evaluation.datasets as datasets
 

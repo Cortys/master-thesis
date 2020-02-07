@@ -59,3 +59,11 @@ def logistic_regression(
     metrics=["mae"])
 
   return model
+
+@model_factory
+def kernel_classifier(model_class, **params):
+  return model_class(classification=True, **params)
+
+@model_factory
+def kernel_regression(model_class, **params):
+  return model_class(classification=False, **params)

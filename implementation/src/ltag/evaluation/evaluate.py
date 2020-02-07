@@ -13,6 +13,7 @@ import funcy as fy
 import tensorflow as tf
 
 from ltag.utils import NumpyEncoder
+import ltag.chaining.pipeline as cp
 import ltag.evaluation.summary as summary
 
 # Sparse gradient updates don't work for some reason. Disable the warning:
@@ -51,13 +52,72 @@ def train(
     epochs=epochs, callbacks=[tb, es],
     verbose=verbose)
 
+@cp.tolerant
+def evaluation_step(
+  model_ctr, train_ds, val_ds, test_ds, k, hp_i, i, hp,
+  res_dir, fold_str, hp_str, verbose,
+  epochs, patience, stopping_min_delta, restore_best,
+  repeat, winner_repeat, pos_hp_i=None):
+  if i >= repeat:
+    repeat = winner_repeat
+
+  rep_str = f"{i+1}/{repeat}"
+  label = f"{k}-{hp_i}-{i}"
+  res_file = res_dir / f"{label}.json"
+
+  if res_file.exists():
+    print(
+      time_str(),
+      f"- Iteration {rep_str}, fold {fold_str}, hps {hp_str} already done.")
+    return
+
+  print(
+    time_str(),
+    f"- Iteration {rep_str}, fold {fold_str}, hps {hp_str}...")
+
+  t_start = timer()
+  model = model_ctr(**hp)
+  h = train(
+    model, train_ds, val_ds, label,
+    epochs=epochs, patience=patience,
+    stopping_min_delta=stopping_min_delta,
+    restore_best=restore_best,
+    log_dir_base=log_dir_base,
+    verbose=verbose)
+  train_res = h.history
+  t_end = timer()
+  train_dur = t_end - t_start
+  t_start = t_end
+  test_res = model.evaluate(test_ds)
+  t_end = timer()
+  test_dur = t_end - t_start
+  test_res = dict(zip(model.metrics_names, test_res))
+
+  with open(res_file, "w") as f:
+    json.dump({
+      "train": train_res,
+      "test": test_res,
+      "train_duration": train_dur,
+      "test_duration": test_dur
+    }, f, cls=NumpyEncoder)
+
+  print(
+    f"\nTest results in {train_dur}s/{test_dur}s for",
+    f"it {rep_str}, fold {fold_str}, hps {hp_str}:",
+    test_res)
+
+def find_eval_dir(model_factory, ds_manager, label=None):
+  label = "_" + label if label is not None else ""
+  mf_name = model_factory.name
+  ds_name = ds_manager.name
+  return eval_dir_base / f"{ds_name}_{mf_name}{label}"
+
 def evaluate(
   model_factory, ds_manager,
-  outer_k=None, repeat=3, epochs=500,
+  outer_k=None, repeat=1, winner_repeat=3, epochs=1000,
   patience=50, stopping_min_delta=0.0001,
   restore_best=False, label=None,
   eval_dir=None, verbose=2):
-  label = "_" + label if label is not None else ""
   outer_k = outer_k or ds_manager.outer_k
   inner_k = None
 
@@ -66,7 +126,7 @@ def evaluate(
   ds_name = ds_manager.name
   t = time_str()
   if eval_dir is None:
-    eval_dir = eval_dir_base / f"{t}_{ds_name}_{mf_name}{label}"
+    eval_dir = find_eval_dir(model_factory, ds_manager, label)
     if not eval_dir.exists():
       os.makedirs(eval_dir)
 
@@ -75,6 +135,7 @@ def evaluate(
         "outer_k": outer_k,
         "inner_k": inner_k,
         "repeat": repeat,
+        "winner_repeat": winner_repeat,
         "epochs": epochs,
         "patience": patience,
         "stopping_min_delta": stopping_min_delta,
@@ -96,6 +157,7 @@ def evaluate(
         config["outer_k"] == outer_k
         and config["inner_k"] == inner_k
         and config["repeat"] == repeat
+        and config["winner_repeat"] == winner_repeat
         and config["epochs"] == epochs
         and config["patience"] == patience
         and config["stopping_min_delta"] == stopping_min_delta
@@ -135,6 +197,7 @@ def evaluate(
   t_start_eval = timer()
   try:
     for k in range(k_start, outer_k):
+      print("\n")
       print(time_str(), f"- Evaluating fold {k+1}/{outer_k}...")
       t_start_fold = timer()
       test_ds = ds_manager.get_test_fold(k, output_type=ds_type)
@@ -157,46 +220,38 @@ def evaluate(
         print(f"\nFold {fold_str} with hyperparams {hp_str}.")
 
         for i in range(curr_i_start, repeat):
-          rep_str = f"{i+1}/{repeat}"
-          print(
-            time_str(),
-            f"- Iteration {rep_str}, fold {fold_str}, hps {hp_str}...")
-          t_start = timer()
-          label = f"{k}-{hp_i}-{i}"
-          model = model_ctr(**hp)
-          h = train(
-            model, train_ds, val_ds, label,
-            epochs=epochs, patience=patience,
-            stopping_min_delta=stopping_min_delta,
-            restore_best=restore_best,
-            log_dir_base=log_dir_base,
-            verbose=verbose)
-          train_res = h.history
-          t_end = timer()
-          train_dur = t_end - t_start
-          t_start = t_end
-          test_res = model.evaluate(test_ds)
-          t_end = timer()
-          test_dur = t_end - t_start
-          test_res = dict(zip(model.metrics_names, test_res))
-
-          with open(res_dir / f"{label}.json", "w") as f:
-            json.dump({
-              "train": train_res,
-              "test": test_res,
-              "train_duration": train_dur,
-              "test_duration": test_dur
-            }, f, cls=NumpyEncoder)
-
+          evaluation_step(
+            model_ctr, train_ds, val_ds, test_ds, k, hp_i, i, hp,
+            res_dir, fold_str, hp_str, verbose,
+            **config)
           pos_file.write_text(f"{k},{hp_i},{i}")
-          print(
-            f"\nTest results in {train_dur}s/{test_dur}s for",
-            f"it {rep_str}, fold {fold_str}, hps {hp_str}:",
-            test_res)
 
       t_end_fold = timer()
       dur_fold = t_end_fold - t_start_fold
-      print(time_str(), f"- Evaluated fold {fold_str} in {dur_fold}s.")
+      summ = summary.summarize_evaluation(eval_dir)
+      print(time_str(), f"- Evaluated hps of fold {fold_str} in {dur_fold}s.")
+
+      if winner_repeat > repeat:
+        best_hp_i = summ["folds"][k]["hp_i"]
+        best_hp = hps[best_hp_i]
+        hp_str = f"{best_hp_i+1}/{hpc}"
+        add_rep = winner_repeat - repeat
+        print(
+          time_str(),
+          f"- Additional {add_rep} evals of fold {fold_str}",
+          f"and winning hp {hp_str}...")
+
+        for i in range(repeat, winner_repeat):
+          evaluation_step(
+            model_ctr, train_ds, val_ds, test_ds, k, best_hp_i, i, best_hp,
+            res_dir, fold_str, hp_str, verbose,
+            **config)
+          pos_file.write_text(f"{k},{hpc},{i}")
+        print(
+          time_str(),
+          f"- Completed additional {add_rep} evals of fold {fold_str}",
+          f"and winning hp {hp_str}.")
+
       tf.keras.backend.clear_session()
       gc.collect()
   finally:
@@ -213,7 +268,16 @@ def evaluate(
     time_str(),
     f"- Evaluation of {ds_name} using {mf_name} completed in {dur_eval}s.")
 
-def resume_evaluation(model_factory, ds_manager, eval_dir, **kwargs):
+def resume_evaluation(model_factory, ds_manager, eval_dir=None, **kwargs):
+  if eval_dir is None:
+    eval_dir = find_eval_dir(model_factory, ds_manager)
+
+  if not (eval_dir / "config.json").exists():
+    print(f"Starting new evaluation at {eval_dir}...")
+    return evaluate(model_factory, ds_manager, **kwargs)
+
+  print(f"Resuming evaluation at {eval_dir}...")
+
   with open(eval_dir / "config.json", "r") as f:
     config = json.load(f)
 
@@ -221,6 +285,7 @@ def resume_evaluation(model_factory, ds_manager, eval_dir, **kwargs):
     model_factory, ds_manager,
     outer_k=config["outer_k"],
     repeat=config["repeat"],
+    winner_repeat=config["winner_repeat"],
     epochs=config["epochs"],
     patience=config["patience"],
     stopping_min_delta=config["stopping_min_delta"],
@@ -231,5 +296,5 @@ def resume_evaluation(model_factory, ds_manager, eval_dir, **kwargs):
 def quick_evaluate(model_factory, ds_manager, **kwargs):
   return evaluate(
     model_factory, ds_manager,
-    epochs=1, repeat=1, label="quick",
+    epochs=1, repeat=1, winner_repeat=1, label="quick",
     **kwargs)
