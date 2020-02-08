@@ -42,7 +42,6 @@ DD_2 = fy.partial(
   })
 
 chemical_binary = [
-  "Mutag_8",
   "NCI1_8",
   "Proteins_6",
   "DD_2"
@@ -84,6 +83,6 @@ dynamic_synthetic = []
 
 # Other categories:
 
-stored = chemical + social + stored_synthetic
-binary = chemical_binary + social_binary + synthetic_binary
-all = stored + dynamic_synthetic
+stored = stored_synthetic + chemical + social
+binary = synthetic_binary + chemical_binary + social_binary
+all = dynamic_synthetic + stored

@@ -151,6 +151,7 @@ def evaluate(
     resume = False
   else:
     assert eval_dir.exists(), "Invalid resume directory."
+    print()
     with open(eval_dir / "config.json", "r") as f:
       config = json.load(f)
       assert (
@@ -162,7 +163,8 @@ def evaluate(
         and config["patience"] == patience
         and config["stopping_min_delta"] == stopping_min_delta
         and config["restore_best"] == restore_best
-        and config["ds_type"] == ds_type
+        and config["ds_type"] == (
+          ds_type if not callable(ds_type) else ds_type.__name__)
         and config["ds_name"] == ds_name
         and config["mf_name"] == mf_name), "Incompatible config."
     resume = True
@@ -197,12 +199,16 @@ def evaluate(
   t_start_eval = timer()
   try:
     for k in range(k_start, outer_k):
-      print("\n")
-      print(time_str(), f"- Evaluating fold {k+1}/{outer_k}...")
+      print()
+      fold_str = f"{k+1}/{outer_k}"
+      print(time_str(), f"- Evaluating fold {fold_str}...")
       t_start_fold = timer()
       test_ds = ds_manager.get_test_fold(k, output_type=ds_type)
       train_ds, val_ds = ds_manager.get_train_fold(k, output_type=ds_type)
-      fold_str = f"{k+1}/{outer_k}"
+
+      if train_ds is None or test_ds is None:
+        print(time_str(), f"- Data of fold {fold_str} could not be loaded.")
+        continue
 
       for hp_i, hp in enumerate(hps):
         hp_str = f"{hp_i+1}/{hpc}"
@@ -228,29 +234,33 @@ def evaluate(
 
       t_end_fold = timer()
       dur_fold = t_end_fold - t_start_fold
-      summ = summary.summarize_evaluation(eval_dir)
       print(time_str(), f"- Evaluated hps of fold {fold_str} in {dur_fold}s.")
 
       if winner_repeat > repeat:
-        best_hp_i = summ["folds"][k]["hp_i"]
-        best_hp = hps[best_hp_i]
-        hp_str = f"{best_hp_i+1}/{hpc}"
-        add_rep = winner_repeat - repeat
-        print(
-          time_str(),
-          f"- Additional {add_rep} evals of fold {fold_str}",
-          f"and winning hp {hp_str}...")
+        if hp_start == hpc and i_start + 1 == winner_repeat:
+          print(f"Already did winner evaluations of fold {fold_str}.")
+        else:
+          summ = summary.summarize_evaluation(eval_dir)
 
-        for i in range(repeat, winner_repeat):
-          evaluation_step(
-            model_ctr, train_ds, val_ds, test_ds, k, best_hp_i, i, best_hp,
-            res_dir, fold_str, hp_str, verbose,
-            **config)
-          pos_file.write_text(f"{k},{hpc},{i}")
-        print(
-          time_str(),
-          f"- Completed additional {add_rep} evals of fold {fold_str}",
-          f"and winning hp {hp_str}.")
+          best_hp_i = summ["folds"][k]["hp_i"]
+          best_hp = hps[best_hp_i]
+          hp_str = f"{best_hp_i+1}/{hpc}"
+          add_rep = winner_repeat - repeat
+          print(
+            time_str(),
+            f"- Additional {add_rep} evals of fold {fold_str}",
+            f"and winning hp {hp_str}.")
+
+          for i in range(repeat, winner_repeat):
+            evaluation_step(
+              model_ctr, train_ds, val_ds, test_ds, k, best_hp_i, i, best_hp,
+              res_dir, fold_str, hp_str, verbose,
+              **config)
+            pos_file.write_text(f"{k},{hpc},{i}")
+          print(
+            time_str(),
+            f"- Completed additional {add_rep} evals of fold {fold_str}",
+            f"and winning hp {hp_str}.")
 
       tf.keras.backend.clear_session()
       gc.collect()

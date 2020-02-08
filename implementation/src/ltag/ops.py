@@ -3,9 +3,6 @@ from __future__ import absolute_import, division, print_function,\
 
 import tensorflow as tf
 
-import sys
-sys.argv = sys.argv[:1]
-
 @tf.function
 def normalize_mat(M):
   diags = tf.reduce_sum(M, axis=-1)

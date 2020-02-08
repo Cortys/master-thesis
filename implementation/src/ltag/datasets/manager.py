@@ -365,6 +365,10 @@ class GraphDatasetManager:
     elif callable(output_type):
       _, targets = self.dataset
       gram = self._compute_gram_matrix(output_type)
+
+      if gram is None:
+        return
+
       if idxs is not None:
         train_idxs = idxs if train_idxs is None else train_idxs
         gram, targets = gram[idxs, :][:, train_idxs], targets[idxs]

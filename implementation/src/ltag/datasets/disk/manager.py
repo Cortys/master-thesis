@@ -12,27 +12,26 @@ import pickle
 import numpy as np
 
 from ltag.utils import NumpyEncoder
-from ltag.chaining.pipeline import tolerant
 from ltag.datasets.manager import GraphDatasetManager
 from ltag.datasets.disk.utils import (
   parse_tu_data, create_graph_from_tu_data)
 
 class StoredGraphDatasetManager(GraphDatasetManager):
   def _setup(self, wl2_batch_cache=True, no_wl2_load=False, **kwargs):
-      self.wl2_batch_cache = wl2_batch_cache
-      self._wl2_batch_dataset = None
-      self.no_wl2_load = no_wl2_load
-      self.root_dir = self.data_dir / self.name
-      self.raw_dir = self.root_dir / "raw"
-      if not self.raw_dir.exists():
-        os.makedirs(self.raw_dir)
-        self._download()
+    self.wl2_batch_cache = wl2_batch_cache
+    self._wl2_batch_dataset = None
+    self.no_wl2_load = no_wl2_load
+    self.root_dir = self.data_dir / self.name
+    self.raw_dir = self.root_dir / "raw"
+    if not self.raw_dir.exists():
+      os.makedirs(self.raw_dir)
+      self._download()
 
-      self.processed_dir = self.root_dir / "processed"
-      if not (self.processed_dir / f"{self.name}.pickle").exists():
-        if not self.processed_dir.exists():
-          os.makedirs(self.processed_dir)
-        self._process()
+    self.processed_dir = self.root_dir / "processed"
+    if not (self.processed_dir / f"{self.name}.pickle").exists():
+      if not self.processed_dir.exists():
+        os.makedirs(self.processed_dir)
+      self._process()
 
   def _load_dataset(self):
     with open(self.processed_dir / f"{self.name}.pickle", "rb") as f:
@@ -92,12 +91,20 @@ class StoredGraphDatasetManager(GraphDatasetManager):
 
     if gram_filename.exists():
       with open(gram_filename, "rb") as f:
-        return pickle.load(f)
+        gram = pickle.load(f)
+        if gram == "OOM":
+          print(f"{k_name} kernel OOM for {self.name}.")
+          return None
+
+        return gram
 
     if not gram_dir.exists():
       os.makedirs(gram_dir)
 
-    gram = super()._compute_gram_matrix(output_fn)
+    try:
+      gram = super()._compute_gram_matrix(output_fn)
+    except MemoryError:
+      gram = "OOM"
 
     with open(gram_filename, "wb") as f:
       pickle.dump(gram, f)
@@ -191,6 +198,17 @@ class StoredGraphDatasetManager(GraphDatasetManager):
       self.wl2c_dataset
       gc.collect()
       print(f"Compact WL2 encode of {self.name} completed.")
+
+  def prepare_gram_matrices(self, kernels):
+    print(f"Starting gram matrix computation of {self.name}...")
+
+    for kernel in kernels:
+      print(f"Preparing {kernel.__name__} kernel for {self.name}...")
+      self.get_all(output_type=kernel)
+      gc.collect()
+      print(f"Prepared {kernel.__name__} kernel for {self.name}.")
+
+    print(f"Completed gram matrix computation of {self.name}.")
 
   def _process(self):
     raise NotImplementedError

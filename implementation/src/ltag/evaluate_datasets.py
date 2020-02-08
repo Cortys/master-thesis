@@ -1,36 +1,99 @@
 from __future__ import absolute_import, division, print_function,\
   unicode_literals
 
+import argparse
+import warnings
+# Ignore future warnings caused by grakel:
+warnings.simplefilter(action='ignore', category=FutureWarning)
+
 import ltag.evaluation.evaluate as evaluate
 import ltag.evaluation.summary as summary
 import ltag.evaluation.models as models
-import ltag.evaluation.datasets as ds
+import ltag.evaluation.datasets as datasets
 
-epochs = 500
-patience = 50
-repeat = 1  # fewer repeats for now.
 
-mf = models.AvgWL2GCN_Binary_3x32
-dsm = ds.DD_2
-
-def quick_run(**kwargs):
+def quick_run(mf, dsm, **kwargs):
   evaluate.quick_evaluate(mf, dsm(), **kwargs)
 
-def run(**kwargs):
-  evaluate.evaluate(
-    mf, dsm(), epochs=epochs, patience=patience,
-    repeat=repeat,
-    **kwargs)
+def run(mf, dsm, **kwargs):
+  evaluate.evaluate(mf, dsm(),  **kwargs)
 
-def resume(eval_dir_name, **kwargs):
-  return evaluate.resume_evaluation(
-    mf, dsm(), evaluate.eval_dir_base / eval_dir_name,
-    **kwargs)
+def resume(mf, dsm, **kwargs):
+  return evaluate.resume_evaluation(mf, dsm())
 
+def summarize(mf, dsm):
+  return summary.summarize_evaluation(evaluate.find_eval_dir(mf, dsm()))
 
-def summarize(eval_dir_name):
-  return summary.summarize_evaluation(evaluate.eval_dir_base / eval_dir_name)
 
 if __name__ == "__main__":
-  run()
-  # resume("2020-01-15_14-31-53_NCI1_AvgWL2GCN")
+  parser = argparse.ArgumentParser(
+    description='Evaluate different model/dataset combinations.')
+  parser.add_argument(
+    "-d", "--dataset", action="append",
+    help="Evaluate with this dataset.")
+  parser.add_argument(
+    "-m", "--model", action="append",
+    help="Evaluate with this model.")
+  parser.add_argument(
+    "-q", "--quick", action="store_true",
+    help="Only do a quick run to check whether there might be OOM issues.")
+  parser.add_argument(
+    "-s", "--summarize", action="store_true",
+    help="Only run the summarizer on existing evaluations.")
+  args = parser.parse_args()
+
+  if args.dataset is None or len(args.dataset) == 0:
+    ds = datasets.stored
+  else:
+    ds = args.dataset
+
+  if args.model is None or len(args.model) == 0:
+    ms = [
+      "WL_st", "WL_sp", "LWL2", "GWL2"]
+  else:
+    ms = args.model
+
+  dsl = len(ds)
+  msl = len(ms)
+
+  type = "evaluation"
+  f = resume
+
+  if args.quick:
+    type = "quick evaluation"
+    f = quick_run
+  elif args.summarize:
+    type = "summarization"
+    f = summarize
+
+  print(f"Starting {type}...")
+  print(f"Will evaluate the following {dsl} datasets:")
+  for d in ds:
+    print(f"- {d}")
+  print(f"Will use the following {msl} models:")
+  for m in ms:
+    print(f"- {m}")
+
+  print()
+  while True:
+    a = input("Continue [Y/n]?\n")
+
+    if a == "" or a == "Y" or a == "y" or a == "yes":
+      break
+
+    if a == "N" or a == "n" or a == "no":
+      print("Canceled evaluation.")
+      exit(0)
+
+    print("Enter either y(es) or n(o).")
+
+  print("---------------------------------------------\n")
+
+  for m in ms:
+    model = getattr(models, m)
+    for d in ds:
+      dataset = getattr(datasets, d)
+      f(model, dataset)
+      print("\n---------------------------------------------\n")
+
+  print(f"Grid evaluation (dsl={dsl}, msl={msl}) completed.")
