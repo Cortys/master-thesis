@@ -41,7 +41,7 @@ DATASETS=$(cat <<- END
 	GWL2 REDDIT-BINARY ./data/tu
 END
 )
-parallelism=6
+parallelism=4
 
 echo "Preparing 2-WL gram matrices..."
 echo "$DATASETS" | xargs -n 3 --max-procs=$parallelism ./libs/glocalwl/globalwl
