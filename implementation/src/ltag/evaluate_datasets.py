@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function,\
   unicode_literals
 
 import argparse
+import funcy as fy
 import warnings
 # Ignore future warnings caused by grakel:
 warnings.simplefilter(action='ignore', category=FutureWarning)
@@ -11,18 +12,26 @@ import ltag.evaluation.summary as summary
 import ltag.evaluation.models as models
 import ltag.evaluation.datasets as datasets
 
-
 def quick_run(mf, dsm, **kwargs):
-  evaluate.quick_evaluate(mf, dsm(), **kwargs)
+  if dsm.evaluation_args is not None:
+    kwargs = fy.merge(dsm.evaluation_args, kwargs)
+
+  evaluate.quick_evaluate(mf, dsm, **kwargs)
 
 def run(mf, dsm, **kwargs):
-  evaluate.evaluate(mf, dsm(),  **kwargs)
+  if dsm.evaluation_args is not None:
+    kwargs = fy.merge(dsm.evaluation_args, kwargs)
+
+  evaluate.evaluate(mf, dsm,  **kwargs)
 
 def resume(mf, dsm, **kwargs):
-  return evaluate.resume_evaluation(mf, dsm())
+  if dsm.evaluation_args is not None:
+    kwargs = fy.merge(dsm.evaluation_args, kwargs)
+
+  return evaluate.resume_evaluation(mf, dsm, **kwargs)
 
 def summarize(mf, dsm):
-  return summary.summarize_evaluation(evaluate.find_eval_dir(mf, dsm()))
+  return summary.summarize_evaluation(evaluate.find_eval_dir(mf, dsm))
 
 
 if __name__ == "__main__":
@@ -40,21 +49,10 @@ if __name__ == "__main__":
   parser.add_argument(
     "-s", "--summarize", action="store_true",
     help="Only run the summarizer on existing evaluations.")
+  parser.add_argument(
+    "--dry", action="store_true",
+    help="Only generate eval metadata without starting evaluation steps.")
   args = parser.parse_args()
-
-  if args.dataset is None or len(args.dataset) == 0:
-    ds = datasets.stored
-  else:
-    ds = args.dataset
-
-  if args.model is None or len(args.model) == 0:
-    ms = [
-      "WL_st", "WL_sp", "LWL2", "GWL2"]
-  else:
-    ms = args.model
-
-  dsl = len(ds)
-  msl = len(ms)
 
   type = "evaluation"
   f = resume
@@ -65,6 +63,27 @@ if __name__ == "__main__":
   elif args.summarize:
     type = "summarization"
     f = summarize
+  elif args.dry:
+    type = "dry evaluation"
+    f = fy.partial(resume, dry=True)
+
+  if args.dataset is None or len(args.dataset) == 0:
+    ds = datasets.stored
+  else:
+    ds = args.dataset
+
+  if args.model is None or len(args.model) == 0:
+    if args.quick:
+      ms = ["SagCWL2GCN_Binary_quick_max"]
+    else:
+      ms = [
+        "WL_st", "WL_sp", "LWL2", "GWL2",
+        "AvgCWL2GCN_Binary"]
+  else:
+    ms = args.model
+
+  dsl = len(ds)
+  msl = len(ms)
 
   print(f"Starting {type}...")
   print(f"Will evaluate the following {dsl} datasets:")
@@ -87,13 +106,13 @@ if __name__ == "__main__":
 
     print("Enter either y(es) or n(o).")
 
-  print("---------------------------------------------\n")
+  print("----------------------------------------------------------\n")
 
   for m in ms:
     model = getattr(models, m)
     for d in ds:
-      dataset = getattr(datasets, d)
-      f(model, dataset)
-      print("\n---------------------------------------------\n")
+      dsm = getattr(datasets, d)
+      f(model, dsm())
+      print("\n----------------------------------------------------------\n")
 
-  print(f"Grid evaluation (dsl={dsl}, msl={msl}) completed.")
+  print(f"Grid evaluation (# datasets = {dsl}, # models = {msl}) completed.")

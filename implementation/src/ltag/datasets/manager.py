@@ -24,6 +24,7 @@ class GraphDatasetManager:
     node_one_labels=True,
     edge_one_labels=False,
     with_holdout=True,
+    evaluation_args=None,
     **kwargs):
 
     self.kfold_class = kfold_class
@@ -36,6 +37,7 @@ class GraphDatasetManager:
     self.node_one_labels = node_one_labels
     self.edge_one_labels = edge_one_labels
     self.with_holdout = with_holdout
+    self.evaluation_args = evaluation_args
 
     self.outer_k = outer_k
     assert (outer_k is not None and outer_k > 0) or outer_k is None

@@ -31,7 +31,7 @@ def time_str():
 def train(
   model, train_ds, val_ds=None, label=None,
   log_dir_base=log_dir_base,
-  epochs=500, patience=50, restore_best=False,
+  epochs=1000, patience=50, restore_best=False,
   stopping_min_delta=0.0001,
   verbose=2):
   label = "_" + label if label is not None else ""
@@ -69,7 +69,7 @@ def evaluation_step(
     print(
       time_str(),
       f"- Iteration {rep_str}, fold {fold_str}, hps {hp_str} already done.")
-    return
+    return False
 
   print(
     time_str(),
@@ -105,6 +105,7 @@ def evaluation_step(
     f"\nTest results in {train_dur}s/{test_dur}s for",
     f"it {rep_str}, fold {fold_str}, hps {hp_str}:",
     test_res)
+  return True
 
 def find_eval_dir(model_factory, ds_manager, label=None):
   label = "_" + label if label is not None else ""
@@ -116,8 +117,8 @@ def evaluate(
   model_factory, ds_manager,
   outer_k=None, repeat=1, winner_repeat=3, epochs=1000,
   patience=50, stopping_min_delta=0.0001,
-  restore_best=False, label=None,
-  eval_dir=None, verbose=2):
+  restore_best=False, hp_args=None, label=None,
+  eval_dir=None, verbose=2, dry=False):
   outer_k = outer_k or ds_manager.outer_k
   inner_k = None
 
@@ -140,6 +141,7 @@ def evaluate(
         "patience": patience,
         "stopping_min_delta": stopping_min_delta,
         "restore_best": restore_best,
+        "hp_args": hp_args,
         "ds_type": ds_type if not callable(ds_type) else ds_type.__name__,
         "ds_name": ds_name,
         "mf_name": mf_name,
@@ -163,6 +165,7 @@ def evaluate(
         and config["patience"] == patience
         and config["stopping_min_delta"] == stopping_min_delta
         and config["restore_best"] == restore_best
+        and config["hp_args"] == hp_args
         and config["ds_type"] == (
           ds_type if not callable(ds_type) else ds_type.__name__)
         and config["ds_name"] == ds_name
@@ -190,13 +193,29 @@ def evaluate(
       k_start, hp_start, i_start = fy.map(int, pos)
       print(f"Continuing at {k_start}, {hp_start}, {i_start}.")
 
-  model_ctr, hps = model_factory(ds_manager)
+  hp_args = hp_args or dict()
+  model_ctr, hps = model_factory(ds_manager, **hp_args)
   hpc = len(hps)
 
-  with open(eval_dir / f"hyperparams.json", "w") as f:
-    json.dump(hps, f, indent="\t", sort_keys=True, cls=NumpyEncoder)
+  hp_file = eval_dir / f"hyperparams.json"
+  if hp_file.exists():
+    hps_json = json.dumps(hps, indent="\t", sort_keys=True, cls=NumpyEncoder)
+    old_hps_json = hp_file.read_text()
+
+    assert hps_json == old_hps_json,\
+        f"Existing hyperparam list incompatible to:\n{hps_json}"
+
+    print("Existing hyperparam list is compatible.")
+  else:
+    with open(hp_file, "w") as f:
+      json.dump(hps, f, indent="\t", sort_keys=True, cls=NumpyEncoder)
+
+  if dry:
+    print(f"Completed dry evaluation of {ds_name} using {mf_name}.")
+    return
 
   t_start_eval = timer()
+  completed_evaluation_step = False
   try:
     for k in range(k_start, outer_k):
       print()
@@ -226,7 +245,7 @@ def evaluate(
         print(f"\nFold {fold_str} with hyperparams {hp_str}.")
 
         for i in range(curr_i_start, repeat):
-          evaluation_step(
+          completed_evaluation_step |= evaluation_step(
             model_ctr, train_ds, val_ds, test_ds, k, hp_i, i, hp,
             res_dir, fold_str, hp_str, verbose,
             **config)
@@ -252,7 +271,7 @@ def evaluate(
             f"and winning hp {hp_str}.")
 
           for i in range(repeat, winner_repeat):
-            evaluation_step(
+            completed_evaluation_step = evaluation_step(
               model_ctr, train_ds, val_ds, test_ds, k, best_hp_i, i, best_hp,
               res_dir, fold_str, hp_str, verbose,
               **config)
@@ -268,15 +287,17 @@ def evaluate(
     t_end_eval = timer()
     dur_eval = t_end_eval - t_start_eval
 
-    with open(eval_dir / "config.json", "w") as f:
-      config["duration"] += dur_eval
-      config["end_time"] = time_str()
-      json.dump(config, f, indent="\t", sort_keys=True, cls=NumpyEncoder)
+    if completed_evaluation_step:
+      with open(eval_dir / "config.json", "w") as f:
+        config["duration"] += dur_eval
+        config["end_time"] = time_str()
+        json.dump(config, f, indent="\t", sort_keys=True, cls=NumpyEncoder)
 
   summary.summarize_evaluation(eval_dir)
   print(
     time_str(),
-    f"- Evaluation of {ds_name} using {mf_name} completed in {dur_eval}s.")
+    f"- Evaluation of {ds_name} using {mf_name} completed in {dur_eval}s.",
+    "No steps were executed." if not completed_evaluation_step else "")
 
 def resume_evaluation(model_factory, ds_manager, eval_dir=None, **kwargs):
   if eval_dir is None:
@@ -300,11 +321,12 @@ def resume_evaluation(model_factory, ds_manager, eval_dir=None, **kwargs):
     patience=config["patience"],
     stopping_min_delta=config["stopping_min_delta"],
     restore_best=config["restore_best"],
+    hp_args=config["hp_args"],
     eval_dir=eval_dir,
-    **kwargs)
+    **fy.omit(kwargs, config.keys()))
 
 def quick_evaluate(model_factory, ds_manager, **kwargs):
   return evaluate(
     model_factory, ds_manager,
     epochs=1, repeat=1, winner_repeat=1, label="quick",
-    **kwargs)
+    **fy.omit(kwargs, ["epochs", "repeat", "winner_repeat", "label"]))

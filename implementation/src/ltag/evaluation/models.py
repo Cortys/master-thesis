@@ -1,8 +1,10 @@
 from __future__ import absolute_import, division, print_function,\
   unicode_literals
 
+import funcy as fy
+
 import ltag.models.gnn as gnn_models
-from ltag.utils import cart, cart_merge
+from ltag.utils import cart, cart_merge, entry_duplicator
 from ltag.evaluation.model_factories import binary_classifier
 from ltag.evaluation.kernel_models import (
   WL_st, WL_sp, LWL2, GWL2)
@@ -61,3 +63,80 @@ def AvgWL2GCN_FC_Binary(dsm):
   ) for ch, fh in hidden]
 
   return cart_merge(base, hidden_hp)
+
+@binary_classifier(gnn_models.AvgCWL2GCN)
+def AvgCWL2GCN_Binary(
+  dsm, cwl2_local_act="sigmoid", layer_widths=[32, 64]):
+  in_dim = dsm.dim_wl2_features()
+
+  hidden = [
+   [b] * l
+   for b, l in cart(layer_widths, [1, 3])]
+
+  return cart(
+    conv_layer_dims=[[in_dim, *h, 1] for h in hidden],
+    conv_act=["sigmoid"],
+    conv_local_act=[cwl2_local_act],
+    conv_stack_tf=[None, "keep_input"],
+    conv_bias=[True],
+    learning_rate=[0.01, 0.001, 0.0001],
+    squeeze_output=[True]
+  )
+
+@binary_classifier(gnn_models.SagCWL2GCN)
+def SagCWL2GCN_Binary(
+  dsm, cwl2_local_act="sigmoid", layer_widths=[32, 64]):
+  in_dim = dsm.dim_wl2_features()
+
+  hidden = [
+   [b] * l
+   for b, l in cart(layer_widths, [1, 3])]
+
+  hps = cart(
+    conv_layer_dims=[[in_dim, *h, 1] for h in hidden],
+    conv_act=["sigmoid"],
+    conv_local_act=[cwl2_local_act],
+    conv_stack_tf=[None, "keep_input"],
+    conv_bias=[True],
+    learning_rate=[0.01, 0.001, 0.0001],
+    squeeze_output=[True]
+  )
+
+  duplicate_settings = {
+    "conv_layer_dims": ["att_conv_layer_dims"],
+    "conv_act": ["att_conv_act"],
+    "conv_local_act": ["att_conv_local_act"],
+    "conv_stack_tf": ["att_conv_stack_tf"],
+    "conv_bias": ["att_conv_bias"],
+  }
+
+  return fy.map(entry_duplicator(duplicate_settings), hps)
+
+@binary_classifier(gnn_models.SagCWL2GCN)
+def SagCWL2GCN_Binary_quick_max(
+  dsm, cwl2_local_act="sigmoid", layer_widths=[64]):
+  in_dim = dsm.dim_wl2_features()
+
+  hidden = [
+   [b] * l
+   for b, l in cart(layer_widths, [3])]
+
+  hps = cart(
+    conv_layer_dims=[[in_dim, *h, 1] for h in hidden],
+    conv_act=["sigmoid"],
+    conv_local_act=[cwl2_local_act],
+    conv_stack_tf=["keep_input"],
+    conv_bias=[True],
+    learning_rate=[0.001],
+    squeeze_output=[True]
+  )
+
+  duplicate_settings = {
+    "conv_layer_dims": ["att_conv_layer_dims"],
+    "conv_act": ["att_conv_act"],
+    "conv_local_act": ["att_conv_local_act"],
+    "conv_stack_tf": ["att_conv_stack_tf"],
+    "conv_bias": ["att_conv_bias"],
+  }
+
+  return fy.map(entry_duplicator(duplicate_settings), hps)

@@ -72,6 +72,14 @@ noisy_triangle_classification_2 = fy.partial(
   wl2_neighborhood=2,
   wl2_batch_size={
     "batch_graph_count": 208
+  },
+  evaluation_args={
+    "epochs": 3000,
+    "hp_args": {
+      "cwl2_local_act": "relu",
+      # other widths ignored based on previous experiments:
+      "layer_widths": [32]
+    }
   })
 
 synthetic_binary = [

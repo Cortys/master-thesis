@@ -5,6 +5,8 @@ from tensorflow import keras
 import itertools
 import funcy as fy
 
+import ltag.chaining.pipeline as cp
+
 def model_factory(mf):
   """
     Takes a fn `mf` that creates a trainable model from hyperparams.
@@ -17,7 +19,7 @@ def model_factory(mf):
     def model_factory_with_class(hyperparam_gen):
       @fy.wraps(hyperparam_gen)
       def wrapper(ds_manager, **params):
-        hps = list(hyperparam_gen(ds_manager, **params))
+        hps = list(cp.tolerant(hyperparam_gen)(ds_manager, **params))
         return fy.partial(mf, model_class), hps
 
       wrapper.input_type = model_class.input_type

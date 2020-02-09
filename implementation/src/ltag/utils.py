@@ -38,3 +38,14 @@ def cart(*pos_params, **params):
 def cart_merge(*dicts):
   "Lazily computes all possible merge combinations of the given dicts."
   return (fy.merge(*c) for c in itertools.product(*dicts))
+
+def entry_duplicator(duplicates):
+  def f(d):
+    for source, targets in duplicates.items():
+      d_source = d[source]
+      for target in targets:
+        d[target] = d_source
+
+    return d
+
+  return f
