@@ -23,6 +23,15 @@ NCI1_8 = fy.partial(
   tu.NCI1,
   wl2_neighborhood=8)
 
+Proteins_5 = fy.partial(
+  tu.Proteins,
+  wl2_neighborhood=5,
+  wl2_batch_size={
+    "fuzzy_batch_edge_count": 20000,
+    "upper_batch_edge_count": 50000,
+    "batch_graph_count": 20
+  })
+
 Proteins_6 = fy.partial(
   tu.Proteins,
   wl2_neighborhood=6,
@@ -43,7 +52,7 @@ DD_2 = fy.partial(
 
 chemical_binary = [
   "NCI1_8",
-  "Proteins_6",
+  "Proteins_5",
   "DD_2"
 ]
 chemical = chemical_binary
@@ -76,9 +85,9 @@ noisy_triangle_classification_2 = fy.partial(
   evaluation_args={
     "epochs": 3000,
     "hp_args": {
-      "cwl2_local_act": "relu",
       # other widths ignored based on previous experiments:
-      "layer_widths": [32]
+      "cwl2_layer_widths": [32],
+      "cwl2_local_act": "relu"
     }
   })
 
