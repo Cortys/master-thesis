@@ -84,9 +84,11 @@ noisy_triangle_classification_2 = fy.partial(
   },
   evaluation_args={
     "epochs": 3000,
+    "patience": 600,
     "hp_args": {
       # other widths ignored based on previous experiments:
       "cwl2_layer_widths": [32],
+      "cwl2_layer_depths": [3],
       "cwl2_local_act": "relu"
     }
   })

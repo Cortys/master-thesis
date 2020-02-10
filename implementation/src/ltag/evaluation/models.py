@@ -69,12 +69,13 @@ def AvgCWL2GCN_Binary(
   dsm,
   cwl2_local_act="sigmoid",
   cwl2_layer_widths=[32, 64],
+  cwl2_layer_depths=[1, 3],
   cwl2_stack_tfs=[None, "keep_input"]):
   in_dim = dsm.dim_wl2_features()
 
   hidden = [
    [b] * l
-   for b, l in cart(cwl2_layer_widths, [1, 3])]
+   for b, l in cart(cwl2_layer_widths, cwl2_layer_depths)]
 
   return cart(
     conv_layer_dims=[[in_dim, *h, 1] for h in hidden],
@@ -91,12 +92,13 @@ def SagCWL2GCN_Binary(
   dsm,
   cwl2_local_act="sigmoid",
   cwl2_layer_widths=[32, 64],
+  cwl2_layer_depths=[1, 3],
   cwl2_stack_tfs=[None, "keep_input"]):
   in_dim = dsm.dim_wl2_features()
 
   hidden = [
    [b] * l
-   for b, l in cart(cwl2_layer_widths, [1, 3])]
+   for b, l in cart(cwl2_layer_widths, cwl2_layer_depths)]
 
   hps = cart(
     conv_layer_dims=[[in_dim, *h, 1] for h in hidden],
@@ -123,12 +125,13 @@ def SagCWL2GCN_Binary_quick_max(
   dsm,
   cwl2_local_act="sigmoid",
   cwl2_layer_widths=[64],
+  cwl2_layer_depths=[3],
   cwl2_stack_tfs=["keep_input"]):
   in_dim = dsm.dim_wl2_features()
 
   hidden = [
    [b] * l
-   for b, l in cart(cwl2_layer_widths, [3])]
+   for b, l in cart(cwl2_layer_widths, cwl2_layer_depths)]
 
   hps = cart(
     conv_layer_dims=[[in_dim, *h, 1] for h in hidden],

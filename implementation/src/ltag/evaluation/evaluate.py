@@ -116,7 +116,7 @@ def find_eval_dir(model_factory, ds_manager, label=None):
 def evaluate(
   model_factory, ds_manager,
   outer_k=None, repeat=1, winner_repeat=3, epochs=1000,
-  patience=50, stopping_min_delta=0.0001,
+  patience=100, stopping_min_delta=0.0001,
   restore_best=False, hp_args=None, label=None,
   eval_dir=None, verbose=2, dry=False):
   outer_k = outer_k or ds_manager.outer_k
