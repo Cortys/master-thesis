@@ -6,9 +6,11 @@
 Before combining \ac{lta} and \ac{gcr} as described in \cref{sec:intro:goals}, we first give an overview of the state-of-the-art in both fields of research.
 This is done in three steps:
 \begin{enumerate}
-	\item We begin with an overview of the existing \ac{lta} methods for set inputs.
-	\item Before the existing \ac{gcr} methods are described, we look at the graph theoretical fundamentals on which those methods are based.
-	\item Using the previously introduced fundamentals, the current approaches to tackle the \ac{gcr} problem are then described.
+	\item We begin with an overview of the existing \ac{lta} methods for unstructured inputs.
+	\item Then we look at the domain of structured inputs.
+		To solve the \ac{gcr} problem, relevant graphs characteristics have to be defined in order to determine the similarity and dissimilarity of graphs.
+		We will look at two common approaches for graph characterization: The \acl{wl} algorithm and the notion of graph spectra.
+	\item Using the described graph characterization approaches, a brief overview of current \ac{gcr} methods will then be given.
 \end{enumerate}
 
 \section{Learning to Aggregate}%
@@ -162,16 +164,26 @@ The \ac{lta} aggregation problem is therefore solved by optimizing $a \in \mathb
 The disaggregation problem is tackled by adding the scores $y_1, \dots, y_M \in \mathbb{R}$ to the learnable parameters of the model where $M$ is assumed to be the finite number of constituents.
 Currently the \ac{owa} approach requires all possible constituents to be part of the training dataset since it does not consider constituent features $x_i \in \mathcal{X}$ to predict the scores of previously unseen constituents.
 
-\section{Graph Theoretical Fundamentals}%
-\label{sec:related:theory}
+\section{Graph Characterization}%
+\label{sec:related:character}
 
-\subsection{Graph Isomorphism Checks}%
-\label{sec:related:theory:wl}
+To classify or score a graph, it first needs to be characterized by a set of relevant properties.
+Two commonly used graph characterization approaches are the so called \acf{wl} colors and the notion of the graph spectrum.
+Both will now be briefly introduced since they form the foundation of most current \ac{gcr} methods.
+
+\subsection{Weisfeiler-Lehman Graph Colorings}%
+\label{sec:related:character:wl}
+
+The Weisfeiler-Lehman algorithm characterizes a graph $G = (\mathcal{V}, \mathcal{E})$ by assigning discrete labels $c \in \mathcal{C}$, called \textit{colors}, to vertex $k$-tuples $(v_1, \dots, v_k) \in \mathcal{V}^k$, where $k \in \mathbb{N}$ is the freely choosable \textit{\ac{wl}-dimension}.
+A mapping $\chi: \mathcal{V}^k \to \mathcal{C}$ is called a coloring of $G = (\mathcal{V}, \mathcal{E})$.
+
+\paragraph{The 1-dimensional \acs{wl} algorithm}
+For the most simple case of $k = 1$, a color is assigned to each vertex of a graph.
 
 \subsection{Spectral Graph Theory}%
-\label{sec:related:theory:spectral}
+\label{sec:related:character:spectral}
 
-\section{Graph Regression and Classification}%
+\section{Graph Classification and Regression}%
 \label{sec:related:gcr}
 
 The existing approaches to tackle the \ac{gcr} problem can be categorized into three main families:
@@ -180,7 +192,7 @@ The existing approaches to tackle the \ac{gcr} problem can be categorized into t
 	\item graph kernels and
 	\item graph neural networks
 \end{enumerate*}.
-We will now look at the characteristics of those families and give an overview of specific methods.
+We will now look at the characteristics of those families and give a brief overview of specific methods.
 
 \subsection{Explicit Graph Embeddings}%
 \label{sec:related:gcr:embed}
@@ -195,7 +207,7 @@ The embedding vector $f_G(v)$ ideally encodes relevant information about a verte
 It can be used to solve the vertex classification and regression problem via arbitrary \ac{ml} methods for vectors.
 We will now look at two main families of explicit graph and vertex embedding approaches.
 
-\subsubsection{Fingerprint embeddings}
+\subsubsection{Fingerprint Embeddings}
 
 The first works on graph embeddings were motivated by the study of chemical structures~\cite{Adamson1973}\cite{Willett1986}.
 There a molecule can be interpreted as a labeled graph for which the \ac{gcr} problem corresponds to the prediction of some chemical property, e.g.\ toxicity or solubility.
@@ -204,7 +216,7 @@ The embedding of a graph $G$ is a binary vector $f(G) = x \in {\{0, 1\}}^d$ with
 This simple approach usually requires a careful choice of subgraphs but can still be competitive with the other more recent approaches we will look at in the following sections.
 Fingerprint embeddings are for example used in multiple state-of-the-art toxicity prediction tools like RASAR~\cite{Luechtefeld2018}\cite{ToxTrack}, ProTox~\cite{Drwal2014}\cite{Banerjee2018}\cite{ProTox} or the \ac{toxTest}~\cite{TEST}.
 
-\subsubsection{Skip-gram inspired embeddings}
+\subsubsection{Skip-gram inspired Embeddings}
 
 Skip-gram embeddings were introduced by \citeauthor{Mikolov2013} as part of the well-known \texttt{word2vec}~\cite{Mikolov2013} word embedding method from \ac{nlp}.
 While a fingerprint embedding explicitly assigns an interpretation to each embedding dimension (i.e.\ to each standard basis vector), a skip-gram embedding only optimizes the distance between embedding vectors based on the similarity of the embedded instances without providing an interpretation of the embedding dimensions.
@@ -225,7 +237,7 @@ Intuitively this means that words with similar contexts will be mapped close to 
 Note that \texttt{word2vec} actually finds two embeddings $f(w)$ and $f_C(w)$ for each word of which only the first is returned.
 The two embeddings represent two different perspectives on words: $f$ describes a word $w_i$ as the root of a context $C_k(w_i)$, $f_C$ on the other hand describes a word $w_j$ as part of a context $C_k(w_i) \ni w_j$.
 
-\paragraph{Vertex embeddings}
+\paragraph{Vertex Embeddings}
 Skip-gram embeddings can be  na{\"\i}vely extended to graphs by realizing that \texttt{word2vec} effectively already is a vertex embedding method for linear graphs in which $C_k(v)$ is simply the $k$-neighborhood of the vertex/word $v$.
 The problem with this na{\"\i}ve extension is that the sizes of $k$-neighborhoods in arbitrary graphs can be much larger and often tend to grow exponentially with $k$.
 To deal with this computational problem the so-called DeepWalk~\cite{Perozzi2014} and \texttt{node2vec}~\cite{Grover2016} methods perform random walks of fixed length to effectively take samples from the neighborhood of vertices.
@@ -233,7 +245,7 @@ Both methods only differ in the transition matrix that is used for the random wa
 Another difference of DeepWalk and \texttt{node2vec} compared to \texttt{word2vec} is the so-called \textit{feature space symmetry} which states that the context root interpretation ($f$) of a vertex should be symmetric to its context element interpretation ($f_C$), i.e.\ $f = f_C$.
 The combination of random walk context sampling and and the feature space symmetry assumption can be used to compute vertex embeddings even for very large graphs.
 
-\paragraph{Graph embeddings}
+\paragraph{Graph Embeddings}
 Skip-gram methods can not only be used for vertex embeddings but also to embed entire graphs.
 One way to do this is via the \texttt{graph2vec}~\cite{Narayanan2017} method.
 It is inspired by \texttt{doc2vec}~\cite{Le2014} which in turn is based on \texttt{word2vec}.
@@ -242,7 +254,7 @@ While in \texttt{word2vec} every word can be a context root as well as a context
 The context $C_k(G_i)$ of a graph $G_i = (\mathcal{V}_i, \mathcal{E}_i)$ is defined as
 \begin{equation}
 	C_k(G_i) := \bigcup_{\mathclap{v_j \in \mathcal{V}_i}}\, {\left\{ {\textrm{WL}_l(G_i)}_j \right\}}_{l = 0}^k % chktex 21
-	\text{ with } \textrm{WL}_l(G) := \text{\acs{wl} colors after $l$ iter.\ on $G$.}
+	\text{ with } \textrm{WL}_l(G) := \text{$l$ iter.\ \acs{wl}-1 coloring of $G$.}
 \end{equation}
 Intuitively this context can be understood as the set of \acs{wl}-distinguishable subgraphs of $G_i$ with diameter $\leq 2k$.
 Since \ac{wl} is used to identify distinct subgraphs, \texttt{graph2vec} can only be applied to graphs with discrete vertex labels.
@@ -253,24 +265,16 @@ Analogous to \texttt{word2vec}, \texttt{graph2vec} therefore embeds graphs that 
 \subsection{Graph Kernels}%
 \label{sec:related:gcr:kernel}
 
-Instead of explicity mapping a graph or vertices into a vector space, one can also do so implicity by employing the kernel trick.
+Instead of explicitly mapping a graph or vertices into a vector space, one can also do so implicitly by employing the kernel trick.
 There is a large variety of so-called \acp{gk} to do this.
 \acp{gk} can be used in combination with any kernel method, typically a \ac{svm}, to solve the \ac{gcr} problem.
-We will now give a brief overview of the different types of \acp{gk}.
+While there is a large variety of different \acp{gk}, we will focus on those that are based on the previously described family of \ac{wl} algorithms.
 
-\subsubsection{R-Convolution Kernels}
+\paragraph{\ac{wl} subtree kernel}
 
+\paragraph{\ac{wl} shortest path kernel}
 
-
-\paragraph{Subgraph Pattern Kernel}
-
-\paragraph{GraphInvariant Kernel}
-
-\subsubsection{Non-Convolutional Kernels}
-
-\paragraph{\acl{wl} Kernel}
-
-\paragraph{Direct Product Kernel}
+\paragraph{Higher dimensional \ac{wl} kernels}
 
 \subsection{Graph Neural Networks}%
 \label{sec:related:gcr:nn}
