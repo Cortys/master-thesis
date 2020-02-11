@@ -33,7 +33,7 @@ if [ "$2" == "rebuild" ]; then
 fi
 
 if [ "$VARIANT" == "tensorflow" ]; then
-	ARGS="-p 6006:6006 -u $(id -u):$(id -g)"
+	ARGS="-p 6006:6006 -u $(id -u):$(id -g) -e TF_FORCE_GPU_ALLOW_GROWTH=$TF_FORCE_GPU_ALLOW_GROWTH"
 fi
 
 trap 'kill %1; exit 0' SIGINT
