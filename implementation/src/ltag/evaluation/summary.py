@@ -26,11 +26,12 @@ def statistics(vals):
     "mean": np.mean(vals),
     "std": np.std(vals),
     "min": np.min(vals),
-    "max": np.max(vals)
+    "max": np.max(vals),
+    "count": len(vals)
   }
 
 def summarize_evaluation(
-  eval_dir, selection_metric="val_accuracy"):
+  eval_dir, selection_metric="val_accuracy", ignore_worst=0):
   assert eval_dir.exists(), f"No evalutation '{eval_dir}' found."
 
   with open(eval_dir / "config.json") as f:
@@ -68,22 +69,37 @@ def summarize_evaluation(
       hp_train_results = defaultdict(list)
       hp_test_results = defaultdict(list)
       selection_vals = []
+      all_selection_vals = []
       for (_, _, i), file in files:
         with open(file, "r") as f:
           result = json.load(f)
 
+        selection_val = result["train"][selection_metric][-1]
+        all_selection_vals.append(selection_val)
         if i < config["repeat"]:
-          selection_vals.append(result["train"][selection_metric][-1])
+          selection_vals.append(selection_val)
 
         for metric, val in result["train"].items():
           hp_train_results[metric].append(val[-1])
         for metric, val in result["test"].items():
           hp_test_results[metric].append(val)
 
+      top_idxs = np.argsort(np.array(all_selection_vals))
+
+      if len(all_selection_vals) > ignore_worst:
+        if best_goal == "max":
+          top_idxs = top_idxs[ignore_worst:]
+        elif best_goal == "min":
+          top_idxs = top_idxs[:-ignore_worst]
+
+      top_statistics = fy.compose(
+        statistics,
+        lambda l: np.array(l)[top_idxs])
+
       hp_res = dict(
         fold_idx=fold_i,
-        train=dict_map(statistics, hp_train_results),
-        test=dict_map(statistics, hp_test_results),
+        train=dict_map(top_statistics, hp_train_results),
+        test=dict_map(top_statistics, hp_test_results),
         select=np.mean(selection_vals),
         hp_i=hp_i,
         hp=hps[hp_i],
@@ -116,7 +132,10 @@ def summarize_evaluation(
   results_summary = {
     "folds": results,
     "combined_train": combined_train,
-    "combined_test": combined_test
+    "combined_test": combined_test,
+    "args": {
+      "ignore_worst": ignore_worst
+    }
   }
 
   with open(summary_dir / "results.json", "w") as f:

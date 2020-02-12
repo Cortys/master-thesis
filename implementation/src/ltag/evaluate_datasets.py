@@ -31,7 +31,11 @@ def resume(mf, dsm, **kwargs):
   return evaluate.resume_evaluation(mf, dsm, **kwargs)
 
 def summarize(mf, dsm):
-  return summary.summarize_evaluation(evaluate.find_eval_dir(mf, dsm))
+  if dsm.evaluation_args is not None:
+    kwargs = fy.project(dsm.evaluation_args, ["ignore_worst"])
+
+  return summary.summarize_evaluation(
+    evaluate.find_eval_dir(mf, dsm), **kwargs)
 
 
 if __name__ == "__main__":

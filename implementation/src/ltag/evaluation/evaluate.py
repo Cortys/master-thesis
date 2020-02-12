@@ -118,7 +118,7 @@ def evaluate(
   outer_k=None, repeat=1, winner_repeat=3, epochs=1000,
   patience=100, stopping_min_delta=0.0001,
   restore_best=False, hp_args=None, label=None,
-  eval_dir=None, verbose=2, dry=False):
+  eval_dir=None, verbose=2, dry=False, ignore_worst=0):
   outer_k = outer_k or ds_manager.outer_k
   inner_k = None
 
@@ -259,7 +259,8 @@ def evaluate(
         if hp_start == hpc and i_start + 1 == winner_repeat:
           print(f"Already did winner evaluations of fold {fold_str}.")
         else:
-          summ = summary.summarize_evaluation(eval_dir)
+          summ = summary.summarize_evaluation(
+            eval_dir, ignore_worst=ignore_worst)
 
           best_hp_i = summ["folds"][k]["hp_i"]
           best_hp = hps[best_hp_i]
@@ -293,7 +294,7 @@ def evaluate(
         config["end_time"] = time_str()
         json.dump(config, f, indent="\t", sort_keys=True, cls=NumpyEncoder)
 
-  summary.summarize_evaluation(eval_dir)
+  summary.summarize_evaluation(eval_dir, ignore_worst=ignore_worst)
   print(
     time_str(),
     f"- Evaluation of {ds_name} using {mf_name} completed in {dur_eval}s.",

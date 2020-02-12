@@ -102,12 +102,14 @@ balanced_triangle_classification_2 = fy.partial(
   evaluation_args={
     "epochs": 5000,
     "patience": 1000,
+    "winner_repeat": 5,
     "hp_args": {
       # other widths ignored based on previous experiments:
       "cwl2_layer_widths": [32],
       "cwl2_layer_depths": [3],
       "cwl2_local_act": "relu"
-    }
+    },
+    "ignore_worst": 2
   })
 
 synthetic_binary = [
