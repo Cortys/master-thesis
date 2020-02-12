@@ -113,7 +113,6 @@ balanced_triangle_classification_2 = fy.partial(
   })
 
 synthetic_binary = [
-  "noisy_triangle_classification_2",
   "balanced_triangle_classification_2"
 ]
 synthetic = synthetic_binary
