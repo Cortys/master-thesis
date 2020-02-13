@@ -15,8 +15,8 @@ To build the containers execute:
 ```
 This might take a while.
 
-To sync the train/test/validation splits between the Tensorflow and PyTorch implementations, the `./sync_datasets.sh` should then be executed.
-It copies over the splits from `ds_splits` to the dataset repos of the Tensorflow and PyTorch implementations.
+To sync the train/test/validation splits between the Tensorflow and PyTorch implementations, the [`./sync_datasets.sh`](./sync_datasets.sh) script should then be executed.
+It copies over the splits from [`ds_repo`](./ds_repo) to the dataset repos of the Tensorflow and PyTorch implementations.
 
 ## How to use
 

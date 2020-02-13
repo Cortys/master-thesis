@@ -121,7 +121,7 @@ AvgDenseWL2GCN = DenseWL2GCN.extend("AvgDenseWL2GCN", [
 
 AvgWL2GCN = WL2GCN.extend("AvgWL2GCN", [
   cm.with_layer(lwl2.AvgPooling, with_inputs=True)])
-AvgCWL2GCN = CWL2GCN.extend("AvgWCL2GCN", [
+AvgCWL2GCN = CWL2GCN.extend("AvgCWL2GCN", [
   cm.with_layer(lwl2.AvgPooling, with_inputs=True)])
 
 # Max GNNs:
