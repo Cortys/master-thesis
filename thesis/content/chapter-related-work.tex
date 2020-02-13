@@ -124,7 +124,7 @@ $U_\lambda$ therefore smoothly interpolates between a conjunctive and disjunctiv
 Since t-norms and t-conorms are commutative and associative they can also be applied to non-empty sets of arbitrary size, i.e. $T(\{ y_1, \dots, y_n \}) = T(y_1, T(\{ y_2, \dots, y_n \}))$ with fixpoint $T(\{ y \}) = y$.
 Using this extension, a uninorm $U_\lambda$ can be applied to sets which turns it into a parameterized aggregation function $\mathcal{A}_\lambda: {[0, 1]}^* \to [0, 1]$.
 In this simple model the \ac{lta} aggregation problem boils down to the optimization of $\lambda$.
-The \ac{lta} disaggregation problem is solved by jointly optimizing a \ac{lm}, i.e.\ the constituent scores ${\{ y_i \in [0, 1] \}}_{c_i \in \bm{c}}$ are described by $y_i = {\left( 1 + \exp(-\theta^\top x_i) \right)}^{-1}$.
+The \ac{lta} disaggregation problem is solved by jointly optimizing a \acf{lm}, i.e.\ the constituent scores ${\{ y_i \in [0, 1] \}}_{c_i \in \bm{c}}$ are described by $y_i = {\left( 1 + \exp(-\theta^\top x_i) \right)}^{-1}$.
 Overall an \ac{lta} model is therefore described by the uninorm parameter $\lambda$ and the regression coefficients $\theta$.
 
 \subsection{\acs*{owa}-Aggregation}%
@@ -171,14 +171,34 @@ To classify or score a graph, it first needs to be characterized by a set of rel
 Two commonly used graph characterization approaches are the so called \acf{wl} colors and the notion of the graph spectrum.
 Both will now be briefly introduced since they form the foundation of most current \ac{gcr} methods.
 
-\subsection{Weisfeiler-Lehman Graph Colorings}%
+\subsection{\acl{wl} Graph Colorings}%
 \label{sec:related:character:wl}
 
-The Weisfeiler-Lehman algorithm characterizes a graph $G = (\mathcal{V}, \mathcal{E})$ by assigning discrete labels $c \in \mathcal{C}$, called \textit{colors}, to vertex $k$-tuples $(v_1, \dots, v_k) \in \mathcal{V}^k$, where $k \in \mathbb{N}$ is the freely choosable \textit{\ac{wl}-dimension}.
-A mapping $\chi: \mathcal{V}^k \to \mathcal{C}$ is called a coloring of $G = (\mathcal{V}, \mathcal{E})$.
+The \acf{wl} algorithm~\cite{Weisfeiler1968} characterizes a graph $G = (\mathcal{V}, \mathcal{E})$ by assigning discrete labels $c \in \mathcal{C}$, called \textit{colors}, to vertex $k$-tuples $(v_1, \dots, v_k) \in \mathcal{V}^k$, where $k \in \mathbb{N}$ is the freely choosable \textit{\ac{wl}-dimension}.
+A mapping $\chi_{G, k}: \mathcal{V}^k \to \mathcal{C}$ is called a \textit{$k$-coloring} of $G = (\mathcal{V}, \mathcal{E})$.
+We say  $\chi'$ \textit{refines} $\chi$ ($\chi' \succeq \chi$) iff.\ $\forall a, b \in \mathcal{V}^k: \chi(a) \neq \chi(b) \rightarrow \chi'(a) \neq \chi'(b)$, i.e.\ $\chi'$ distinguishes at least those tuples that are distinguished by $\chi$.
 
-\paragraph{The 1-dimensional \acs{wl} algorithm}
-For the most simple case of $k = 1$, a color is assigned to each vertex of a graph.
+The $k$-dimensional \ac{wl} algorithm works by iteratively refining $k$-colorings $\chi_{G, k}^0 \preceq \chi_{G, k}^1 \preceq \dots$ of a given graph $G$ until the convergence criterion $\chi_{G, k}^i \equiv \chi_{G, k}^{i+1}$ is satisfied;
+the criterion denotes that $\chi_{G, k}^i$ and $\chi_{G, k}^{i+1}$ must be identical up to color/label substitutions.
+The final \ac{wl} coloring $\chi_{G, k}$ that is obtained after convergence can be used to quickly check whether two graphs are not isomorphic.
+If for two graphs $G$ and $H$ there exists a color $c \in \mathcal{C}$ s.t.\ $\left|\left\{ a \in \mathcal{V}_G^k\, |\, \chi_{G, k}(a) = c \right\}\right|\neq \left|\left\{ b \in \mathcal{V}_H^k\, |\, \chi_{H, k}(b) = c \right\}\right|$, the graphs are $k$-\acs{wl} \textit{distinguishable} ($G \mathrel{{\not\simeq}_k} H$) and therefore non-isomorphic ($G \not\simeq H$). % chktex 21
+The opposite does however not necessarily hold;
+two $k$-\acs{wl} indistinguishable graphs are not always isomorphic, i.e.\ $G \mathrel{{\simeq}_k} H \centernot\implies G \simeq H$.
+To understand which types of graphs are $k$-\acs{wl} distinguishable, we will proceed in three steps:
+\begin{enumerate}
+	\item First the color refinement algorithm for the most simple case of $k = 1$ is described.
+	\item Then we extend the definitions and intuitions from the 1-dimensional \ac{wl} algorithm to its higher-dimensional generalization.
+	\item Lastly we will discuss the discriminative power of the \acs{wl} algorithm and its relation to the \acs{wl}-dimension $k$.
+\end{enumerate}
+
+\subsubsection{The 1-dimensional \acs{wl} algorithm}
+In the 1-dimensional \ac{wl} algorithm, a color is assigned to each vertex of a graph.
+If the vertices $\mathcal{V}_G$ of the input graph $G$ are already labeled via some labeling $l_G: \mathcal{V}_G \to L$, those labels can be used as the initial graph coloring $\chi_{G,1}^0 = l_G$.
+For unlabeled graphs a constant coloring is used instead, i.e.\ $\forall v \in \mathcal{V}_G: \chi_{G,1}^0(v) = \texttt{A}$ for some initial color $\texttt{A} \in \mathcal{C}$.
+In each iteration of the 1-\acs{wl} color refinement algorithm, the following neighborhood aggregation scheme is used to compute a new color for all vertices:
+\begin{align}
+	\chi_{G,1}^{i+1}(v) := h\left(\chi_{G,1}^{i}(v), \{ \chi_{G,1}^{i}(u) | u \in \Gamma_{G,1}(v) \}\right)
+\end{align}
 
 \subsection{Spectral Graph Theory}%
 \label{sec:related:character:spectral}

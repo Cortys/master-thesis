@@ -10,22 +10,22 @@
 \label{sec:intro:motivation}
 
 The field of \ac{ml} on graph-structured data has applications in many domains due to the general expressive power of graphs.
-Three common types of graph~\ac{ml} problems are
+The three most common types of graph~\ac{ml} problems are
 \begin{enumerate}[label=\textbf{\arabic*.}]
 	\item \textbf{Link prediction:}
 		A graph with an incomplete edge set is given and the missing edges have to be predicted.
-		The generation of friendship suggestions in a social network is a typical example for this.
+		The suggestion of potential friends in a social network is a typical example for this.
 	\item \textbf{Vertex classification \& regression:}
 		Here a class or a score has to be predicted for each vertex of a graph.
-		In social graphs this corresponds to the prediction of properties of individuals.
+		In social graphs this corresponds to the prediction of properties of individuals, e.g.\ personal preferences or gender.
 		Another example is the prediction of the amount of traffic at the intersections of a street network.
 	\item \textbf{Graph classification \& regression:}
 		In this final problem type a single global class or continuous value has to be predicted for an input graph.
 		The canonical example for this is the prediction of properties of molecule graphs, e.g.\ the toxicity or solubility of a chemical.
 \end{enumerate}
 In this thesis we will focus on the last problem type, \acf{gcr}.
-An \ac{ml} method for this problem has to accept graphs of varying size and should be permutation invariant wrt.\ the vertices.
-Those requirements are not met by the commonly used learners that only accept fixed-size feature vectors as their input, e.g.\ \acp*{lm}, \acp{svm} or \acp{mlp}.
+An \ac{ml} method for this problem has to accept graphs of varying size and should be permutation invariant wrt.\ the order in which graph vertices are provided.
+Those requirements are not met by the commonly used learners that only accept fixed-size feature vectors as their input, e.g.\ \acp{lm}, \acp{svm} or \acp{mlp}.
 
 A \ac{gcr} method has to account for two central aspects of the problem:
 \begin{enumerate*}
