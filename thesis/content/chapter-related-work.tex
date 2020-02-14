@@ -17,8 +17,8 @@ This is done in three steps:
 \label{sec:related:lta}
 
 The class of \ac{lta} problems was first described by \citet{Melnikov2016}.
-There an input instance is understood as a composition $\bm{c}$ of so-called constituents $c_i \in \bm{c}$, i.e.\ as a variable-size multiset with $n = |\bm{c}|$.
-The assumption in \ac{lta} problems is that for all constituents $c_i$ a local score $y_i \in \mathcal{Y}$ is either given or computable.
+There an input instance is understood as a composition $\bm{c} = \ldblbrace c_1, \dots, c_n \rdblbrace$ of so-called constituents, i.e.\ as a variable-size multiset (denoted as $\ldblbrace \cdot \rdblbrace$).
+The assumption in \ac{lta} problems is that for all constituents $c_i \in \bm{c}$ a local score $y_i \in \mathcal{Y}$ is either given or computable.
 The set of those local scores should be indicative of the overall score $y \in \mathcal{Y}$ of the composition $\bm{c}$.
 \ac{lta} problems typically require two subproblems to be solved:
 \begin{enumerate}[label=\textbf{\arabic*.}]
@@ -27,7 +27,7 @@ The set of those local scores should be indicative of the overall score $y \in \
 		Typically the aggregation function $\mathcal{A}$ should be associative and commutative to fit with the multiset-structure of compositions.
 	\item \textbf{Disaggregation:}
 		In case the constituent scores $y_i$ are not given, they have to be derived from a constituent representation, e.g.\ a vector $x_i \in \mathcal{X}$.
-		To learn this derivation function $f: \mathcal{X} \to \mathcal{Y}$, only the constituent vectors ${\{x_i\}}_{i = 1}^{n}$ and the composite score $y$ is given.
+		To learn this derivation function $f: \mathcal{X} \to \mathcal{Y}$, only the constituent vectors ${\ldblbrace x_i \rdblbrace}_{i = 1}^{n}$ and the composite score $y$ is given.
 		Thus the constituent scores $y_i$ need to be \textit{disaggregated} from $y$ in order to learn $f$.
 \end{enumerate}
 \begin{figure}
@@ -121,10 +121,10 @@ $U_\lambda$ therefore smoothly interpolates between a conjunctive and disjunctiv
 	\caption{The Łukasiewicz norms and the corresponding uninorm for $\lambda = 0.5$.}\label{fig:related:logic-norms}
 \end{figure}
 
-Since t-norms and t-conorms are commutative and associative they can also be applied to non-empty sets of arbitrary size, i.e. $T(\{ y_1, \dots, y_n \}) = T(y_1, T(\{ y_2, \dots, y_n \}))$ with fixpoint $T(\{ y \}) = y$.
+Since t-norms and t-conorms are commutative and associative they can also be applied to non-empty sets of arbitrary size, i.e. $T(\ldblbrace y_1, \dots, y_n \rdblbrace) = T(y_1, T(\ldblbrace y_2, \dots, y_n \rdblbrace))$ with fixpoint $T(\ldblbrace y \rdblbrace) = y$.
 Using this extension, a uninorm $U_\lambda$ can be applied to sets which turns it into a parameterized aggregation function $\mathcal{A}_\lambda: {[0, 1]}^* \to [0, 1]$.
 In this simple model the \ac{lta} aggregation problem boils down to the optimization of $\lambda$.
-The \ac{lta} disaggregation problem is solved by jointly optimizing a \acf{lm}, i.e.\ the constituent scores ${\{ y_i \in [0, 1] \}}_{c_i \in \bm{c}}$ are described by $y_i = {\left( 1 + \exp(-\theta^\top x_i) \right)}^{-1}$.
+The \ac{lta} disaggregation problem is solved by jointly optimizing a \acf{lm}, i.e.\ the constituent scores ${\ldblbrace y_i \in [0, 1] \rdblbrace}_{c_i \in \bm{c}}$ are described by $y_i = {\left( 1 + \exp(-\theta^\top x_i) \right)}^{-1}$.
 Overall an \ac{lta} model is therefore described by the uninorm parameter $\lambda$ and the regression coefficients $\theta$.
 
 \subsection{\acs*{owa}-Aggregation}%
@@ -142,7 +142,7 @@ $\min$ (if $\lambda = (1, 0, \dots, 0)$),
 $\max$ (if $\lambda = (0, \dots, 0, 1)$)
 or the arithmetic mean (if $\lambda = \left(\frac{1}{n}, \dots, \frac{1}{n}\right)$).
 
-To deal with varying composition sizes $n$, the weights ${\{ \lambda_i \}}_{i = 1}^{n}$ can however not be statically assigned.
+To deal with varying composition sizes $n$, the weights $\lambda_1, \dots, \lambda_n$ can however not be statically assigned.
 Instead they are interpolated using a so-called \ac{bum} function $q: [0, 1] \to [0, 1]$.
 It takes constituent positions that are normalized to the unit interval, i.e.\ $\frac{i}{n} \in [0, 1]$.
 The \ac{bum} function $q$ is then used to interpolate a weight for any normalized sort position via $\lambda_i := q\left(\frac{i}{n}\right) - q\left(\frac{i - 1}{n}\right)$.
@@ -197,8 +197,12 @@ If the vertices $\mathcal{V}_G$ of the input graph $G$ are already labeled via s
 For unlabeled graphs a constant coloring is used instead, i.e.\ $\forall v \in \mathcal{V}_G: \chi_{G,1}^0(v) = \texttt{A}$ for some initial color $\texttt{A} \in \mathcal{C}$.
 In each iteration of the 1-\acs{wl} color refinement algorithm, the following neighborhood aggregation scheme is used to compute a new color for all vertices:
 \begin{align}
-	\chi_{G,1}^{i+1}(v) := h\left(\chi_{G,1}^{i}(v), \{ \chi_{G,1}^{i}(u) | u \in \Gamma_{G,1}(v) \}\right)
+	\chi_{G,1}^{i+1}(v) := h\left(\chi_{G,1}^{i}(v), \ldblbrace \chi_{G,1}^{i}(u)\, |\, u \in \Gamma_{G}(v) \rdblbrace\right) \text{,}
 \end{align}
+with $\Gamma_G(v)$ denoting the set of adjecent vertices of $v \in \mathcal{V}_G$ and $h: \mathcal{C}^* \to \mathcal{C}$ denoting a perfect hash function that assigns a unique color to each finite combination of colors.
+In practice $h$ is usually defined lazily by using $\mathcal{C} = \mathbb{N}$ and non-deterministically enumerating color combinations in the order in which they are hashed s.t.\ a new color is introduced every time a previously unseen color combination is queried.
+
+
 
 \subsection{Spectral Graph Theory}%
 \label{sec:related:character:spectral}
