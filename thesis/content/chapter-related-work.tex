@@ -168,7 +168,7 @@ Currently the \ac{owa} approach requires all possible constituents to be part of
 \label{sec:related:character}
 
 To classify or score a graph, it first needs to be characterized by a set of relevant properties.
-Two commonly used graph characterization approaches are the so called \acf{wl} colors and the notion of the graph spectrum.
+Two commonly used graph characterization approaches are the so called \acl{wl} coloring and the notion of the graph spectrum.
 Both will now be briefly introduced since they form the foundation of most current \ac{gcr} methods.
 
 \subsection{\acl{wl} Graph Colorings}%
@@ -178,31 +178,57 @@ The \acf{wl} algorithm~\cite{Weisfeiler1968} characterizes a graph $G = (\mathca
 A mapping $\chi_{G, k}: \mathcal{V}^k \to \mathcal{C}$ is called a \textit{$k$-coloring} of $G = (\mathcal{V}, \mathcal{E})$.
 We say  $\chi'$ \textit{refines} $\chi$ ($\chi' \succeq \chi$) iff.\ $\forall a, b \in \mathcal{V}^k: \chi(a) \neq \chi(b) \rightarrow \chi'(a) \neq \chi'(b)$, i.e.\ $\chi'$ distinguishes at least those tuples that are distinguished by $\chi$.
 
-The $k$-dimensional \ac{wl} algorithm works by iteratively refining $k$-colorings $\chi_{G, k}^0 \preceq \chi_{G, k}^1 \preceq \dots$ of a given graph $G$ until the convergence criterion $\chi_{G, k}^i \equiv \chi_{G, k}^{i+1}$ is satisfied;
-the criterion denotes that $\chi_{G, k}^i$ and $\chi_{G, k}^{i+1}$ must be identical up to color/label substitutions.
-The final \ac{wl} coloring $\chi_{G, k}$ that is obtained after convergence can be used to quickly check whether two graphs are not isomorphic.
-If for two graphs $G$ and $H$ there exists a color $c \in \mathcal{C}$ s.t.\ $\left|\left\{ a \in \mathcal{V}_G^k\, |\, \chi_{G, k}(a) = c \right\}\right|\neq \left|\left\{ b \in \mathcal{V}_H^k\, |\, \chi_{H, k}(b) = c \right\}\right|$, the graphs are $k$-\acs{wl} \textit{distinguishable} ($G \mathrel{{\not\simeq}_k} H$) and therefore non-isomorphic ($G \not\simeq H$). % chktex 21
+The $k$-dimensional \ac{wl} algorithm ($k$-\acs{wl}) works by iteratively refining $k$-colorings $\chi_{G, k}^0 \preceq \chi_{G, k}^1 \preceq \dots$ of a given graph $G$ until the convergence criterion $\chi_{G, k}^i \equiv \chi_{G, k}^{i+1}$ is satisfied;
+here the equivalence operator $\equiv$ denotes that $\chi_{G, k}^i$ and $\chi_{G, k}^{i+1}$ must be identical up to color/label substitutions.
+The final \ac{wl} coloring $\bar{\chi}_{G, k}$ that is obtained after convergence can be used to quickly check whether two graphs are not isomorphic.
+If for two graphs $G$ and $H$ there exists a color $c \in \mathcal{C}$ s.t.\ $\left|\left\{ a \in \mathcal{V}_G^k\, |\, \bar{\chi}_{G, k}(a) = c \right\}\right|\neq \left|\left\{ b \in \mathcal{V}_H^k\, |\, \bar{\chi}_{H, k}(b) = c \right\}\right|$, the graphs are $k$-\acs{wl} \textit{distinguishable} ($G \mathrel{{\not\simeq}_k} H$) and therefore non-isomorphic ($G \not\simeq H$). % chktex 21
 The opposite does however not necessarily hold;
 two $k$-\acs{wl} indistinguishable graphs are not always isomorphic, i.e.\ $G \mathrel{{\simeq}_k} H \centernot\implies G \simeq H$.
-To understand which types of graphs are $k$-\acs{wl} distinguishable, we will proceed in three steps:
-\begin{enumerate}
-	\item First the color refinement algorithm for the most simple case of $k = 1$ is described.
-	\item Then we extend the definitions and intuitions from the 1-dimensional \ac{wl} algorithm to its higher-dimensional generalization.
-	\item Lastly we will discuss the discriminative power of the \acs{wl} algorithm and its relation to the \acs{wl}-dimension $k$.
-\end{enumerate}
+To understand why this is the case and which types of graphs are $k$-\acs{wl} distinguishable, we will now look at the details of \ac{wl} color refinement step.
+First the color refinement algorithm for the most simple case of $k = 1$ is described.
+Then the definitions and intuitions from the 1-dimensional case are extended to its higher-dimensional generalization.
+Lastly we will discuss the discriminative power of the \acs{wl} algorithm and its relation to the \acs{wl}-dimension $k$.
 
 \subsubsection{The 1-dimensional \acs{wl} algorithm}
 In the 1-dimensional \ac{wl} algorithm, a color is assigned to each vertex of a graph.
 If the vertices $\mathcal{V}_G$ of the input graph $G$ are already labeled via some labeling $l_G: \mathcal{V}_G \to L$, those labels can be used as the initial graph coloring $\chi_{G,1}^0 = l_G$.
-For unlabeled graphs a constant coloring is used instead, i.e.\ $\forall v \in \mathcal{V}_G: \chi_{G,1}^0(v) = \texttt{A}$ for some initial color $\texttt{A} \in \mathcal{C}$.
+For unlabeled graphs a constant coloring is used instead, e.g.\ $\forall v \in \mathcal{V}_G: \chi_{G,1}^0(v) = \textcolor{t_blue}{\texttt{A}}$ for some initial color $\textcolor{t_blue}{\texttt{A}} \in \mathcal{C}$. % chktex 25
 In each iteration of the 1-\acs{wl} color refinement algorithm, the following neighborhood aggregation scheme is used to compute a new color for all vertices:
 \begin{align}
-	\chi_{G,1}^{i+1}(v) := h\left(\chi_{G,1}^{i}(v), \ldblbrace \chi_{G,1}^{i}(u)\, |\, u \in \Gamma_{G}(v) \rdblbrace\right) \text{,}
+	\chi_{G,1}^{i+1}(v) := h\left(\chi_{G,1}^{i}(v), \ldblbrace \chi_{G,1}^{i}(u)\, |\, u \in \Gamma_{G}(v) \rdblbrace\right) \text{,}\label{eq:related:wl1-refine}
 \end{align}
 with $\Gamma_G(v)$ denoting the set of adjecent vertices of $v \in \mathcal{V}_G$ and $h: \mathcal{C}^* \to \mathcal{C}$ denoting a perfect hash function that assigns a unique color to each finite combination of colors.
 In practice $h$ is usually defined lazily by using $\mathcal{C} = \mathbb{N}$ and non-deterministically enumerating color combinations in the order in which they are hashed s.t.\ a new color is introduced every time a previously unseen color combination is queried.
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.75\linewidth]{gfx/related-work/wl1-refine.pdf}
+	\caption[Example 1-WL color refinement steps.]{
+		Example 1-WL color refinement steps.
+		After two iterations the coloring stabilizes.
+		Each vertex is labeled with its current color and has the aggregated neighbors, as defined in \cref{eq:related:wl1-refine}, written next to it.
+	}\label{fig:related:wl1-refine}
+\end{figure}
 
+\subsubsection{The $k$-dimensional \acs{wl} algorithm}
+As we just saw, the 1-\acs{wl} algorithm iteratively refines colorings of single vertices.
+While the obtained colorings differ for most non-isomorphic graphs $G \not\simeq H$, 1-\acs{wl} does not generally solve the graph isomorphism problem as illustrated in \cref{fig:related:wl1-problem}.
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\linewidth]{gfx/related-work/wl1-problem.pdf}
+	\caption[Two simple non-isomorphic graphs that are indistinguishable via 1-\acs{wl}.]{
+		Two simple non-isomorphic graphs that are indistinguishable via 1-\acs{wl}.
+	}\label{fig:related:wl1-problem}
+\end{figure}
+By extending \ac{wl} to higher dimensions such 1-\acs{wl} indistinguishable cases can however be handled.
+Analogous to the 1-dimensional case, the $k$-dimensional color refinement step is defined by
+\begin{align}
+	\chi_{G,k}^{i+1}(v) := &\ h\left(\chi_{G,k}^{i}(v), \ldblbrace (\chi_{G,k}^{i}(v[u/1]), \dots, \chi_{G,k}^{i}(v[u/k]))\, |\, u \in \mathcal{V}_G \rdblbrace\right)\label{eq:related:wl1-refine}\\
+	\text{with } v = &\ (v_1, \dots, v_k) \in \mathcal{V}^k \quad\text{and}\quad v[u/j] := (v_1, \dots, v_{j-1}, u, v_{j+1}, \dots, v_k)\text{.} \nonumber
+\end{align}
+In 1-\acs{wl} a vertex color is refined by combining the colors of neighboring vertices.
+In $k$-\acs{wl} the color of a vertex $k$-tuple $v$ is refined by combining the colors of its neighborhood which is defined as the set of all $k$-tuples in which at most one vertex differs from $v$.
 
+\subsubsection{Discriminative Power of \acs{wl}}
 
 \subsection{Spectral Graph Theory}%
 \label{sec:related:character:spectral}
