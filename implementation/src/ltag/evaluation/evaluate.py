@@ -55,7 +55,7 @@ def train(
 @cp.tolerant
 def evaluation_step(
   model_ctr, train_ds, val_ds, test_ds, k, hp_i, i, hp,
-  res_dir, fold_str, hp_str, verbose,
+  res_dir, fold_str, hp_str, verbose, log_dir_base,
   epochs, patience, stopping_min_delta, restore_best,
   repeat, winner_repeat, pos_hp_i=None):
   if i >= repeat:
@@ -247,7 +247,7 @@ def evaluate(
         for i in range(curr_i_start, repeat):
           completed_evaluation_step |= evaluation_step(
             model_ctr, train_ds, val_ds, test_ds, k, hp_i, i, hp,
-            res_dir, fold_str, hp_str, verbose,
+            res_dir, fold_str, hp_str, verbose, log_dir_base,
             **config)
           pos_file.write_text(f"{k},{hp_i},{i}")
 
@@ -274,7 +274,7 @@ def evaluate(
           for i in range(repeat, winner_repeat):
             completed_evaluation_step = evaluation_step(
               model_ctr, train_ds, val_ds, test_ds, k, best_hp_i, i, best_hp,
-              res_dir, fold_str, hp_str, verbose,
+              res_dir, fold_str, hp_str, verbose, log_dir_base,
               **config)
             pos_file.write_text(f"{k},{hpc},{i}")
           print(
