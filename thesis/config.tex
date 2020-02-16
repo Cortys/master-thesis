@@ -53,7 +53,9 @@
 \definecolor{t_blue}{HTML}{355fb3}
 \definecolor{t_red}{HTML}{b33535}
 \definecolor{t_green}{HTML}{3bb335}
+\definecolor{t_yellow}{HTML}{b39735}
 \definecolor{t_darkblue}{HTML}{1e3666}
+\definecolor{t_darkyellow}{HTML}{66571e}
 \definecolor{t_lightblue}{HTML}{8ea7d7}
 
 % Code snippets:
@@ -90,6 +92,7 @@
 
 \usepackage{mathtools}
 \usepackage{amssymb}
+\usepackage{amsthm}
 \usepackage{bm}
 \usepackage{dsfont}
 \usepackage{centernot}
@@ -97,6 +100,8 @@
 \newcommand*{\dblbrace}[2][]{#1{#2}\ifthenelse{\equal{#1}{}}{\mskip-6mu}{\mskip-8mu}#1{#2}}
 \newcommand*{\ldblbrace}[1][]{\dblbrace[#1]{\{}}
 \newcommand*{\rdblbrace}[1][]{\dblbrace[#1]{\}}}
+\newtheorem{thm}{Theorem}[chapter]
+\newenvironment{hproof}{\renewcommand{\proofname}{Proof Sketch}\proof}{\endproof}
 
 \usepackage{graphicx}
 \usepackage{tikz}
