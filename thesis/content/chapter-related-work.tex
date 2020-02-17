@@ -48,8 +48,8 @@ As the logical expression that thus effectively aggregates the constituents, a u
 Depending on the parameter $\lambda \in [0, 1]$, $U_{\lambda}$ combines a t-norm $T$ and a t-conorm $S$ which are continuous generalizations of logical conjunction and disjunction respectively.
 One popular choice of norms are the so-called Łukasiewicz norms:
 \begin{align}
-	\text{t-norm } T(a, b) &:= \max \{ 0, a + b - 1 \}, \quad\text{t-conorm } S(a, b) := \min \{ a + b, 1 \}, \nonumber \\
-	\text{uninorm } U_\lambda(a, b) &:= \begin{cases}
+	\text{t-norm } T(a, b) &\coloneqq \max \{ 0, a + b - 1 \}, \quad\text{t-conorm } S(a, b) \coloneqq \min \{ a + b, 1 \}, \nonumber \\
+	\text{uninorm } U_\lambda(a, b) &\coloneqq \begin{cases}
 		\lambda T\left(\frac{a}{\lambda}, \frac{b}{\lambda}\right) & \text{if } a, b \in [0, \lambda] \\
 		\lambda + (1 - \lambda) S\left(\frac{a - \lambda}{1 - \lambda}, \frac{b - \lambda}{1 - \lambda}\right) & \text{if } a, b \in [\lambda, 1] \\
 		\lambda \min \{ a, b \} & \text{else}
@@ -134,7 +134,7 @@ Recently \citet{Melnikov2019} have looked at an alternative class of aggregation
 Instead of using fuzzy logic to describe score aggregation, \ac{owa} operators were used.
 \ac{owa} aggregators work by sorting the input scores and then weighting them based on their sort position, i.e.\ %
 \begin{align}
-	\mathcal{A}_{\lambda}(y_1, \dots, y_n) := \sum_{i = 1}^n \lambda_i y_{\pi(i)},
+	\mathcal{A}_{\lambda}(y_1, \dots, y_n) \coloneqq \sum_{i = 1}^n \lambda_i y_{\pi(i)},
 \end{align}
 where $\lambda \in \mathbb{R}^n$ is a weight vector with ${\|\lambda\|}_1 = 1$ and $\pi$ is a sorting permutation of the input scores with $y_i < y_j \Rightarrow \pi(i) < \pi(j)$. % chktex 21
 Depending on the choice of the vector $\lambda$, the \ac{owa} function $\mathcal{A}_\lambda$ can express common aggregation functions like
@@ -145,7 +145,7 @@ or the arithmetic mean (if $\lambda = \left(\frac{1}{n}, \dots, \frac{1}{n}\righ
 To deal with varying composition sizes $n$, the weights $\lambda_1, \dots, \lambda_n$ can however not be statically assigned.
 Instead they are interpolated using a so-called \ac{bum} function $q: [0, 1] \to [0, 1]$.
 It takes constituent positions that are normalized to the unit interval, i.e.\ $\frac{i}{n} \in [0, 1]$.
-The \ac{bum} function $q$ is then used to interpolate a weight for any normalized sort position via $\lambda_i := q\left(\frac{i}{n}\right) - q\left(\frac{i - 1}{n}\right)$.
+The \ac{bum} function $q$ is then used to interpolate a weight for any normalized sort position via $\lambda_i \coloneqq q\left(\frac{i}{n}\right) - q\left(\frac{i - 1}{n}\right)$.
 Because $q$ is monotone with $q(0) = 0$ and $q(1) = 1$, it always holds that ${\|\lambda\|}_1 = q(1) - q(0) = 1$. % chktex 21
 Using this model, the aggregation problem boils down to optimizing the shape of $q$.
 
@@ -180,8 +180,11 @@ We say  $\chi'$ \textit{refines} $\chi$ ($\chi' \succeq \chi$) iff.\ $\forall a,
 
 The $k$-dimensional \ac{wl} algorithm ($k$-\acs{wl}) works by iteratively refining $k$-colorings $\chi_{G, k}^0 \preceq \chi_{G, k}^1 \preceq \dots$ of a given graph $G$ until the convergence criterion $\chi_{G, k}^i \equiv \chi_{G, k}^{i+1}$ is satisfied;
 here the equivalence operator $\equiv$ denotes that $\chi_{G, k}^i$ and $\chi_{G, k}^{i+1}$ must be identical up to color/label substitutions.
-The final \ac{wl} coloring $\bar{\chi}_{G, k}$ that is obtained after convergence can be used to quickly check whether two graphs are not isomorphic.
-If for two graphs $G$ and $H$ there exists a color $c \in \mathcal{C}$ s.t.\ $\left|\left\{ a \in \mathcal{V}_G^k\, |\, \bar{\chi}_{G, k}(a) = c \right\}\right|\neq \left|\left\{ b \in \mathcal{V}_H^k\, |\, \bar{\chi}_{H, k}(b) = c \right\}\right|$, the graphs are $k$-\acs{wl} \textit{distinguishable} ($G \mathrel{{\not\simeq}_k} H$) and therefore non-isomorphic ($G \not\simeq H$). % chktex 21
+The final \ac{wl} coloring $\bar{\chi}_{G, k}$ that is obtained after convergence can be used to quickly check whether two graphs $G, H$ are not isomorphic ($G \not\simeq H$).
+\begin{defn}\label{defn:related:wl-distinguishable}
+	Two graphs $G$ and $H$ are are $k$-\acs{wl} \textit{distinguishable} ($G \mathrel{{\not\simeq}_k} H$) iff.\ there exists a color $c \in \mathcal{C}$ s.t.\ $\left|\left\{ a \in \mathcal{V}_G^k\, |\, \bar{\chi}_{G, k}(a) = c \right\}\right|\neq \left|\left\{ b \in \mathcal{V}_H^k\, |\, \bar{\chi}_{H, k}(b) = c \right\}\right|$. % chktex 21
+\end{defn}
+It is easy to show that $G \mathrel{{\not\simeq}_k} H \implies G \not\simeq H$.
 The opposite does however not necessarily hold;
 two $k$-\acs{wl} indistinguishable graphs are not always isomorphic, i.e.\ $G \mathrel{{\simeq}_k} H \centernot\implies G \simeq H$.
 To understand why this is the case and which types of graphs are $k$-\acs{wl} distinguishable, we will now look at the details of \ac{wl} color refinement step.
@@ -194,18 +197,18 @@ In the 1-dimensional \ac{wl} algorithm, a color is assigned to each vertex of a 
 If the vertices $\mathcal{V}_G$ of the input graph $G$ are already labeled via some labeling $l_G: \mathcal{V}_G \to L$, those labels can be used as the initial graph coloring $\chi_{G,1}^0 = l_G$.
 For unlabeled graphs a constant coloring is used instead, e.g.\ $\forall v \in \mathcal{V}_G: \chi_{G,1}^0(v) = \textcolor{t_blue}{\texttt{A}}$ for some initial color $\textcolor{t_blue}{\texttt{A}} \in \mathcal{C}$. % chktex 25
 In each iteration of the 1-\acs{wl} color refinement algorithm, the following neighborhood aggregation scheme is used to compute a new color for all vertices:
-\begin{align}
-	\chi_{G,1}^{i+1}(v) := h\left(\chi_{G,1}^{i}(v), \ldblbrace \chi_{G,1}^{i}(u)\, |\, u \in \Gamma_{G}(v) \rdblbrace\right) \text{,}\label{eq:related:wl1-refine}
-\end{align}
-with $\Gamma_G(v)$ denoting the set of adjecent vertices of $v \in \mathcal{V}_G$ and $h: \mathcal{C}^* \to \mathcal{C}$ denoting a perfect hash function that assigns a unique color to each finite combination of colors.
-In practice $h$ is usually defined lazily by using $\mathcal{C} = \mathbb{N}$ and non-deterministically enumerating color combinations in the order in which they are hashed s.t.\ a new color is introduced every time a previously unseen color combination is queried.
+\begin{defn}\label{defn:related:wl1-refine}
+	$\chi_{G,1}^{i+1}(v) \coloneqq h\left(\chi_{G,1}^{i}(v), \ldblbrace \chi_{G,1}^{i}(u)\, |\, u \in \Gamma_{G}(v) \rdblbrace\right)$,
+	with $\Gamma_G(v)$ denoting the set of adjecent vertices of $v \in \mathcal{V}_G$ and $h: \mathcal{C}^* \to \mathcal{C}$ denoting a perfect hash function that assigns a unique color to each finite combination of colors.
+	In practice $h$ is usually defined lazily by using $\mathcal{C} = \mathbb{N}$ and non-deterministically enumerating color combinations in the order in which they are hashed s.t.\ a new color is introduced every time a previously unseen color combination is queried.
+\end{defn}
 \begin{figure}[ht]
 	\centering
 	\includegraphics[width=0.75\linewidth]{gfx/related-work/wl1-refine.pdf}
 	\caption[Example 1-WL color refinement steps.]{
 		Example 1-WL color refinement steps.
 		After two iterations the coloring stabilizes.
-		Each vertex is labeled with its current color and has the aggregated neighbors, as defined in \cref{eq:related:wl1-refine}, written next to it.
+		Each vertex is labeled with its current color and has the aggregated neighbors, as in \cref{defn:related:wl1-refine}, written next to it.
 	}\label{fig:related:wl1-refine}
 \end{figure}
 
@@ -220,11 +223,13 @@ While the obtained colorings differ for most non-isomorphic graphs $G \not\simeq
 	}\label{fig:related:wl1-problem}
 \end{figure}
 By extending \ac{wl} to higher dimensions such 1-\acs{wl} indistinguishable cases can however be handled.
-Analogous to the 1-dimensional definition from \cref{eq:related:wl1-refine}, the $k$-dimensional color refinement step is defined by
-\begin{align}
-	\chi_{G,k}^{i+1}(v) := &\ h\left(\chi_{G,k}^{i}(v), \ldblbrace (\chi_{G,k}^{i}(v[u/1]), \dots, \chi_{G,k}^{i}(v[u/k]))\, |\, u \in \mathcal{V}_G \rdblbrace\right)\label{eq:related:wlk-refine}\\
-	\text{with } v = &\ (v_1, \dots, v_k) \in \mathcal{V}^k \quad\text{and}\quad v[u/j] := (v_1, \dots, v_{j-1}, u, v_{j+1}, \dots, v_k)\text{.} \nonumber
-\end{align}
+Analogous to the 1-dimensional \cref{defn:related:wl1-refine}, the $k$-dimensional color refinement step is defined by
+\begin{defn}\label{defn:related:wlk-refine}
+	$\begin{aligned}[t]
+		\chi_{G,k}^{i+1}(v) \coloneqq &\ h\left(\chi_{G,k}^{i}(v), \ldblbrace (\chi_{G,k}^{i}(v[u/1]), \dots, \chi_{G,k}^{i}(v[u/k]))\, |\, u \in \mathcal{V}_G \rdblbrace\right)\\
+		\text{with } v = &\ (v_1, \dots, v_k) \in \mathcal{V}^k, v[u/j] \coloneqq (v_1, \dots, v_{j-1}, u, v_{j+1}, \dots, v_k) \text{.}
+	\end{aligned}$
+\end{defn}
 In 1-\acs{wl} a vertex color is refined by combining the colors of neighboring vertices.
 In $k$-\acs{wl} the color of a $k$-tuple $v \in \mathcal{V}^k$ is refined by combining the colors of its neighborhood which is defined as the set of all $k$-tuples in which at most one vertex differs from $v$.
 Note that each vertex $k$-tuple has one neighbor for each $u \in \mathcal{V}_G$, each of which is a $k$-tuple of vertex $k$-tuples.
@@ -248,8 +253,9 @@ This more abstract notion of neighborhood is illustrated in \cref{fig:related:wl
 	\end{subfigure}
 	\caption[\ac{wl} neighborhoods for different values of $k$.]{
 		Tuple neighborhoods for different values of $k$.
-		The vertices highlighted in \textcolor{t_blue}{blue} form the root tuple whose neighbors are shown.
-		Each neighbor is highlighted with a different color, except for 3-WL where the \textcolor{t_red}{red}, \textcolor{t_green}{green} and \textcolor{t_darkyellow}{yellow} triples actually form the single neighbor for $u = v_4$ (see~\cref{eq:related:wlk-refine}).
+		The vertices highlighted in \textcolor{t_blue}{blue} form the root tuple $v \in \mathcal{V}_G^k$ whose neighbors are shown;
+		for simplicity neighbors with $u \in v$ are left out (see~\cref{defn:related:wlk-refine}).
+		Each neighbor is highlighted with a different color, except for 3-WL where the \textcolor{t_red}{red}, \textcolor{t_green}{green} and \textcolor{t_darkyellow}{yellow} triples actually form the single neighbor for $u = v_4$.
 	}\label{fig:related:wl-neighbors}
 \end{figure}
 For $k = 2$ this means that each potential edge $(v, w) \in \mathcal{V}_G^2$ has all possible paths of length $2$ from $v$ to $w$ as its neighbors (see~\cref{fig:related:wl-neighbors:2}).
@@ -268,26 +274,31 @@ Formally this means that
 \end{align}
 If no explicit vertex labeling $l_G$ is given, a single constant label for all vertices is assumed.
 Also note that there is a fundamental difference in how the adjacency information encoded in $\mathcal{E}_G$ is used in 1-\acs{wl} vs.\ $k$-\acs{wl}:
-In 1-\acs{wl} a vertex coloring by itself cannot encode adjacency which is why this information is explicitly incorporated in each refinement step via $\Gamma_G$ (see~\cref{eq:related:wl1-refine}).
+In 1-\acs{wl} a vertex coloring by itself cannot encode adjacency which is why this information is explicitly incorporated in each refinement step via $\Gamma_G$ (see~\cref{defn:related:wl1-refine}).
 In $k$-\acs{wl} on the other hand each pair of vertices $(v, u) \in \mathcal{V}_G^2$ appears in at least one $k$-tuple (assuming $k \geq 2$) and therefore has at least one color which can implicitly encode the adjacency information.
 Edges and non-edges are colored differently in the initial coloring as defined in \cref{eq:related:wlk-init};
-thus no explicit adjacency information is needed in the $k$-\acs{wl} color refinement step defined in \cref{eq:related:wlk-refine}.
+thus no explicit adjacency information is needed in the $k$-\acs{wl} color refinement step in \cref{defn:related:wlk-refine}.
 
 \subsubsection{Discriminative Power of \acs{wl}}
 Now we will look at the types of graphs that can be distinguished by \acs{wl} in relation to the \acs{wl}-dimension $k$.
-\begin{thm}
-	$G \mathrel{\not\simeq_k} H \implies G \mathrel{\not\simeq_{k+1}} H$, i.e.\ the discriminative power of $k$-\acs{wl} grows with $k$.
-	\begin{hproof}
-		All $k$-tuples can be mapped to $(k+1)$-tuples, e.g.\ via $\varphi(v_1, \dots, v_k) = (v_1, \dots, v_k, v_k)$.
-	\end{hproof}
-\end{thm}
+\begin{lem}
+	$G \mathrel{\not\simeq_k} H \implies G \mathrel{\not\simeq_{k+1}} H$ (the \acs{wl} power is never lower for higher $k$).
+\end{lem}
+\begin{hproof}
+	All $k$-tuples can be mapped to $(k+1)$-tuples via $\varphi(v_1, \dots, v_k) \coloneqq (v_1, \dots,\allowbreak v_k, v_k)$.
+	For each neighbor $(v[u/1], \dots,\allowbreak v[u/k])$ of $v$, there is a corresponding neighbor $(\varphi(v[u/1]), \dots \varphi(v[u/k]), \varphi(v[u/k]))$ of $\varphi(v)$.
+	Using \cref{eq:related:wlk-init} (for $i = 0$) and \cref{defn:related:wlk-refine} (for $i > 0$) it follows that $\forall v, w \in \mathcal{V}_G^k: \chi_{G, k}^i(v) \neq \chi_{G, k}^i(w) \rightarrow \chi_{G, k+1}^i(\varphi(v)) \neq \chi_{G, k+1}^i(\varphi(w))$.
+	The lemma then follows by \cref{defn:related:wl-distinguishable}.
+\end{hproof}
 \begin{figure}[ht]
 	\centering
 	\includegraphics[width=\linewidth]{gfx/related-work/wl2-problem-solution.pdf}
-	\caption[Two simple non-isomorphic graphs that are indistinguishable by 1-\acs{wl}.]{
-		Two simple non-isomorphic graphs that are indistinguishable by 1-\acs{wl}.
+	\caption{
+		Two non-isomorphic graphs with $G \mathrel{\simeq_1} H$ and $G \mathrel{\not\simeq_2} H$.
 	}\label{fig:related:wl2-problem-solution}
 \end{figure}
+\Cref{fig:related:wl2-problem-solution} illustrates the higher discriminative power of higher \acs{wl}-dimensions;
+it shows how 2-WL is able to distinguish the two 1-WL indistinguishable graphs from \cref{fig:related:wl1-problem}.
 
 \subsection{Spectral Graph Theory}%
 \label{sec:related:character:spectral}
@@ -337,8 +348,8 @@ To do this the context $C_k(w_i) = \{ w_{i-k}, \dots, w_{i + k} \}$ is computed 
 The word contexts are then used to optimize the following log-likelihood objective:
 \begin{gather}
 	\max_{f, f_C} \sum_{i = 1}^n \log P(C_k(w_i) | w_i)\ =\ \max_{f, f_C} \sum_{i = 1}^n \smashoperator[r]{\sum_{w_j \in C_k(w_i)}}\, \left[ {f(w_i)}^\top f_C(w_j) - \log Z_{w_i} \right] \label{eq:related:gcr:embed:word2vec}\\
-	\text{with } P(C_k(w_i) | w_i) := \prod_{\mathclap{w_j \in C_k(w_i)}}\, \overbrace{\frac{\exp\left({f(w_i)}^\top f_C(w_j)\right)}{Z_{w_i}}}^{P(w_j | w_i)}
-	\text{ and } Z_{w_i} := \sum_{j = 1}^n \exp\left({f(w_i)}^\top f_C(w_j)\right) \nonumber
+	\text{with } P(C_k(w_i) | w_i) \coloneqq \prod_{\mathclap{w_j \in C_k(w_i)}}\, \overbrace{\frac{\exp\left({f(w_i)}^\top f_C(w_j)\right)}{Z_{w_i}}}^{P(w_j | w_i)}
+	\text{ and } Z_{w_i} \coloneqq \sum_{j = 1}^n \exp\left({f(w_i)}^\top f_C(w_j)\right) \nonumber
 \end{gather}
 \texttt{word2vec} essentially uses an expectation maximization scheme to maximize the probabilities $P(w_j | w_i)$ of observing the context words $w_j \in C_k(w_i)$ of all words $w_i$.
 Those probabilities are described by the overlap of the embeddings $f(w_i)$ of words $w_i$ and the embeddings $f_C(w_j)$ of their context words $w_j$.
@@ -362,8 +373,8 @@ It is inspired by \texttt{doc2vec}~\cite{Le2014} which in turn is based on \text
 While in \texttt{word2vec} every word can be a context root as well as a context element, \texttt{graph2vec} uses the graphs $\mathbb{G}$ as context roots.
 The context $C_k(G_i)$ of a graph $G_i = (\mathcal{V}_i, \mathcal{E}_i)$ is defined as
 \begin{equation}
-	C_k(G_i) := \bigcup_{\mathclap{v_j \in \mathcal{V}_i}}\, {\left\{ {\textrm{WL}_l(G_i)}_j \right\}}_{l = 0}^k % chktex 21
-	\text{ with } \textrm{WL}_l(G) := \text{$l$ iter.\ \acs{wl}-1 coloring of $G$.}
+	C_k(G_i) \coloneqq \bigcup_{\mathclap{v_j \in \mathcal{V}_i}}\, {\left\{ {\textrm{WL}_l(G_i)}_j \right\}}_{l = 0}^k % chktex 21
+	\text{ with } \textrm{WL}_l(G) \coloneqq \text{$l$ iter.\ \acs{wl}-1 coloring of $G$.}
 \end{equation}
 Intuitively this context can be understood as the set of \acs{wl}-distinguishable subgraphs of $G_i$ with diameter $\leq 2k$.
 Since \ac{wl} is used to identify distinct subgraphs, \texttt{graph2vec} can only be applied to graphs with discrete vertex labels.

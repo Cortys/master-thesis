@@ -4,6 +4,7 @@
 % **************************************************
 % Files' Character Encoding
 % **************************************************
+\usepackage{amsthm}
 \PassOptionsToPackage{utf8}{inputenc}
 \usepackage{inputenc}
 \usepackage[ngerman,english]{babel}
@@ -92,16 +93,31 @@
 
 \usepackage{mathtools}
 \usepackage{amssymb}
-\usepackage{amsthm}
 \usepackage{bm}
 \usepackage{dsfont}
 \usepackage{centernot}
+\usepackage{breqn}
 \newcommand\numberthis{\addtocounter{equation}{1}\tag{\theequation}}
 \newcommand*{\dblbrace}[2][]{#1{#2}\ifthenelse{\equal{#1}{}}{\mskip-6mu}{\mskip-8mu}#1{#2}}
 \newcommand*{\ldblbrace}[1][]{\dblbrace[#1]{\{}}
 \newcommand*{\rdblbrace}[1][]{\dblbrace[#1]{\}}}
-\newtheorem{thm}{Theorem}[chapter]
-\newenvironment{hproof}{\renewcommand{\proofname}{Proof Sketch}\proof}{\endproof}
+
+\makeatletter
+\renewenvironment{proof}[1][\proofname]{\par
+	\pushQED{\qed}%
+	\topsep-10pt
+	\trivlist
+	\item[\hskip\labelsep%
+		\itshape%
+		#1\@addpunct{.}%
+	]\ignorespaces
+}{%
+  \popQED\endtrivlist\@endpefalse
+}
+\def\th@plain{\thm@preskip\parskip\thm@postskip0pt\itshape}
+\def\th@definition{\thm@preskip\parskip\thm@postskip0pt\normalfont}
+\def\th@remark{\thm@headfont{\itshape}\normalfont\thm@preskip\parskip\thm@postskip0pt}
+\makeatother
 
 \usepackage{graphicx}
 \usepackage{tikz}
@@ -152,3 +168,9 @@
 % Custom commands:
 \newcommand{\tikzmark}[1]{\tikz[overlay,remember picture] \node (#1) {};} % chktex 1
 \newcommand{\dac}[3]{\DeclareAcronym{#1}{short = #2, long = #3}}
+
+\newtheorem{thm}{Theorem}[chapter]
+\newtheorem{lem}[thm]{Lemma}[chapter]
+\newtheorem{cor}[thm]{Corollary}[chapter]
+\newtheorem{defn}[thm]{Definition}[chapter]
+\newenvironment{hproof}{\renewcommand{\proofname}{Proof Sketch}\proof}{\endproof}
