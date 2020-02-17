@@ -101,6 +101,9 @@ def evaluation_step(
       "test_duration": test_dur
     }, f, cls=NumpyEncoder)
 
+  tf.keras.backend.clear_session()
+  gc.collect()
+
   print(
     f"\nTest results in {train_dur}s/{test_dur}s for",
     f"it {rep_str}, fold {fold_str}, hps {hp_str}:",
@@ -281,9 +284,6 @@ def evaluate(
             time_str(),
             f"- Completed additional {add_rep} evals of fold {fold_str}",
             f"and winning hp {hp_str}.")
-
-      tf.keras.backend.clear_session()
-      gc.collect()
   finally:
     t_end_eval = timer()
     dur_eval = t_end_eval - t_start_eval

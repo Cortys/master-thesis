@@ -55,7 +55,7 @@ mkdir -p evaluations
 mkdir -p libs
 mkdir -p data
 
-docker run --runtime=nvidia --rm --name $LTAG_CONTAINER_NAME \
+docker run --gpus all --rm --name $LTAG_CONTAINER_NAME \
 	-p $JUPYTER_PORT:8888 \
 	-v $(pwd)/src:/ltag \
 	-v $(pwd)/logs:/logs \

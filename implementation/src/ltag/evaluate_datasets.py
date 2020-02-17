@@ -33,6 +33,8 @@ def resume(mf, dsm, **kwargs):
 def summarize(mf, dsm):
   if dsm.evaluation_args is not None:
     kwargs = fy.project(dsm.evaluation_args, ["ignore_worst"])
+  else:
+    kwargs = {}
 
   return summary.summarize_evaluation(
     evaluate.find_eval_dir(mf, dsm), **kwargs)
@@ -90,7 +92,7 @@ if __name__ == "__main__":
   msl = len(ms)
 
   print(f"Starting {type}...")
-  print(f"Will evaluate the following {dsl} datasets:")
+  print(f"Will use the following {dsl} datasets:")
   for d in ds:
     print(f"- {d}")
   print(f"Will use the following {msl} models:")

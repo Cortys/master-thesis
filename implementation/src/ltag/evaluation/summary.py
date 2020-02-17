@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function,\
 
 import os
 import json
-from collections import defaultdict
+from collections import defaultdict, Sized
 import funcy as fy
 import numpy as np
 
@@ -27,7 +27,7 @@ def statistics(vals):
     "std": np.std(vals),
     "min": np.min(vals),
     "max": np.max(vals),
-    "count": len(vals)
+    "count": len(vals) if isinstance(vals, Sized) else 1
   }
 
 def summarize_evaluation(
