@@ -4,7 +4,6 @@
 % **************************************************
 % Files' Character Encoding
 % **************************************************
-\usepackage{amsthm}
 \PassOptionsToPackage{utf8}{inputenc}
 \usepackage{inputenc}
 \usepackage[ngerman,english]{babel}
@@ -93,10 +92,12 @@
 
 \usepackage{mathtools}
 \usepackage{amssymb}
+\usepackage{amsthm}
 \usepackage{bm}
 \usepackage{dsfont}
 \usepackage{centernot}
 \usepackage{breqn}
+\numberwithin{equation}{theorem}
 \newcommand\numberthis{\addtocounter{equation}{1}\tag{\theequation}}
 \newcommand*{\dblbrace}[2][]{#1{#2}\ifthenelse{\equal{#1}{}}{\mskip-6mu}{\mskip-8mu}#1{#2}}
 \newcommand*{\ldblbrace}[1][]{\dblbrace[#1]{\{}}
@@ -171,6 +172,7 @@
 
 \newtheorem{thm}{Theorem}[chapter]
 \newtheorem{lem}[thm]{Lemma}[chapter]
+\newtheorem{fact}[thm]{Fact}[chapter]
 \newtheorem{cor}[thm]{Corollary}[chapter]
 \newtheorem{defn}[thm]{Definition}[chapter]
 \newenvironment{hproof}{\renewcommand{\proofname}{Proof Sketch}\proof}{\endproof}

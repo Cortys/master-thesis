@@ -174,7 +174,7 @@ Both will now be briefly introduced since they form the foundation of most curre
 \subsection{\acl{wl} Graph Colorings}%
 \label{sec:related:character:wl}
 
-The \acf{wl} algorithm~\cite{Weisfeiler1968} characterizes a graph $G = (\mathcal{V}, \mathcal{E})$ by assigning discrete labels $c \in \mathcal{C}$, called \textit{colors}, to vertex $k$-tuples $(v_1, \dots, v_k) \in \mathcal{V}^k$, where $k \in \mathbb{N}$ is the freely choosable \textit{\ac{wl}-dimension}.
+The \acf{wl} algorithm~\cite{Weisfeiler1968}\cite{Cai1992} characterizes a graph $G = (\mathcal{V}, \mathcal{E})$ by assigning discrete labels $c \in \mathcal{C}$, called \textit{colors}, to vertex $k$-tuples $(v_1, \dots, v_k) \in \mathcal{V}^k$, where $k \in \mathbb{N}$ is the freely choosable \textit{\ac{wl}-dimension}.
 A mapping $\chi_{G, k}: \mathcal{V}^k \to \mathcal{C}$ is called a \textit{$k$-coloring} of $G = (\mathcal{V}, \mathcal{E})$.
 We say  $\chi'$ \textit{refines} $\chi$ ($\chi' \succeq \chi$) iff.\ $\forall a, b \in \mathcal{V}^k: \chi(a) \neq \chi(b) \rightarrow \chi'(a) \neq \chi'(b)$, i.e.\ $\chi'$ distinguishes at least those tuples that are distinguished by $\chi$.
 
@@ -281,8 +281,8 @@ thus no explicit adjacency information is needed in the $k$-\acs{wl} color refin
 
 \subsubsection{Discriminative Power of \acs{wl}}
 Now we will look at the types of graphs that can be distinguished by \acs{wl} in relation to the \acs{wl}-dimension $k$.
-\begin{lem}
-	$G \mathrel{\not\simeq_k} H \implies G \mathrel{\not\simeq_{k+1}} H$ (the \acs{wl} power is never lower for higher $k$).
+\begin{lem}\label{lem:related:wl-lower}
+	$G \mathrel{\not\simeq_k} H \implies G \mathrel{\not\simeq_{k+1}} H$ ($(k+1)$-\acs{wl} is at least as powerful as $k$-\acs{wl}).
 \end{lem}
 \begin{hproof}
 	All $k$-tuples can be mapped to $(k+1)$-tuples via $\varphi(v_1, \dots, v_k) \coloneqq (v_1, \dots,\allowbreak v_k, v_k)$.
@@ -290,6 +290,9 @@ Now we will look at the types of graphs that can be distinguished by \acs{wl} in
 	Using \cref{eq:related:wlk-init} (for $i = 0$) and \cref{defn:related:wlk-refine} (for $i > 0$) it follows that $\forall v, w \in \mathcal{V}_G^k: \chi_{G, k}^i(v) \neq \chi_{G, k}^i(w) \rightarrow \chi_{G, k+1}^i(\varphi(v)) \neq \chi_{G, k+1}^i(\varphi(w))$.
 	The lemma then follows by \cref{defn:related:wl-distinguishable}.
 \end{hproof}
+\begin{fact}[see~\citet{Immerman1990}]\label{fact:related:wl-upper}
+	For all $k$ there are non-isomorphic graphs $G \not\simeq H$ of size $\mathcal{O}(k)$ with $G \mathrel{\simeq_k} H$.
+\end{fact}
 \begin{figure}[ht]
 	\centering
 	\includegraphics[width=\linewidth]{gfx/related-work/wl2-problem-solution.pdf}
@@ -297,8 +300,15 @@ Now we will look at the types of graphs that can be distinguished by \acs{wl} in
 		Two non-isomorphic graphs with $G \mathrel{\simeq_1} H$ and $G \mathrel{\not\simeq_2} H$.
 	}\label{fig:related:wl2-problem-solution}
 \end{figure}
-\Cref{fig:related:wl2-problem-solution} illustrates the higher discriminative power of higher \acs{wl}-dimensions;
-it shows how 2-WL is able to distinguish the two 1-WL indistinguishable graphs from \cref{fig:related:wl1-problem}.
+\begin{cor}\label{cor:related:wl-monotonous}
+	The discriminative power of $k$-\acs{wl} grows monotonously with $k$ and never converges, i.e.\ for all $k \in \mathbb{N}$ there is an $l \in \mathbb{N}$ s.t.\ the set of $k$-\ac{wl} distinguishable graphs is a true subset of the $(k+l)$-\ac{wl} distinguishable graphs.
+\end{cor}
+\begin{hproof}
+	Note that $k$-\acs{wl} trivially solves the graph isomorphism problem for all graphs of size $\leq k$ via the initial coloring (see~\cref{eq:related:wlk-init}).
+	Using \cref{lem:related:wl-lower} and \cref{fact:related:wl-upper} the corollary directly follows.
+\end{hproof}
+\Cref{fig:related:wl2-problem-solution} illustrates \cref{cor:related:wl-monotonous} by showing how 2-WL is able to distinguish the two 1-WL indistinguishable graphs from \cref{fig:related:wl1-problem}.
+Since the time complexity of $k$-\acs{wl} grows exponentially with $k$~\cite[corr.~1.9.7]{Immerman1990}, a trade-off between the runtime and the discriminative power has to be made.
 
 \subsection{Spectral Graph Theory}%
 \label{sec:related:character:spectral}
@@ -373,10 +383,10 @@ It is inspired by \texttt{doc2vec}~\cite{Le2014} which in turn is based on \text
 While in \texttt{word2vec} every word can be a context root as well as a context element, \texttt{graph2vec} uses the graphs $\mathbb{G}$ as context roots.
 The context $C_k(G_i)$ of a graph $G_i = (\mathcal{V}_i, \mathcal{E}_i)$ is defined as
 \begin{equation}
-	C_k(G_i) \coloneqq \bigcup_{\mathclap{v_j \in \mathcal{V}_i}}\, {\left\{ {\textrm{WL}_l(G_i)}_j \right\}}_{l = 0}^k % chktex 21
-	\text{ with } \textrm{WL}_l(G) \coloneqq \text{$l$ iter.\ \acs{wl}-1 coloring of $G$.}
+	C_k(G_i) \coloneqq \bigcup_{\mathclap{v_j \in \mathcal{V}_i}}\, {\left\{ {\chi_{G_i, 1}^l(v_j) \right\}}_{l = 0}^k % chktex 21
+	\text{ with $k \in \mathbb{N}$ and $\chi_{G_i, 1}^l$ as in \cref{defn:related:wl1-refine}.}
 \end{equation}
-Intuitively this context can be understood as the set of \acs{wl}-distinguishable subgraphs of $G_i$ with diameter $\leq 2k$.
+Intuitively this context can be understood as the set of 1-\acs{wl}-distinguishable subgraphs of $G_i$ with diameter $\leq 2k$.
 Since \ac{wl} is used to identify distinct subgraphs, \texttt{graph2vec} can only be applied to graphs with discrete vertex labels.
 Using the previous definitions, the context root embedding function has the signature $f: \mathbb{G} \to \mathbb{R}^d$ while the context element embedding function is of type $f_C: \bigcup_{G_i \in \mathbb{G}} C_k(G_i) \to \mathbb{R}^d$.
 To find those embeddings the \texttt{word2vec} objective from \cref{eq:related:gcr:embed:word2vec} is reused.
