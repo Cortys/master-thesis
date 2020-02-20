@@ -169,11 +169,11 @@ Currently the \ac{owa} approach requires all possible constituents to be part of
 
 \begin{defn}
 	A graph $G \coloneqq (\mathcal{V}_G, \mathcal{E}_G)$ consists of a set of vertices $v_i \in \mathcal{V}_G$ and a set of edges $e_{ij} = (v_i, v_j) \in \mathcal{E}_G \subseteq \mathcal{V}_G^2$.
-	Optionally discrete vertex labels $l_i \in L_{\mathcal{V}}$ or edge labels $l_{ij} \in L_{\mathcal{E}}$ may be associated with all vertices $v_i \in \mathcal{V}_G$ and edges $e_{ij}\in \mathcal{E}_G$ respectively.
-	Also continuous feature vectors $x_{i} \in \mathcal{X}_{\mathcal{V}}$, $x_{ij} \in \mathcal{X}_{\mathcal{E}}$ may be given.
-	If $\mathcal{X}_{\mathcal{E}} = \mathbb{R}$, $x_{ij}$ can for example be interpreted as an edge weight of $e_{ij}$.
+	Optionally discrete vertex labels $l_G[v_i] \in L_{\mathcal{V}}$ or edge labels $l_G[e_{ij}] \in L_{\mathcal{E}}$ may be associated with all vertices $v_i \in \mathcal{V}_G$ and edges $e_{ij}\in \mathcal{E}_G$ respectively.
+	Also continuous feature vectors $x_G[v_{i}] \in \mathcal{X}_{\mathcal{V}}$, $x_G[e_{ij}] \in \mathcal{X}_{\mathcal{E}}$ may be given.
+	If $\mathcal{X}_{\mathcal{E}} = \mathbb{R}$, $x_G[e_{ij}]$ can for example be interpreted as an edge weight of $e_{ij}$.
 \end{defn}
-In this thesis only undirected graphs $G$ will be considered, i.e.\ ${e_{ij} \in \mathcal{E}_G} \leftrightarrow\allowbreak {e_{ji} \in \mathcal{E}_G} \allowbreak\land l_{ij} = l_{ji} \allowbreak\land x_{ij} = x_{ji}$.
+In this thesis all graphs $G$ are assumed to be undirected if not explicitly stated otherwise, i.e.\ ${e_{ij} \in \mathcal{E}_G} \leftrightarrow\allowbreak {e_{ji} \in \mathcal{E}_G} \allowbreak\land l_G[e_{ij}] = l_G[e_{ji}] \allowbreak\land x_G[e_{ij}] = x_G[e_{ji}]$.
 To classify or score such a graph, it first needs to be characterized by a set of relevant properties.
 The most strict characterization of a graph is its so-called \textit{isomorphism type}.
 It uniquely identifies a graph but lacks any notion of similarity between non-identical graphs.
@@ -184,7 +184,12 @@ They are the theoretical foundation of many current \ac{gcr} methods.
 \subsection{The Graph Isomorphism Problem}%
 \label{sec:related:character:iso}
 
-
+In order to process a graph $G$ of size $n = |\mathcal{V}_G|$ , one is forced to choose some encoding, e.g.\ an adjacency matrix $A \in {\{0, 1\}}^{n \times n}$.
+Such an encoding introduces a vertex ordering $v_1, \dots, v_n$ that does not carry any semantic meaning.
+This means that there are $n!$ equivalent encodings of $G$. % chktex 40
+\begin{defn}
+	Two encoded graphs $G$ and $H$ with vertices $\mathcal{V}_G = \{ v_1, \dots, v_n \}$ and $\mathcal{V}_H = \{ w_1, \dots, w_n \}$ respectively are \textit{isomorphic} ($G \simeq H$) iff.\
+\end{defn}
 
 \subsection{\acl{wl} Graph Colorings}%
 \label{sec:related:character:wl}
@@ -202,9 +207,9 @@ We denote the final, maximally refined, $k$-\acs{wl} coloring with $\chi^{*}_{G,
 \begin{defn}\label{defn:related:wl-distinguishable}
 	Two graphs $G$ and $H$ are are $k$-\acs{wl} \textit{distinguishable} ($G \mathrel{{\not\simeq}_k} H$) iff.\ there exists a color $c \in \mathcal{C}$ s.t.\ $\left|\left\{ a \in \mathcal{V}_G^k\, |\, \chi^{*}_{G, k}(a) = c \right\}\right|\neq \left|\left\{ b \in \mathcal{V}_H^k\, |\, \chi^{*}_{H, k}(b) = c \right\}\right|$. % chktex 21
 \end{defn}
-It is easy to show that $G \mathrel{{\not\simeq}_k} H \implies G \not\simeq H$.
+As we will see, the \ac{wl} color refinement does not depend on vertex or edge encoding orderings, thus any difference in the final coloring of two graphs always implies the non-isomorphism of the colored graphs, i.e.\ $G \mathrel{{\not\simeq}_k} H \implies G \not\simeq H$.
 The opposite does however not necessarily hold;
-two $k$-\acs{wl} indistinguishable graphs are not always isomorphic, i.e.\ $G \mathrel{{\simeq}_k} H \centernot\implies G \simeq H$.
+two $k$-\acs{wl} indistinguishable graphs are not always isomorphic, i.e.\ $G \mathrel{{\simeq}_k} H \Longarrownot\implies G \simeq H$.
 To understand why this is the case and which types of graphs are $k$-\acs{wl} distinguishable, we will now look at the details of \ac{wl} color refinement step.
 First the color refinement algorithm for the most simple case of $k = 1$ is described.
 Then the definitions and intuitions from the 1-dimensional case are extended to its higher-dimensional generalization.
@@ -212,21 +217,22 @@ Lastly we will discuss the discriminative power of the \acs{wl} algorithm and it
 
 \subsubsection{The 1-dimensional \acs{wl} algorithm}
 In the 1-dimensional \ac{wl} algorithm, a color is assigned to each vertex of a graph.
-If the vertices $\mathcal{V}_G$ of the input graph $G$ are already labeled via some labeling $l_G: \mathcal{V}_G \to L$, those labels can be used as the initial graph coloring $\chi_{G,1}^{(0)} = l_G$.
+If the vertices $v \in \mathcal{V}_G$ of the input graph $G$ are labeled, those labels $l_G[v] \in L_{\mathcal{V}} \subseteq \mathcal{C}$ can be used as the initial graph coloring $\chi_{G,1}^{(0)}(v) \coloneqq l_G[v]$.
 For unlabeled graphs a constant coloring is used instead, e.g.\ $\forall v \in \mathcal{V}_G: \chi_{G,1}^{(0)}(v) = \textcolor{t_blue}{\texttt{A}}$ for some initial color $\textcolor{t_blue}{\texttt{A}} \in \mathcal{C}$. % chktex 25
 In each iteration of the 1-\acs{wl} color refinement algorithm, the following neighborhood aggregation scheme is used to compute a new color for all vertices:
 \begin{defn}\label{defn:related:wl1-refine}
 	$\chi_{G,1}^{(i+1)}(v) \coloneqq h\left(\chi_{G,1}^{(i)}(v), \ldblbrace \chi_{G,1}^{(i)}(u)\, |\, u \in \Gamma_{G}(v) \rdblbrace\right)$,
 	with $\Gamma_G(v)$ denoting the set of adjecent vertices of $v \in \mathcal{V}_G$ and $h: \mathcal{C}^* \to \mathcal{C}$ denoting a perfect hash function that assigns a unique color to each finite combination of colors.
-	In practice $h$ is usually defined lazily by using $\mathcal{C} = \mathbb{N}$ and non-deterministically enumerating color combinations in the order in which they are hashed s.t.\ a new color is introduced every time a previously unseen color combination is queried.
 \end{defn}
+In practice the hash function $h$ is usually defined lazily by using $\mathcal{C} = \mathbb{N}$ and non-deterministically enumerating color combinations in the order in which they are hashed s.t.\ a new color is introduced every time a previously unseen color combination is queried.
+This is illustrated in \cref{fig:related:wl1-refine}.
 \begin{figure}[ht]
 	\centering
 	\includegraphics[width=0.75\linewidth]{gfx/related-work/wl1-refine.pdf}
 	\caption[Example 1-WL color refinement steps.]{
 		Example 1-WL color refinement steps.
 		After two iterations the coloring stabilizes.
-		Each vertex is labeled with its current color and has the aggregated neighbors, as in \cref{defn:related:wl1-refine}, written next to it.
+		Each vertex $v$ is labeled with its current color and has its previous color and the colors of the hashed neighbors $\Gamma_G(v)$ written next to it (see \cref{defn:related:wl1-refine}).
 	}\label{fig:related:wl1-refine}
 \end{figure}
 
@@ -281,12 +287,12 @@ Also note that, even though $k$-\acs{wl} refines $k$-tuple colors, lower-dimensi
 
 Let us now look at how the tuple colors are initialized.
 For this we use subgraph \textit{isomorphism types} which determine the initial color $\chi_{G,k}^{(0)}(v)$ of each $k$-tuple $v$.
-For $k = 1$ the isomorphism type of a vertex $v$ directly corresponds to its label $l_G(v)$.
+For $k = 1$ the isomorphism type of a vertex $v$ directly corresponds to its label $l_G[v]$.
 For $k > 1$ the isomorphism types more generally correspond to the classes of isomorphic ordered subgraphs of $G$ induced by the $k$-tuples $\mathcal{V}_G^k$.
 Formally this means that
 \begin{align}
 	\chi_{G,k}^{(0)}(v_1, \dots, v_k) = \chi_{G,k}^{(0)}(w_1, \dots, w_k) \label{eq:related:wlk-init}
-	\iff &\ \forall i: l_G(v_i) = l_G(w_i) \\
+	\iff &\ \forall i: l_G[v_i] = l_G[w_i] \\
 	\land &\ \forall i, j: v_i = v_j \leftrightarrow w_i = w_j \nonumber \\
 	\land &\ \forall i, j: (v_i, v_j) \in \mathcal{E}_G \leftrightarrow (w_i, w_j) \in \mathcal{E}_G \text{.} \nonumber
 \end{align}
