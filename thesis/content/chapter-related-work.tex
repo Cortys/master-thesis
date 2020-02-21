@@ -136,7 +136,7 @@ Instead of using fuzzy logic to describe score aggregation, \ac{owa} operators w
 \begin{align}
 	\mathcal{A}_{\lambda}(y_1, \dots, y_n) \coloneqq \sum_{i = 1}^n \lambda_i y_{\pi(i)},
 \end{align}
-where $\lambda \in \mathbb{R}^n$ is a weight vector with ${\|\lambda\|}_1 = 1$ and $\pi$ is a sorting permutation of the input scores with $y_i < y_j \Rightarrow \pi(i) < \pi(j)$. % chktex 21
+where $\lambda \in \mathbb{R}^n$ is a weight vector with ${\|\lambda\|}_1 = 1$ and $\pi: [n] \to [n]$ is a sorting permutation of the input scores with $[n] \coloneqq \{ 1, \dots, n \}$ and $y_i < y_j \Rightarrow \pi(i) < \pi(j)$. % chktex 21
 Depending on the choice of the vector $\lambda$, the \ac{owa} function $\mathcal{A}_\lambda$ can express common aggregation functions like
 $\min$ (if $\lambda = (1, 0, \dots, 0)$),
 $\max$ (if $\lambda = (0, \dots, 0, 1)$)
@@ -168,14 +168,17 @@ Currently the \ac{owa} approach requires all possible constituents to be part of
 \label{sec:related:character}
 
 \begin{defn}
-	A graph $G \coloneqq (\mathcal{V}_G, \mathcal{E}_G)$ consists of a set of vertices $v_i \in \mathcal{V}_G$ and a set of edges $e_{ij} = (v_i, v_j) \in \mathcal{E}_G \subseteq \mathcal{V}_G^2$.
+	A graph $G \coloneqq (\mathcal{V}_G, \mathcal{E}_G)$ consists of a finite set of vertices $v_i \in \mathcal{V}_G$ and a set of edges $e_{ij} = (v_i, v_j) \in \mathcal{E}_G \subseteq \mathcal{V}_G^2$.
 	Optionally discrete vertex labels $l_G[v_i] \in L_{\mathcal{V}}$ or edge labels $l_G[e_{ij}] \in L_{\mathcal{E}}$ may be associated with all vertices $v_i \in \mathcal{V}_G$ and edges $e_{ij}\in \mathcal{E}_G$ respectively.
 	Also continuous feature vectors $x_G[v_{i}] \in \mathcal{X}_{\mathcal{V}}$, $x_G[e_{ij}] \in \mathcal{X}_{\mathcal{E}}$ may be given.
-	If $\mathcal{X}_{\mathcal{E}} = \mathbb{R}$, $x_G[e_{ij}]$ can for example be interpreted as an edge weight of $e_{ij}$.
+	If $\mathcal{X}_{\mathcal{E}} = \mathbb{R}$, $x_G[e_{ij}]$ can be interpreted as an edge weight of $e_{ij}$.
+
+	In this thesis all graphs $G$ are assumed to be undirected if not explicitly stated otherwise, i.e.\ ${e_{ij} \in \mathcal{E}_G} \leftrightarrow\allowbreak {e_{ji} \in \mathcal{E}_G} \allowbreak\land l_G[e_{ij}] = l_G[e_{ji}] \allowbreak\land x_G[e_{ij}] = x_G[e_{ji}]$.
+	We denote the set of all undirected graphs as $\mathcal{G}$.
+	Additionally we denote $G[S] \coloneqq (S, \mathcal{E}_G \cap S^2)$ as the subgraph of $G$ induced by $S \subseteq \mathcal{V}_G$.
 \end{defn}
-In this thesis all graphs $G$ are assumed to be undirected if not explicitly stated otherwise, i.e.\ ${e_{ij} \in \mathcal{E}_G} \leftrightarrow\allowbreak {e_{ji} \in \mathcal{E}_G} \allowbreak\land l_G[e_{ij}] = l_G[e_{ji}] \allowbreak\land x_G[e_{ij}] = x_G[e_{ji}]$.
-To classify or score such a graph, it first needs to be characterized by a set of relevant properties.
-The most strict characterization of a graph is its so-called \textit{isomorphism type}.
+To classify or score a graph, it first needs to be characterized by a set of relevant properties.
+The most strict characterization of a graph is its so-called \textit{isomorphism class}.
 It uniquely identifies a graph but lacks any notion of similarity between non-identical graphs.
 We will begin with a brief definition of this strict isomorphism-based graph characterization.
 Then two less strict characterization approaches are described; the so called \acl{wl} coloring and the notion of graph spectra.
@@ -184,12 +187,35 @@ They are the theoretical foundation of many current \ac{gcr} methods.
 \subsection{The Graph Isomorphism Problem}%
 \label{sec:related:character:iso}
 
-In order to process a graph $G$ of size $n = |\mathcal{V}_G|$ , one is forced to choose some encoding, e.g.\ an adjacency matrix $A \in {\{0, 1\}}^{n \times n}$.
+In order to process a graph $G$ of size $n = |\mathcal{V}_G|$, one is forced to choose some encoding, e.g.\ an adjacency matrix $A \in {\{0, 1\}}^{n \times n}$.
 Such an encoding introduces a vertex ordering $v_1, \dots, v_n$ that does not carry any semantic meaning.
 This means that there are $n!$ equivalent encodings of $G$. % chktex 40
+To represent those encodings we introduce the notion of ordered induced subgraphs.
 \begin{defn}
-	Two encoded graphs $G$ and $H$ with vertices $\mathcal{V}_G = \{ v_1, \dots, v_n \}$ and $\mathcal{V}_H = \{ w_1, \dots, w_n \}$ respectively are \textit{isomorphic} ($G \simeq H$) iff.\
+	For all vertex $k$-tuples $v = (v_1, \dots, v_k) \in \mathcal{V}_G^k$ let $\hat{v} = \{ v_i\, |\, i \in [k] \}$.
+	Then $G[v] \coloneqq (\hat{v}, \mathcal{E}_G \cap \hat{v}^2, v)$ is called the ordered subgraph of $G$ induced by $v$.
+	If $\hat{v} = \mathcal{V}_G$ and $k = |\mathcal{V}_G|$, we call $v$ an ordering of $G$ and $G[v]$ an encoding of $G$.
 \end{defn}
+\begin{defn}\label{defn:related:ordered-subgraph-equivalence}
+	Two ordered induced subgraphs $G[v]$ and $H[w]$ with $(v_1, \dots, v_k) \in \mathcal{V}_G^k$ and $(w_1, \dots, w_k) \in \mathcal{V}_H^k$ are \textit{equivalent} ($G[v] \equiv H[w]$) iff.\
+	\begin{align*}
+		&\ \begin{aligned}
+			&\ \forall i, j: l_G[v_i, v_j] = l_H[w_i, w_j] &\land&\ \forall i: l_G[v_i] = l_H[w_i] \\
+			\land&\ \forall i, j: x_G[v_i, v_j] = x_H[w_i, w_j] &\land&\ \forall i: x_G[v_i] = x_H[w_i]
+		\end{aligned}\\
+		&\land\ \forall i, j: (v_i, v_j) \in \mathcal{E}_G \leftrightarrow (w_i, w_j) \in \mathcal{E}_H \text{.}
+	\end{align*}
+	Using this notion of equivalence, we call $[G[v]] \coloneqq \{ G[w] \equiv G[v]\, |\, w \in \mathcal{V}_G^{*} \}$ the ordered subgraph equivalence class of $G[v]$.
+\end{defn}
+\begin{defn}
+	Two graphs $G$ and $H$ are \textit{isomorphic} ($G \simeq H$) iff.\ there are equivalent encodings $G[v] \equiv H[w]$ of them.
+	Consequently $[G] \coloneqq \{ H \simeq G\, |\, H \in \mathcal{G} \}$ is called the isomorphism class of $G$.
+\end{defn}
+The goal of the \ac{gi} problem is to check whether $G \simeq H$ for two arbitrary graphs.
+Even though there is no known universal algorithm in $P$ that solves \ac{gi}, \citet{Babai1980} showed that almost all graphs can be trivially distinguished in linear time.
+More recently \citet{Babai2015} also presented a quasipolynomial upper time bound for the remaining hard \ac{gi} instances.
+For all practical purposes, \ac{gi} can therefore be solved efficiently; e.g.\ via the \texttt{nauty} program~\cite{McKay}\cite{McKay2013}.
+One important subroutine in most \ac{gi} checkers is the \acl{wl} algorithm which will be described next.
 
 \subsection{\acl{wl} Graph Colorings}%
 \label{sec:related:character:wl}
@@ -197,32 +223,35 @@ This means that there are $n!$ equivalent encodings of $G$. % chktex 40
 The \acf{wl} algorithm~\cite{Weisfeiler1968}\cite{Cai1992} characterizes a graph $G$ by assigning discrete labels $c \in \mathcal{C}$, called \textit{colors}, to vertex $k$-tuples $(v_1, \dots, v_k) \in \mathcal{V}_G^k$, where $k \in \mathbb{N}$ is the freely choosable \textit{\ac{wl}-dimension}.
 A mapping $\chi_{G, k}: \mathcal{V}_G^k \to \mathcal{C}$ is called a \textit{$k$-coloring} of $G$.
 \begin{defn}
-	A coloring $\chi'$ \textit{refines} $\chi$ ($\chi' \succeq \chi$) iff.\ $\forall a, b \in \mathcal{V}_G^k: \chi(a) \neq \chi(b) \rightarrow \chi'(a) \neq \chi'(b)$, i.e.\ $\chi'$ distinguishes at least those tuples that are distinguished by $\chi$.
+	A coloring $\chi'$ \textit{refines} $\chi$ ($\chi' \preceq \chi$) iff.\ $\forall a, b \in \mathcal{V}_G^k: \chi(a) \neq \chi(b) \rightarrow \chi'(a) \neq \chi'(b)$, i.e.\ $\chi'$ distinguishes at least those tuples that are distinguished by $\chi$.
 \end{defn}
 \begin{defn}
 	Two colorings $\chi$ and $\chi'$ are \textit{equivalent} ($\chi \equiv \chi'$) iff.\ $\forall a, b \in \mathcal{V}_G^k: {\chi(a) = \chi(b)} \leftrightarrow {\chi'(a) = \chi'(b)}$, i.e.\ $\chi$ is identical to $\chi'$ up to color substitutions.
 \end{defn}
-The $k$-dimensional \ac{wl} algorithm ($k$-\acs{wl}) works by iteratively refining $k$-colorings $\chi_{G, k}^{(0)} \preceq \chi_{G, k}^{(1)} \preceq \dots$ of a given graph $G$ until the convergence criterion $\chi_{G, k}^{(i)} \equiv \chi_{G, k}^{(i+1)}$ is satisfied.
-We denote the final, maximally refined, $k$-\acs{wl} coloring with $\chi^{*}_{G, k}$.
+The $k$-dimensional \ac{wl} algorithm ($k$-\acs{wl}) works by iteratively refining $k$-colorings $\chi_{G, k}^{(0)} \succeq \chi_{G, k}^{(1)} \succeq \dots$ of a given graph $G$ until the convergence criterion $\chi_{G, k}^{(i)} \equiv \chi_{G, k}^{(i+1)}$ is satisfied.
+We denote the final, maximally refined $k$-\acs{wl} coloring with $\chi^{*}_{G, k}$.
 \begin{defn}\label{defn:related:wl-distinguishable}
 	Two graphs $G$ and $H$ are are $k$-\acs{wl} \textit{distinguishable} ($G \mathrel{{\not\simeq}_k} H$) iff.\ there exists a color $c \in \mathcal{C}$ s.t.\ $\left|\left\{ a \in \mathcal{V}_G^k\, |\, \chi^{*}_{G, k}(a) = c \right\}\right|\neq \left|\left\{ b \in \mathcal{V}_H^k\, |\, \chi^{*}_{H, k}(b) = c \right\}\right|$. % chktex 21
 \end{defn}
-As we will see, the \ac{wl} color refinement does not depend on vertex or edge encoding orderings, thus any difference in the final coloring of two graphs always implies the non-isomorphism of the colored graphs, i.e.\ $G \mathrel{{\not\simeq}_k} H \implies G \not\simeq H$.
+As we will see, the \ac{wl} color refinement strategy is vertex order invariant, thus any difference in the final coloring of two graphs always implies the non-isomorphism of the colored graphs, i.e.\ $G \mathrel{{\not\simeq}_k} H \implies G \not\simeq H$.
 The opposite does however not necessarily hold;
 two $k$-\acs{wl} indistinguishable graphs are not always isomorphic, i.e.\ $G \mathrel{{\simeq}_k} H \Longarrownot\implies G \simeq H$.
-To understand why this is the case and which types of graphs are $k$-\acs{wl} distinguishable, we will now look at the details of \ac{wl} color refinement step.
-First the color refinement algorithm for the most simple case of $k = 1$ is described.
+
+In addition to the binary aspect of \ac{wl} distinguishability and its relation to the \ac{gi} problem, \ac{wl} colorings are also useful for more fuzzy graph similarity comparisons as we will see in \cref{sec:related:gcr:kernel} when we look at graph kernels.
+Before that however, the details of \ac{wl} color refinement strategy have to be described.
+We begin with the color refinement algorithm for the most simple case of $k = 1$.
 Then the definitions and intuitions from the 1-dimensional case are extended to its higher-dimensional generalization.
 Lastly we will discuss the discriminative power of the \acs{wl} algorithm and its relation to the \acs{wl}-dimension $k$.
 
 \subsubsection{The 1-dimensional \acs{wl} algorithm}
 In the 1-dimensional \ac{wl} algorithm, a color is assigned to each vertex of a graph.
 If the vertices $v \in \mathcal{V}_G$ of the input graph $G$ are labeled, those labels $l_G[v] \in L_{\mathcal{V}} \subseteq \mathcal{C}$ can be used as the initial graph coloring $\chi_{G,1}^{(0)}(v) \coloneqq l_G[v]$.
+Since \ac{wl} colors are inherently discrete, continuous vertex feature vectors $x_G[v]$ are not considered here.
 For unlabeled graphs a constant coloring is used instead, e.g.\ $\forall v \in \mathcal{V}_G: \chi_{G,1}^{(0)}(v) = \textcolor{t_blue}{\texttt{A}}$ for some initial color $\textcolor{t_blue}{\texttt{A}} \in \mathcal{C}$. % chktex 25
 In each iteration of the 1-\acs{wl} color refinement algorithm, the following neighborhood aggregation scheme is used to compute a new color for all vertices:
 \begin{defn}\label{defn:related:wl1-refine}
 	$\chi_{G,1}^{(i+1)}(v) \coloneqq h\left(\chi_{G,1}^{(i)}(v), \ldblbrace \chi_{G,1}^{(i)}(u)\, |\, u \in \Gamma_{G}(v) \rdblbrace\right)$,
-	with $\Gamma_G(v)$ denoting the set of adjecent vertices of $v \in \mathcal{V}_G$ and $h: \mathcal{C}^* \to \mathcal{C}$ denoting a perfect hash function that assigns a unique color to each finite combination of colors.
+	with $\Gamma_G(v)$ denoting the set of adjacent vertices of $v \in \mathcal{V}_G$ and $h: \mathcal{C}^* \to \mathcal{C}$ denoting a perfect hash function that assigns a unique color to each finite combination of colors.
 \end{defn}
 In practice the hash function $h$ is usually defined lazily by using $\mathcal{C} = \mathbb{N}$ and non-deterministically enumerating color combinations in the order in which they are hashed s.t.\ a new color is introduced every time a previously unseen color combination is queried.
 This is illustrated in \cref{fig:related:wl1-refine}.
@@ -238,7 +267,7 @@ This is illustrated in \cref{fig:related:wl1-refine}.
 
 \subsubsection{The $k$-dimensional \acs{wl} algorithm}
 As we just saw, the 1-\acs{wl} algorithm iteratively refines colorings of single vertices.
-While the obtained colorings differ for most non-isomorphic graphs $G \not\simeq H$, 1-\acs{wl} does not generally solve the graph isomorphism problem as illustrated in \cref{fig:related:wl1-problem}.
+While the obtained colorings differ for most non-isomorphic graphs $G \not\simeq H$, 1-\acs{wl} does not generally solve the \ac{gi} problem as illustrated in \cref{fig:related:wl1-problem}.
 \begin{figure}[ht]
 	\centering
 	\includegraphics[width=\linewidth]{gfx/related-work/wl1-problem.pdf}
@@ -286,21 +315,16 @@ For $k = 2$ this means that each potential edge $(v, w) \in \mathcal{V}_G^2$ has
 Also note that, even though $k$-\acs{wl} refines $k$-tuple colors, lower-dimensional structures still get their own colors since a tuple does not have to consist of distinct vertices, i.e.\ in $k$-\acs{wl} the color of a single vertex $v \in \mathcal{V}_G$ is described by $\chi^{*}_{G, k}(s)$ for $s = (v, \dots, v) \in \mathcal{V}_G^k$.
 
 Let us now look at how the tuple colors are initialized.
-For this we use subgraph \textit{isomorphism types} which determine the initial color $\chi_{G,k}^{(0)}(v)$ of each $k$-tuple $v$.
-For $k = 1$ the isomorphism type of a vertex $v$ directly corresponds to its label $l_G[v]$.
-For $k > 1$ the isomorphism types more generally correspond to the classes of isomorphic ordered subgraphs of $G$ induced by the $k$-tuples $\mathcal{V}_G^k$.
-Formally this means that
+For this we use the ordered subgraph equivalence classes $[G[v]]$ (see~\cref{defn:related:ordered-subgraph-equivalence}) which determine the initial color $\chi_{G,k}^{(0)}(v)$ of each $k$-tuple $v$.
+For $k = 1$ the equivalence class of a vertex $v$ directly corresponds to its label $l_G[v]$.
+More generally for $k > 1$ this means that
 \begin{align}
-	\chi_{G,k}^{(0)}(v_1, \dots, v_k) = \chi_{G,k}^{(0)}(w_1, \dots, w_k) \label{eq:related:wlk-init}
-	\iff &\ \forall i: l_G[v_i] = l_G[w_i] \\
-	\land &\ \forall i, j: v_i = v_j \leftrightarrow w_i = w_j \nonumber \\
-	\land &\ \forall i, j: (v_i, v_j) \in \mathcal{E}_G \leftrightarrow (w_i, w_j) \in \mathcal{E}_G \text{.} \nonumber
+	\chi_{G,k}^{(0)}(v) = \chi_{G,k}^{(0)}(w) \iff G[v] \equiv G[w] \text{.} \label{eq:related:wlk-init}
 \end{align}
-If no explicit vertex labeling $l_G$ is given, a single constant label for all vertices is assumed.
-Also note that there is a fundamental difference in how the adjacency information encoded in $\mathcal{E}_G$ is used in 1-\acs{wl} vs.\ $k$-\acs{wl}:
+Note that there is a fundamental difference in how the adjacency information encoded in $\mathcal{E}_G$ is used in 1-\acs{wl} vs.\ $k$-\acs{wl}:
 In 1-\acs{wl} a vertex coloring by itself cannot encode adjacency which is why this information is explicitly incorporated in each refinement step via $\Gamma_G$ (see~\cref{defn:related:wl1-refine}).
 In $k$-\acs{wl} on the other hand each pair of vertices $(v, u) \in \mathcal{V}_G^2$ appears in at least one $k$-tuple (assuming $k \geq 2$) and therefore has at least one color which can implicitly encode the adjacency information.
-Edges and non-edges are colored differently in the initial coloring as defined in \cref{eq:related:wlk-init};
+Edges and non-edges are colored differently in the initial coloring since $G[(v, u)] \not\equiv G[(w, u)]$ if $(v, u) \in \mathcal{E}_G$ but $(w, u) \notin \mathcal{E}_G$;
 thus no explicit adjacency information is needed in the $k$-\acs{wl} color refinement step in \cref{defn:related:wlk-refine}.
 
 \subsubsection{Discriminative Power of \acs{wl}}
@@ -328,7 +352,7 @@ Now we will look at the types of graphs that can be distinguished by \acs{wl} in
 	The discriminative power of $k$-\acs{wl} grows monotonously with $k$ and never converges, i.e.\ for all $k \in \mathbb{N}$ there is an $l \in \mathbb{N}$ s.t.\ the set of $k$-\ac{wl} distinguishable graphs is a proper subset of the $(k+l)$-\ac{wl} distinguishable graphs.
 \end{cor}
 \begin{hproof}
-	Note that $k$-\acs{wl} trivially solves the graph isomorphism problem for all graphs of size $\leq k$ via the initial coloring (see~\cref{eq:related:wlk-init}).
+	Note that $k$-\acs{wl} trivially solves the \ac{gi} problem for all graphs of size $\leq k$ via the initial coloring (see~\cref{eq:related:wlk-init}).
 	Using \cref{lem:related:wl-lower} and \cref{prop:related:wl-upper} the corollary directly follows.
 \end{hproof}
 \Cref{fig:related:wl2-problem-solution} illustrates \cref{cor:related:wl-monotonous} by showing how 2-WL is able to distinguish the two 1-WL indistinguishable graphs from \cref{fig:related:wl1-problem}.
@@ -407,7 +431,7 @@ It is inspired by \texttt{doc2vec}~\cite{Le2014} which in turn is based on \text
 While in \texttt{word2vec} every word can be a context root as well as a context element, \texttt{graph2vec} uses the graphs $\mathbb{G}$ as context roots.
 The context $C_k(G_i)$ of a graph $G_i$ is defined as
 \begin{equation}
-	C_k(G_i) \coloneqq \bigcup_{\mathclap{v_j \in \mathcal{V}_{G_i}}}\, {\left\{ {\chi_{G_i, 1}^{(l)}(v_j) \right\}}_{l = 0}^k % chktex 21
+	C_k(G_i) \coloneqq \bigcup_{\mathclap{v_j \in \mathcal{V}_{G_i}}}\, {\left\{ \chi_{G_i, 1}^{(l)}(v_j) \right\}}_{l = 0}^k % chktex 21
 	\text{ with $k \in \mathbb{N}$ and $\chi_{G_i, 1}^{(l)}$ as in \cref{defn:related:wl1-refine}.}
 \end{equation}
 Intuitively this context can be understood as the set of 1-\acs{wl}-distinguishable subgraphs of $G_i$ with diameter $\leq 2k$.

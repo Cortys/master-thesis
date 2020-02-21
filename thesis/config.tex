@@ -97,7 +97,6 @@
 \usepackage{dsfont}
 \usepackage{centernot}
 \usepackage{breqn}
-\numberwithin{equation}{theorem}
 \newcommand\numberthis{\addtocounter{equation}{1}\tag{\theequation}}
 \newcommand*{\dblbrace}[2][]{#1{#2}\ifthenelse{\equal{#1}{}}{\mskip-6mu}{\mskip-8mu}#1{#2}}
 \newcommand*{\ldblbrace}[1][]{\dblbrace[#1]{\{}}
@@ -107,17 +106,17 @@
 \renewenvironment{proof}[1][\proofname]{\par
 	\pushQED{\qed}%
 	\topsep-10pt
-	\trivlist
-	\item[\hskip\labelsep%
+	\trivlist%
+	\item[\hskip\labelsep% chktex 41
 		\itshape%
 		#1\@addpunct{.}%
-	]\ignorespaces
+	]\ignorespaces%
 }{%
-  \popQED\endtrivlist\@endpefalse
+  \popQED\endtrivlist\@endpefalse% chktex 21
 }
-\def\th@plain{\thm@preskip\parskip\thm@postskip0pt\itshape}
+\def\th@plain{\thm@preskip\parskip\thm@postskip0pt\itshape} % chktex 6
 \def\th@definition{\thm@preskip\parskip\thm@postskip0pt\normalfont}
-\def\th@remark{\thm@headfont{\itshape}\normalfont\thm@preskip\parskip\thm@postskip0pt}
+\def\th@remark{\thm@headfont{\itshape}\normalfont\thm@preskip\parskip\thm@postskip0pt} % chktex 6
 \makeatother
 
 \usepackage{graphicx}
