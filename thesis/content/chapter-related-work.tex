@@ -226,16 +226,17 @@ A mapping $\chi_{G, k}: \mathcal{V}_G^k \to \mathcal{C}$ is called a \textit{$k$
 	A coloring $\chi'$ \textit{refines} $\chi$ ($\chi' \preceq \chi$) iff.\ $\forall a, b \in \mathcal{V}_G^k: \chi(a) \neq \chi(b) \rightarrow \chi'(a) \neq \chi'(b)$, i.e.\ $\chi'$ distinguishes at least those tuples that are distinguished by $\chi$.
 \end{defn}
 \begin{defn}
-	Two colorings $\chi$ and $\chi'$ are \textit{equivalent} ($\chi \equiv \chi'$) iff.\ $\forall a, b \in \mathcal{V}_G^k: {\chi(a) = \chi(b)} \leftrightarrow {\chi'(a) = \chi'(b)}$, i.e.\ $\chi$ is identical to $\chi'$ up to color substitutions.
+	Two colorings $\chi$ and $\chi'$ are \textit{equivalent} ($\chi \equiv \chi'$) iff.\ $\chi \preceq \chi' \land \chi' \preceq \chi$, i.e.\ $\chi$ is identical to $\chi'$ up to color substitutions.
 \end{defn}
 The $k$-dimensional \ac{wl} algorithm ($k$-\acs{wl}) works by iteratively refining $k$-colorings $\chi_{G, k}^{(0)} \succeq \chi_{G, k}^{(1)} \succeq \dots$ of a given graph $G$ until the convergence criterion $\chi_{G, k}^{(i)} \equiv \chi_{G, k}^{(i+1)}$ is satisfied.
 We denote the final, maximally refined $k$-\acs{wl} coloring with $\chi^{*}_{G, k}$.
 \begin{defn}\label{defn:related:wl-distinguishable}
 	Two graphs $G$ and $H$ are are $k$-\acs{wl} \textit{distinguishable} ($G \mathrel{{\not\simeq}_k} H$) iff.\ there exists a color $c \in \mathcal{C}$ s.t.\ $\left|\left\{ a \in \mathcal{V}_G^k\, |\, \chi^{*}_{G, k}(a) = c \right\}\right|\neq \left|\left\{ b \in \mathcal{V}_H^k\, |\, \chi^{*}_{H, k}(b) = c \right\}\right|$. % chktex 21
 \end{defn}
-As we will see, the \ac{wl} color refinement strategy is vertex order invariant, thus any difference in the final coloring of two graphs always implies the non-isomorphism of the colored graphs, i.e.\ $G \mathrel{{\not\simeq}_k} H \implies G \not\simeq H$.
+As we will see, the way in which \ac{wl} colorings are refined is vertex order invariant;
+thus any difference in the final coloring of two graphs always implies the non-isomorphism of the colored graphs, i.e.\ $G \mathrel{{\not\simeq}_k} H \implies G \not\simeq H$.
 The opposite does however not necessarily hold;
-two $k$-\acs{wl} indistinguishable graphs are not always isomorphic, i.e.\ $G \mathrel{{\simeq}_k} H \Longarrownot\implies G \simeq H$.
+two $k$-\acs{wl} indistinguishable graphs are not always isomorphic, i.e.\ $\exists\, G, H: G \mathrel{{\simeq}_k} H \land G \not\simeq H$. % chktex 21
 
 In addition to the binary aspect of \ac{wl} distinguishability and its relation to the \ac{gi} problem, \ac{wl} colorings are also useful for more fuzzy graph similarity comparisons as we will see in \cref{sec:related:gcr:kernel} when we look at graph kernels.
 Before that however, the details of \ac{wl} color refinement strategy have to be described.
@@ -247,13 +248,13 @@ Lastly we will discuss the discriminative power of the \acs{wl} algorithm and it
 In the 1-dimensional \ac{wl} algorithm, a color is assigned to each vertex of a graph.
 If the vertices $v \in \mathcal{V}_G$ of the input graph $G$ are labeled, those labels $l_G[v] \in L_{\mathcal{V}} \subseteq \mathcal{C}$ can be used as the initial graph coloring $\chi_{G,1}^{(0)}(v) \coloneqq l_G[v]$.
 Since \ac{wl} colors are inherently discrete, continuous vertex feature vectors $x_G[v]$ are not considered here.
-For unlabeled graphs a constant coloring is used instead, e.g.\ $\forall v \in \mathcal{V}_G: \chi_{G,1}^{(0)}(v) = \textcolor{t_blue}{\texttt{A}}$ for some initial color $\textcolor{t_blue}{\texttt{A}} \in \mathcal{C}$. % chktex 25
+For unlabeled graphs a constant coloring is used, e.g.\ $\forall v \in \mathcal{V}_G: \chi_{G,1}^{(0)}(v) = \textcolor{t_blue}{\texttt{A}}$ for some initial color $\textcolor{t_blue}{\texttt{A}} \in \mathcal{C}$. % chktex 25
 In each iteration of the 1-\acs{wl} color refinement algorithm, the following neighborhood aggregation scheme is used to compute a new color for all vertices:
 \begin{defn}\label{defn:related:wl1-refine}
 	$\chi_{G,1}^{(i+1)}(v) \coloneqq h\left(\chi_{G,1}^{(i)}(v), \ldblbrace \chi_{G,1}^{(i)}(u)\, |\, u \in \Gamma_{G}(v) \rdblbrace\right)$,
 	with $\Gamma_G(v)$ denoting the set of adjacent vertices of $v \in \mathcal{V}_G$ and $h: \mathcal{C}^* \to \mathcal{C}$ denoting a perfect hash function that assigns a unique color to each finite combination of colors.
 \end{defn}
-In practice the hash function $h$ is usually defined lazily by using $\mathcal{C} = \mathbb{N}$ and non-deterministically enumerating color combinations in the order in which they are hashed s.t.\ a new color is introduced every time a previously unseen color combination is queried.
+In practice the hash function $h$ is usually defined lazily by using $\mathcal{C} = \mathbb{N}$ and enumerating color combinations in whichever order they are hashed s.t.\ a new color is introduced every time a previously unseen color combination appears at runtime.
 This is illustrated in \cref{fig:related:wl1-refine}.
 \begin{figure}[ht]
 	\centering
@@ -279,8 +280,8 @@ By extending \ac{wl} to higher dimensions such 1-\acs{wl} indistinguishable case
 Analogous to the 1-dimensional \cref{defn:related:wl1-refine}, the $k$-dimensional color refinement step is defined by
 \begin{defn}\label{defn:related:wlk-refine}
 	$\begin{aligned}[t]
-		\chi_{G,k}^{(i+1)}(v) \coloneqq &\ h\left(\chi_{G,k}^{(i)}(v), \ldblbrace (\chi_{G,k}^{(i)}(v[u/1]), \dots, \chi_{G,k}^{(i)}(v[u/k]))\, |\, u \in \mathcal{V}_G \rdblbrace\right)\\
-		\text{with } v = &\ (v_1, \dots, v_k) \in \mathcal{V}_G^k, v[u/j] \coloneqq (v_1, \dots, v_{j-1}, u, v_{j+1}, \dots, v_k) \text{.}
+		\chi_{G,k}^{(i+1)}(v) \coloneqq h\left(\chi_{G,k}^{(i)}(v), \ldblbrace (\chi_{G,k}^{(i)}(v[u/1]), \dots, \chi_{G,k}^{(i)}(v[u/k]))\, |\, u \in \mathcal{V}_G \rdblbrace\right)\\
+		\text{with } v = (v_1, \dots, v_k) \in \mathcal{V}_G^k,\quad v[u/j] \coloneqq (v_1, \dots, v_{j-1}, u, v_{j+1}, \dots, v_k) \text{.}
 	\end{aligned}$
 \end{defn}
 In 1-\acs{wl} a vertex color is refined by combining the colors of neighboring vertices.
@@ -316,7 +317,7 @@ Also note that, even though $k$-\acs{wl} refines $k$-tuple colors, lower-dimensi
 
 Let us now look at how the tuple colors are initialized.
 For this we use the ordered subgraph equivalence classes $[G[v]]$ (see~\cref{defn:related:ordered-subgraph-equivalence}) which determine the initial color $\chi_{G,k}^{(0)}(v)$ of each $k$-tuple $v$.
-For $k = 1$ the equivalence class of a vertex $v$ directly corresponds to its label $l_G[v]$.
+For $k = 1$ the equivalence class of a single vertex $v$ directly corresponds to its label $l_G[v]$.
 More generally for $k > 1$ this means that
 \begin{align}
 	\chi_{G,k}^{(0)}(v) = \chi_{G,k}^{(0)}(w) \iff G[v] \equiv G[w] \text{.} \label{eq:related:wlk-init}
@@ -341,13 +342,6 @@ Now we will look at the types of graphs that can be distinguished by \acs{wl} in
 \begin{prop}[see~\citet{Immerman1990}]\label{prop:related:wl-upper}
 	For all $k \in \mathbb{N}$ there are non-isomorphic graphs $G \not\simeq H$ of size $\mathcal{O}(k)$ with $G \mathrel{\simeq_k} H$.
 \end{prop}
-\begin{figure}[ht]
-	\centering
-	\includegraphics[width=\linewidth]{gfx/related-work/wl2-problem-solution.pdf}
-	\caption{
-		Two non-isomorphic graphs with $G \mathrel{\simeq_1} H$ and $G \mathrel{\not\simeq_2} H$.
-	}\label{fig:related:wl2-problem-solution}
-\end{figure}
 \begin{cor}\label{cor:related:wl-monotonous}
 	The discriminative power of $k$-\acs{wl} grows monotonously with $k$ and never converges, i.e.\ for all $k \in \mathbb{N}$ there is an $l \in \mathbb{N}$ s.t.\ the set of $k$-\ac{wl} distinguishable graphs is a proper subset of the $(k+l)$-\ac{wl} distinguishable graphs.
 \end{cor}
@@ -355,8 +349,25 @@ Now we will look at the types of graphs that can be distinguished by \acs{wl} in
 	Note that $k$-\acs{wl} trivially solves the \ac{gi} problem for all graphs of size $\leq k$ via the initial coloring (see~\cref{eq:related:wlk-init}).
 	Using \cref{lem:related:wl-lower} and \cref{prop:related:wl-upper} the corollary directly follows.
 \end{hproof}
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=\linewidth]{gfx/related-work/wl2-problem-solution.pdf}
+	\caption{
+		Two non-isomorphic graphs with $G \mathrel{\simeq_1} H$ and $G \mathrel{\not\simeq_2} H$.
+	}\label{fig:related:wl2-problem-solution}
+\end{figure}
 \Cref{fig:related:wl2-problem-solution} illustrates \cref{cor:related:wl-monotonous} by showing how 2-WL is able to distinguish the two 1-WL indistinguishable graphs from \cref{fig:related:wl1-problem}.
-Since the time complexity of $k$-\acs{wl} grows exponentially with $k$~\cite[corr.~1.9.7]{Immerman1990}, a trade-off between the runtime and the discriminative power has to be made.
+Since the time complexity of $k$-\acs{wl} grows exponentially with $k$~\cite[cor.~1.9.7]{Immerman1990}, it does not provide an efficient universal solution to \ac{gi}.
+However it turns out that almost all graphs are \ac{wl} distinguishable even for a small constant $k$.
+
+For $k = 1$ \citet{Babai1980} have shown that two randomly selected non-isomorphic graphs $G \not\simeq H$ of size $n$ are 1-\acs{wl} indistinguishable with probability $n^{-\nicefrac{1}{7}}$.
+Thus 1-\acs{wl} is already able to distinguish most graphs; it fails however to distinguish any pair of unlabeled $d$-regular graphs of the same size~\cite[cor.~1.8.5]{Immerman1990}.
+\begin{defn}
+	A graph $G$ is called $d$-regular ($\mathit{rg}_d(G)$) iff.\ $\forall v \in \mathcal{V}_G: |\Gamma_G(v)| = d$.
+\end{defn}
+We have already seen this in \cref{fig:related:wl1-problem} since the ``six-cycle'' and the ``two-triangle'' graphs are in fact both 2-regular and of size 6.
+This restriction alone is typically not an issue in the context of \ac{gcr} though as molecular structures for example are rarely perfectly regular.
+A more relevant restriction of 1-\ac{wl} is the fact that it is unable to detect cycles of size $l \geq 3$.
 
 \subsection{Spectral Graph Theory}%
 \label{sec:related:character:spectral}
