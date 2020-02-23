@@ -191,7 +191,7 @@ In order to process a graph $G$ of size $n = |\mathcal{V}_G|$, one is forced to 
 Such an encoding introduces a vertex ordering $v_1, \dots, v_n$ that does not carry any semantic meaning.
 This means that there are $n!$ equivalent encodings of $G$. % chktex 40
 To represent those encodings we introduce the notion of ordered induced subgraphs.
-\begin{defn}
+\begin{defn}\label{defn:related:ordered-subgraph}
 	For all vertex $k$-tuples $v = (v_1, \dots, v_k) \in \mathcal{V}_G^k$ let $\hat{v} = \{ v_i\, |\, i \in [k] \}$.
 	Then $G[v] \coloneqq (\hat{v}, \mathcal{E}_G \cap \hat{v}^2, v)$ is called the ordered subgraph of $G$ induced by $v$.
 	If $\hat{v} = \mathcal{V}_G$ and $k = |\mathcal{V}_G|$, we call $v$ an ordering of $G$ and $G[v]$ an encoding of $G$.
@@ -365,9 +365,18 @@ Thus 1-\acs{wl} is already able to distinguish most graphs; it fails however to 
 \begin{defn}
 	A graph $G$ is called $d$-regular ($\mathit{rg}_d(G)$) iff.\ $\forall v \in \mathcal{V}_G: |\Gamma_G(v)| = d$.
 \end{defn}
-We have already seen this in \cref{fig:related:wl1-problem} since the ``six-cycle'' and the ``two-triangle'' graphs are in fact both 2-regular and of size 6.
+We have already seen this in \cref{fig:related:wl1-problem} since the ``six-cycle'' and the ``two-triangles'' graphs are in fact both 2-regular and of size 6.
 This restriction alone is typically not an issue in the context of \ac{gcr} though as molecular structures for example are rarely perfectly regular.
-A more relevant restriction of 1-\ac{wl} is the fact that it is unable to detect cycles of size $l \geq 3$.
+A more relevant restriction of 1-\acs{wl} is the fact that it is unable to detect cycles of length $m \geq 3$.
+\begin{defn}
+	$k$-\acs{wl} computes a function $f: \mathcal{G} \to P$ iff.\ that function can be expressed as $f(G) = g(\chi_{G, k}^{*})$ via some function $g: (\mathcal{V}_G^k \to \mathcal{C}) \to P$.
+\end{defn}
+\begin{defn}
+	$k$-\acs{wl} counts a certain subgraph $S$ iff.\ it computes $\mathit{count}_S(G) \coloneqq \left|\{ \hat{v}\, |\, v \in \mathcal{V}_G^{*} \land G[v] \equiv S \}\right|$ (see~\cref{defn:related:ordered-subgraph}).
+	Similarly $k$-\acs{wl} detects a subgraph $S$ iff.\ it computes $\mathit{contain}_S(G) \coloneqq \mathbbm{1}[\mathit{count}_S(G) > 0]$ with $\mathbbm{1}$ denoting the indicator function.
+\end{defn}
+To see why 1-\acs{wl} is unable to detect $m$-cycles in graphs, note that \cref{fig:related:wl1-problem} already contradicts the positive statement for $m = 3$;
+this counterexample can be trivially generalized to all larger $m$ by replacing the ``six-cycle'' graph with a ``$(2m)$-cycle-graph'' graph and the ``two-triangles'' graph with a ``two-$m$-cycles'' graph, preserving the 2-regularity and therefore the 1-\acs{wl} indistinguishability.
 
 \subsection{Spectral Graph Theory}%
 \label{sec:related:character:spectral}
