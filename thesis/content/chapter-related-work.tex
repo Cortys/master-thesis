@@ -189,7 +189,7 @@ They are the theoretical foundation of many current \ac{gcr} methods.
 
 In order to process a graph $G$ of size $n = |\mathcal{V}_G|$, one is forced to choose some encoding, e.g.\ an adjacency matrix $A \in {\{0, 1\}}^{n \times n}$.
 Such an encoding introduces a vertex ordering $v_1, \dots, v_n$ that does not carry any semantic meaning.
-This means that there are $n!$ equivalent encodings of $G$. % chktex 40
+Consequently there are $n!$ equivalent encodings of $G$. % chktex 40
 To represent those encodings we introduce the notion of ordered induced subgraphs.
 \begin{defn}\label{defn:related:ordered-subgraph}
 	For all vertex $k$-tuples $v = (v_1, \dots, v_k) \in \mathcal{V}_G^k$ let $\hat{v} = \{ v_i\, |\, i \in [k] \}$.
@@ -199,17 +199,17 @@ To represent those encodings we introduce the notion of ordered induced subgraph
 \begin{defn}\label{defn:related:ordered-subgraph-equivalence}
 	Two ordered induced subgraphs $G[v]$ and $H[w]$ with $(v_1, \dots, v_k) \in \mathcal{V}_G^k$ and $(w_1, \dots, w_k) \in \mathcal{V}_H^k$ are \textit{equivalent} ($G[v] \equiv H[w]$) iff.\
 	\begin{align*}
-		&\ \begin{aligned}
-			&\ \forall i, j: l_G[v_i, v_j] = l_H[w_i, w_j] &\land&\ \forall i: l_G[v_i] = l_H[w_i] \\
-			\land&\ \forall i, j: x_G[v_i, v_j] = x_H[w_i, w_j] &\land&\ \forall i: x_G[v_i] = x_H[w_i]
-		\end{aligned}\\
-		&\land\ \forall i, j: (v_i, v_j) \in \mathcal{E}_G \leftrightarrow (w_i, w_j) \in \mathcal{E}_H \text{.}
+		&\quad\forall i, j \in [k]: (v_i, v_j) \in \mathcal{E}_G \leftrightarrow (w_i, w_j) \in \mathcal{E}_H \\
+		&\, \begin{aligned}
+			\land&\ \forall i, j \in [k]: l_G[v_i, v_j] = l_H[w_i, w_j] &\land&\ \forall i \in [k]: l_G[v_i] = l_H[w_i] \\
+			\land&\ \forall i, j \in [k]: x_G[v_i, v_j] = x_H[w_i, w_j] &\land&\ \forall i \in [k]: x_G[v_i] = x_H[w_i]\text{.}
+		\end{aligned}
 	\end{align*}
-	Using this notion of equivalence, we call $[G[v]] \coloneqq \{ G[w] \equiv G[v]\, |\, w \in \mathcal{V}_G^{*} \}$ the ordered subgraph equivalence class of $G[v]$.
+	Using this notion of equivalence, we call $[G[v]] \coloneqq \{ G[w]\, |\, G[w] \equiv G[v] \land w \in \mathcal{V}_G^{*} \}$ the ordered subgraph equivalence class of $G[v]$.
 \end{defn}
 \begin{defn}
 	Two graphs $G$ and $H$ are \textit{isomorphic} ($G \simeq H$) iff.\ there are equivalent encodings $G[v] \equiv H[w]$ of them.
-	Consequently $[G] \coloneqq \{ H \simeq G\, |\, H \in \mathcal{G} \}$ is called the isomorphism class of $G$.
+	Consequently $[G] \coloneqq \{ H\, |\, H \simeq G \}$ is called the isomorphism class of $G$.
 \end{defn}
 The goal of the \ac{gi} problem is to check whether $G \simeq H$ for two arbitrary graphs.
 Even though there is no known universal algorithm in $P$ that solves \ac{gi}, \citet{Babai1980} showed that almost all graphs can be trivially distinguished in linear time.
@@ -230,8 +230,11 @@ A mapping $\chi_{G, k}: \mathcal{V}_G^k \to \mathcal{C}$ is called a \textit{$k$
 \end{defn}
 The $k$-dimensional \ac{wl} algorithm ($k$-\acs{wl}) works by iteratively refining $k$-colorings $\chi_{G, k}^{(0)} \succeq \chi_{G, k}^{(1)} \succeq \dots$ of a given graph $G$ until the convergence criterion $\chi_{G, k}^{(i)} \equiv \chi_{G, k}^{(i+1)}$ is satisfied.
 We denote the final, maximally refined $k$-\acs{wl} coloring with $\chi^{*}_{G, k}$.
+\begin{defn}
+	The color distribution $\mathit{dist}_{\chi_{G, k}}: \mathcal{C} \to \mathbb{N}$ of a $k$-coloring $\chi_{G, k}$ counts each color $c \in \mathcal{C}$ in the coloring, i.e.\ $\mathit{dist}_{\chi_{G, k}}(c) \coloneqq \left|\left\{ v \in \mathcal{V}_G^k\, |\, \chi_{G, k}(v) = c \right\}\right|$. % chktex 21
+\end{defn}
 \begin{defn}\label{defn:related:wl-distinguishable}
-	Two graphs $G$ and $H$ are are $k$-\acs{wl} \textit{distinguishable} ($G \mathrel{{\not\simeq}_k} H$) iff.\ there exists a color $c \in \mathcal{C}$ s.t.\ $\left|\left\{ a \in \mathcal{V}_G^k\, |\, \chi^{*}_{G, k}(a) = c \right\}\right|\neq \left|\left\{ b \in \mathcal{V}_H^k\, |\, \chi^{*}_{H, k}(b) = c \right\}\right|$. % chktex 21
+	Two graphs $G$ and $H$ are are $k$-\acs{wl} \textit{distinguishable} ($G \mathrel{{\not\simeq}_k} H$) iff.\ there exists a color $c \in \mathcal{C}$ s.t.\ $\mathit{dist}_{\chi^{*}_{G, k}}(c) \neq \mathit{dist}_{\chi^{*}_{H, k}}(c)$.
 \end{defn}
 As we will see, the way in which \ac{wl} colorings are refined is vertex order invariant;
 thus any difference in the final coloring of two graphs always implies the non-isomorphism of the colored graphs, i.e.\ $G \mathrel{{\not\simeq}_k} H \implies G \not\simeq H$.
@@ -258,7 +261,7 @@ In practice the hash function $h$ is usually defined lazily by using $\mathcal{C
 This is illustrated in \cref{fig:related:wl1-refine}.
 \begin{figure}[ht]
 	\centering
-	\includegraphics[width=0.75\linewidth]{gfx/related-work/wl1-refine.pdf}
+	\includegraphics[width=0.72\linewidth]{gfx/related-work/wl1-refine.pdf}
 	\caption[Example 1-WL color refinement steps.]{
 		Example 1-WL color refinement steps.
 		After two iterations the coloring stabilizes.
@@ -276,7 +279,7 @@ While the obtained colorings differ for most non-isomorphic graphs $G \not\simeq
 		Two simple non-isomorphic graphs that are indistinguishable by 1-\acs{wl}.
 	}\label{fig:related:wl1-problem}
 \end{figure}
-By extending \ac{wl} to higher dimensions such 1-\acs{wl} indistinguishable cases can however be handled.
+By extending \ac{wl} to higher dimensions, such 1-\acs{wl} indistinguishable cases can however be handled.
 Analogous to the 1-dimensional \cref{defn:related:wl1-refine}, the $k$-dimensional color refinement step is defined by
 \begin{defn}\label{defn:related:wlk-refine}
 	$\begin{aligned}[t]
@@ -363,20 +366,52 @@ However it turns out that almost all graphs are \ac{wl} distinguishable even for
 For $k = 1$ \citet{Babai1980} have shown that two randomly selected non-isomorphic graphs $G \not\simeq H$ of size $n$ are 1-\acs{wl} indistinguishable with probability $n^{-\nicefrac{1}{7}}$.
 Thus 1-\acs{wl} is already able to distinguish most graphs; it fails however to distinguish any pair of unlabeled $d$-regular graphs of the same size~\cite[cor.~1.8.5]{Immerman1990}.
 \begin{defn}
-	A graph $G$ is called $d$-regular ($\mathit{rg}_d(G)$) iff.\ $\forall v \in \mathcal{V}_G: |\Gamma_G(v)| = d$.
+	A graph $G$ is called $d$-regular ($\mathit{rg}_d(G)$) iff.\ $\forall v \in \mathcal{V}_G: {|\Gamma_G(v)|} = d$.
 \end{defn}
 We have already seen this in \cref{fig:related:wl1-problem} since the ``six-cycle'' and the ``two-triangles'' graphs are in fact both 2-regular and of size 6.
-This restriction alone is typically not an issue in the context of \ac{gcr} though as molecular structures for example are rarely perfectly regular.
+This restriction alone is typically not an issue in the context of \ac{gcr} though, as molecular structures or social interaction graphs for example are rarely perfectly regular.
 A more relevant restriction of 1-\acs{wl} is the fact that it is unable to detect cycles of length $m \geq 3$.
-\begin{defn}
-	$k$-\acs{wl} computes a function $f: \mathcal{G} \to P$ iff.\ that function can be expressed as $f(G) = g(\chi_{G, k}^{*})$ via some function $g: (\mathcal{V}_G^k \to \mathcal{C}) \to P$.
+\begin{defn}\label{defn:related:wl-compute}
+	$k$-\acs{wl} computes a function $f: \mathcal{G} \to Y$ iff.\ that function can be expressed as $f(G) = g(\mathit{dist}_{\chi_{G, k}^{*}})$ via some function $g: (\mathcal{C} \to \mathbb{N}) \to Y$.
 \end{defn}
-\begin{defn}
+\begin{defn}\label{defn:related:wl-count-detect}
 	$k$-\acs{wl} counts a certain subgraph $S$ iff.\ it computes $\mathit{count}_S(G) \coloneqq \left|\{ \hat{v}\, |\, v \in \mathcal{V}_G^{*} \land G[v] \equiv S \}\right|$ (see~\cref{defn:related:ordered-subgraph}).
-	Similarly $k$-\acs{wl} detects a subgraph $S$ iff.\ it computes $\mathit{contain}_S(G) \coloneqq \mathbbm{1}[\mathit{count}_S(G) > 0]$ with $\mathbbm{1}$ denoting the indicator function.
+	Similarly $k$-\acs{wl} detects a subgraph $S$ iff.\ it computes $\mathit{contain}_S(G) \coloneqq \mathbbm{1}[\mathit{count}_S(G) > 0]$, with $\mathbbm{1}$ denoting the indicator function.
 \end{defn}
 To see why 1-\acs{wl} is unable to detect $m$-cycles in graphs, note that \cref{fig:related:wl1-problem} already contradicts the positive statement for $m = 3$;
-this counterexample can be trivially generalized to all larger $m$ by replacing the ``six-cycle'' graph with a ``$(2m)$-cycle-graph'' graph and the ``two-triangles'' graph with a ``two-$m$-cycles'' graph, preserving the 2-regularity and therefore the 1-\acs{wl} indistinguishability.
+this counterexample can be trivially generalized to all larger $m$ by replacing the ``six-cycle'' graph with a ``$(2m)$-cycle-graph'' graph and the ``two-triangles'' graph with a ``two-$m$-cycles'' graph which preserves the 2-regularity and therefore the 1-\acs{wl} indistinguishability.
+
+This cycle-detection restriction of 1-\acs{wl} is relevant in practice because cycle counts are used in many domains to analyze graphs, e.g.\ triangle counts are commonly used in social network analysis to find interaction clusters~\cite{Newman2003}\cite{Welser2007} and the detection of 4-, 5- or 6-cycles is required to determine important chemical properties like the aromaticity of a molecule~\cite{Adamson1973}\cite{Kekule1866}.
+
+If we increase the \acs{wl}-dimension to $k = 2$, the described 1-\acs{wl} restrictions no longer apply.
+2-\acs{wl} is able to distinguish more than $1 - \mathcal{O}(\nicefrac{1}{n})$ of the regular $n$-vertex graphs~\cite[cor.~1.8.6]{Immerman1990} and can even count cycles.
+\begin{prop}[see \citet{Fuerer2017}]\label{prop:related:wl2-cycle-count}
+	2-\acs{wl} is able to count $m$-cycles for $m \leq 6$ but it cannot detect 8-cycles.
+	There are no results regarding 7-cycles.
+\end{prop}
+\begin{hproof}
+	We refer to \citet{Fuerer2017} for the full proof.
+	Only the idea behind triangle and 4-cycle counting is outlined here to give an intuition for why \cref{prop:related:wl2-cycle-count} holds.
+	Note that the 2-\acs{wl} neighbors of each edge $(v, w) \in \mathcal{E}_G$ correspond to all possible paths $(v, u, w)$ of length 2, i.e.\ all possible triangles.
+	By \cref{defn:related:wlk-refine} there must thus be a color subset $C^{\triangle}_j \subseteq \mathcal{C}$ representing that an edge is involved in exactly $j$ triangles after one refinement step.
+	2-\acs{wl} then trivially counts triangles by setting $g(\mathit{dist}_\chi) = \frac{1}{3} \sum_j j \sum_{c \in C^{\triangle}_j} \mathit{dist}_\chi(c)$ to satisfy \cref{defn:related:wl-compute}.
+	Analogously for 4-cycles, let $C^{\square}_j \subseteq \mathcal{C}$ be the colors indicating a non-edge $(v, w) \notin \mathcal{E}_G$ with $j$ common vertex neighbors $u \in \Gamma_G(v) \cap \Gamma_G(w)$.
+	The number of 4-cycles is then determined by the colors of the diagonals through them via $g(\mathit{dist}_\chi) = \frac{1}{2} \sum_{j \geq 2} \binom{j}{2} \sum_{c \in C^{\square}_j} \mathit{dist}_\chi(c)$.
+	Using a similar but more involved combinatorial argument requiring multiple color refinement steps, 5- and 6-cycle counting can be shown.
+\end{hproof}
+As we just saw, 2-\acs{wl} is significantly more powerful than 1-\acs{wl}.
+By \cref{prop:related:wl-upper} there are of course still 2-\acs{wl} indistinguishable graphs;
+among others those are the strongly regular graphs $\mathit{srg}_{n, d, \lambda, \mu}(G)$.
+\begin{defn}
+	$\begin{aligned}[t]
+		\mathit{srg}_{n, d, \lambda, \mu}(G) \iff\ & {|\mathcal{V}_G|} = n \quad\land\quad \forall v \in \mathcal{V}_G: {|\Gamma_G(v)|} = d \\
+		&\land \forall (v, w) \in \mathcal{E}_G: {|\Gamma_G(v) \cap \Gamma_G(w)|} = \lambda \\
+		&\land \forall (v, w) \in \mathcal{V}_G^2 \setminus \mathcal{E}_G: {|\Gamma_G(v) \cap \Gamma_G(w)|} = \mu
+	\end{aligned}$
+\end{defn}
+Generally this restriction of 2-\acs{wl} is not an issue since strongly regular graphs do not appear in typical \ac{gcr} datasets.
+Lastly there are few results regarding the classes of distinguishable graphs and computable functions for higher \ac{wl}-dimensions.
+For $k = 3$, \citet{Kiefer2017} have shown that all planar graphs can be distinguished.
 
 \subsection{Spectral Graph Theory}%
 \label{sec:related:character:spectral}
@@ -410,7 +445,7 @@ We will now look at two main families of explicit graph and vertex embedding app
 The first works on graph embeddings were motivated by the study of chemical structures~\cite{Adamson1973}\cite{Willett1986}.
 There a molecule can be interpreted as a labeled graph for which the \ac{gcr} problem corresponds to the prediction of some chemical property, e.g.\ toxicity or solubility.
 So-called \textit{fingerprint embeddings} try to match a fixed set of subgraphs $S_1, \dots, S_d$ to the input graph.
-The embedding of a graph $G$ is a binary vector $f(G) = x \in {\{0, 1\}}^d$ with $x_i = \mathds{1}[\text{$S_i$ is subgraph of $G$}]$, where $\mathds{1}$ denotes the indicator function.
+The embedding of a graph $G$ is a binary vector $f(G) = x \in {\{0, 1\}}^d$ with $x_i \coloneqq \mathit{contain}_{S_i}(G)$ (see~\cref{defn:related:wl-count-detect}).
 This simple approach usually requires a careful choice of subgraphs but can still be competitive with the other more recent approaches we will look at in the following sections.
 Fingerprint embeddings are for example used in multiple state-of-the-art toxicity prediction tools like RASAR~\cite{Luechtefeld2018}\cite{ToxTrack}, ProTox~\cite{Drwal2014}\cite{Banerjee2018}\cite{ProTox} or the \ac{toxTest}~\cite{TEST}.
 

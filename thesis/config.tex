@@ -172,10 +172,15 @@
 \newcommand{\tikzmark}[1]{\tikz[overlay,remember picture] \node (#1) {};} % chktex 1
 \newcommand{\dac}[3]{\DeclareAcronym{#1}{short = #2, long = #3}}
 
-\newtheorem{thm}{Theorem}[chapter]
-\newtheorem{prop}[thm]{Proposition}[chapter]
-\newtheorem{lem}[thm]{Lemma}[chapter]
-\newtheorem{fact}[thm]{Fact}[chapter]
-\newtheorem{cor}[thm]{Corollary}[chapter]
-\newtheorem{defn}[thm]{Definition}[chapter]
-\newenvironment{hproof}{\renewcommand{\proofname}{Proof Sketch}\proof}{\endproof}
+\newtheorem{thm}{Theorem}
+\numberwithin{thm}{chapter}
+\newtheorem{prop}[thm]{Proposition}
+\numberwithin{prop}{chapter}
+\newtheorem{lem}[thm]{Lemma}
+\numberwithin{lem}{chapter}
+\newtheorem{fact}[thm]{Fact}
+\numberwithin{fact}{chapter}
+\newtheorem{cor}[thm]{Corollary}
+\numberwithin{cor}{chapter}
+\newtheorem{defn}[thm]{Definition}
+\numberwithin{defn}{chapter}
