@@ -395,7 +395,7 @@ If we increase the \acs{wl}-dimension to $k = 2$, the described 1-\acs{wl} restr
 	2-\acs{wl} then trivially counts triangles by setting $g(\mathit{dist}_\chi) = \frac{1}{3} \sum_j j \sum_{c \in C^{\triangle}_j} \mathit{dist}_\chi(c)$ to satisfy \cref{defn:related:wl-compute}.
 	Analogously for 4-cycles, let $C^{\square}_j \subseteq \mathcal{C}$ be the colors indicating a non-edge $(v, w) \notin \mathcal{E}_G$ with $j$ common vertex neighbors $u \in \Gamma_G(v) \cap \Gamma_G(w)$.
 	The number of 4-cycles is then determined by the colors of the diagonals through them via $g(\mathit{dist}_\chi) = \frac{1}{2} \sum_{j \geq 2} \binom{j}{2} \sum_{c \in C^{\square}_j} \mathit{dist}_\chi(c)$.
-	Using a similar but more involved combinatorial argument requiring multiple color refinement steps, 5-, 6- and 7-cycle counting can be shown.
+	Using a similar but more involved combinatorial argument requiring multiple color refinement steps, 5-, 6- \& 7-cycle counting can be shown.
 \end{hproof}
 As we just saw, 2-\acs{wl} is significantly more powerful than 1-\acs{wl}.
 By \cref{prop:related:wl-upper} there are of course still 2-\acs{wl} indistinguishable graphs;
@@ -408,13 +408,50 @@ among others those are the strongly regular graphs $\mathit{srg}_{n, d, \lambda,
 	\end{aligned}$
 \end{defn}
 Generally this restriction of 2-\acs{wl} is not an issue since strongly regular graphs do not appear in typical \ac{gcr} datasets.
-Lastly there are few results regarding the classes of distinguishable graphs and computable functions for higher \ac{wl}-dimensions.
-For $k = 3$, \citet{Kiefer2017} have shown that all planar graphs can be distinguished.
+By going to $k = 3$, even some strongly regular graphs as well as all planar graphs can be distinguished though~\cite{Kiefer2017}.
+Apart from that there are currently few results regarding the classes of distinguishable graphs and computable functions for even higher \ac{wl}-dimensions.
 
 \subsection{Spectral Graph Theory}%
 \label{sec:related:character:spectral}
 
 An alternative perspective on graph characterization is provided by \textit{spectral graph theory}.
+While \ac{wl} characterizes a graph via its color distribution $\mathit{dist}_{\chi_{G,k}^{*}}$, the spectral approach uses its so-called \textit{spectrum} $\lambda_G = (\lambda_{G, 1}, \dots, \lambda_{G, n}) \in \mathbb{R}^n$ where $n = |\mathcal{V}_G|$.
+The key idea behind this is to interpret the adjacency matrix $A \in \mathbb{R}^{n \times n}$ of $G$ not simply as an encoding of the edges ($A_{i j} = \mathbbm{1}[(v_i, v_j) \in \mathcal{E}_G]$) but as a linear operator $A: (\mathcal{V}_G \to \mathbb{R}) \to (\mathcal{V}_G \to \mathbb{R})$ acting on the vector space of real-valued functions with a vertex domain.
+This means that $A$ transforms so-called \textit{graph signals} $x: \mathcal{V}_G \to \mathbb{R}$ which are functions assigning \textit{signal strengths} to vertices.
+By applying $Ax$ the signal strength $x[v_i]$ of each vertex is added to the signal strengths of its neighbors $\Gamma_G(v_i)$.
+Using this functional perspective, one can characterize graphs via the \acf{ft}.
+We will now see how this is done;
+however since a comprehensive description of spectral graph theory would exceed the scope of this thesis, only a brief overview will be given.
+For a more detailed introduction to the field we refer to \citet{Shuman2013}.
+
+\paragraph{\ac{ft} on complex domains}
+Let us begin by describing the \ac{ft} for the more common case of functions with complex domains\footnote{
+	This description of the \ac{ft} naturally also includes functions with real domains.
+	The complex case was chosen because it is more compact.
+}.
+All functions $f: \mathbb{C} \to \mathbb{C}$ can be interpreted as infinite-dimensional vectors $f = \int_{\mathbb{C}} f(t)\, b_t \dif t$ with $b_t: \mathbb{C} \to \mathbb{C}$ being a standard basis vector/function defined as $b_t(s) \coloneqq \begin{cases} 1 & \text{if } s = t \\[-6pt] 0 & \text{else} \end{cases}$. % chktex 21
+The \acl{ft} $\hat{f}$ of $f$ corresponds to a change of basis from the standard basis vectors $b_t$ to the Fourier basis vectors $u_\xi(t) \coloneqq e^{2 \pi i \xi t}$, i.e.\ $f = \int_{\mathbb{C}} \hat{f}(t)\, u_\xi \dif \xi$.
+The Fourier basis is characterized by the fact that it is an eigenbasis of the so-called \textit{Laplace operator} $\Delta$, i.e.\ $\Delta u_\xi = \lambda_\xi u_\xi$ with $\lambda_\xi$ being the eigenvalue corresponding to $u_\xi$.
+In the complex domain this Laplace operator $\Delta$ is effectively the same as the second-derivative $\frac{\dif^2}{\dif t^2}$.
+Thus it is easy to see that indeed $\Delta u_\xi = \frac{\dif^2}{\dif t^2} u_\xi = \lambda_\xi u_\xi$ for $\lambda_\xi = -{(2 \pi \xi)}^2$.
+Note that the complex exponentials $u_\xi$ are the only eigenbasis of $\Delta$ on the complex plane $\mathbb{C}$.
+This allows us to interpret the eigenvectors $u_\xi$ and their corresponding eigenvalues $\lambda_\xi$ as a characterization of the complex plane.
+
+\paragraph{\ac{ft} on vertex domains}
+Similar to how the eigenvectors and eigenvalues of the complex Laplacian $\frac{\dif^2}{\dif t^2}$ characterize $\mathbb{C}$, we can characterize a graph $G$ by the eigenvectors and eigenvalues of the so-called \textit{combinatorial graph Laplacian} $L$.
+\begin{defn}
+	The combinatorial graph Laplacian $L$ of a graph $G$ is defined as
+	\begin{align*}
+		L \coloneqq D - A\quad\text{with the degree matrix } D \coloneqq {
+			\renewcommand*{\arraystretch}{0.5}
+			\begin{pmatrix}
+				d_1 & & \\
+				& \ddots & \\
+				& & d_n
+			\end{pmatrix}
+		}, d_i \coloneqq |\Gamma_G(v_i)| \text{.}
+	\end{align*}
+\end{defn}
 
 \section{Graph Classification and Regression}%
 \label{sec:related:gcr}
@@ -500,7 +537,7 @@ Analogous to \texttt{word2vec}, \texttt{graph2vec} therefore embeds graphs that 
 
 Instead of explicitly mapping a graph or vertices into a vector space, one can also do so implicitly by employing the kernel trick.
 There is a large variety of so-called \acp{gk} to do this.
-\acp{gk} can be used in combination with any kernel method, typically a \ac{svm}, to solve the \ac{gcr} problem.
+\acp{gk} can be used in combination with any kernelized learner, typically \acp{svm}, to solve the \ac{gcr} problem.
 While there is a large variety of different \acp{gk}, we will focus on those that are based on the previously described family of \ac{wl} algorithms.
 
 \paragraph{\ac{wl} subtree kernel}
