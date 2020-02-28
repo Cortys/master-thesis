@@ -187,7 +187,7 @@ They are the theoretical foundation of many current \ac{gcr} methods.
 \subsection{The Graph Isomorphism Problem}%
 \label{sec:related:character:iso}
 
-In order to process a graph $G$ of size $n = |\mathcal{V}_G|$, one is forced to choose some encoding, e.g.\ an adjacency matrix $A \in {\{0, 1\}}^{n \times n}$.
+In order to process a graph $G$ of size $n = |\mathcal{V}_G|$, one is forced to choose some encoding, e.g.\ an adjacency matrix $A_G \in {\{0, 1\}}^{n \times n}$.
 Such an encoding introduces a vertex ordering $v_1, \dots, v_n$ that does not carry any semantic meaning.
 Consequently there are $n!$ equivalent encodings of $G$. % chktex 40
 To represent those encodings we introduce the notion of ordered induced subgraphs.
@@ -384,7 +384,7 @@ this counterexample can be trivially generalized to all larger $m$ by replacing 
 This cycle-detection restriction of 1-\acs{wl} is relevant in practice because cycle counts are used in many domains to analyze graphs, e.g.\ triangle counts are commonly used in social network analysis to find interaction clusters~\cite{Newman2003}\cite{Welser2007} and the detection of 4-, 5- or 6-cycles is required to determine important chemical properties like the aromaticity of a molecule~\cite{Adamson1973}\cite{Kekule1866}.
 
 If we increase the \acs{wl}-dimension to $k = 2$, the described 1-\acs{wl} restrictions no longer apply.
-2-\acs{wl} is able to distinguish more than $1 - \mathcal{O}(\nicefrac{1}{n})$ of the regular $n$-vertex graphs~\cite[cor.~1.8.6]{Immerman1990} and can even count cycles.
+2-\acs{wl} is able to distinguish more than $1 - \mathcal{O}(\nicefrac{1}{n})$ of the regular $n$-vertex graphs~\cite[cor.~1.8.6]{Immerman1990} and can even count cycles:
 \begin{prop}[see \citet{Fuerer2017} and \citet{Arvind2019}]\label{prop:related:wl2-cycle-count}
 	2-\acs{wl} is able to count $m$-cycles for $m \leq 7$ but it cannot detect 8-cycles.
 \end{prop}
@@ -398,7 +398,7 @@ If we increase the \acs{wl}-dimension to $k = 2$, the described 1-\acs{wl} restr
 	Using a similar but more involved combinatorial argument requiring multiple color refinement steps, 5-, 6- \& 7-cycle counting can be shown.
 \end{hproof}
 As we just saw, 2-\acs{wl} is significantly more powerful than 1-\acs{wl}.
-By \cref{prop:related:wl-upper} there are of course still 2-\acs{wl} indistinguishable graphs;
+Though, by \cref{prop:related:wl-upper}, there are of course still 2-\acs{wl} indistinguishable graphs;
 among others those are the strongly regular graphs $\mathit{srg}_{n, d, \lambda, \mu}(G)$.
 \begin{defn}
 	$\begin{aligned}[t]
@@ -414,35 +414,32 @@ Apart from that there are currently few results regarding the classes of disting
 \subsection{Spectral Graph Theory}%
 \label{sec:related:character:spectral}
 
-An alternative perspective on graph characterization is provided by \textit{spectral graph theory}.
+Let us now look at an alternative perspective on graph characterization which is provided by \textit{spectral graph theory}.
 While \ac{wl} characterizes a graph via its color distribution $\mathit{dist}_{\chi_{G,k}^{*}}$, the spectral approach uses its so-called \textit{spectrum} $\lambda_G = (\lambda_{G, 1}, \dots, \lambda_{G, n}) \in \mathbb{R}^n$ where $n = |\mathcal{V}_G|$.
-The key idea behind this is to interpret the adjacency matrix $A \in \mathbb{R}^{n \times n}$ of $G$ not simply as an encoding of the edges ($A_{i j} = \mathbbm{1}[(v_i, v_j) \in \mathcal{E}_G]$) but as a linear operator $A: (\mathcal{V}_G \to \mathbb{R}) \to (\mathcal{V}_G \to \mathbb{R})$ acting on the vector space of real-valued functions with a vertex domain.
-This means that $A$ transforms so-called \textit{graph signals} $x: \mathcal{V}_G \to \mathbb{R}$ which are functions assigning \textit{signal strengths} to vertices.
-By applying $Ax$ the signal strength $x[v_i]$ of each vertex is added to the signal strengths of its neighbors $\Gamma_G(v_i)$.
+The key idea behind this is to interpret the adjacency matrix $A_G \in \mathbb{R}^{n \times n}$ of $G$ not simply as an encoding of the edges ($A_{G,i,j} = \mathbbm{1}[(v_i, v_j) \in \mathcal{E}_G]$) but as a linear operator $A_G: (\mathcal{V}_G \to \mathbb{R}) \to (\mathcal{V}_G \to \mathbb{R})$ acting on the vector space of real-valued functions with a vertex domain.
+This means that $A_G$ transforms so-called \textit{graph signals} $x: \mathcal{V}_G \to \mathbb{R}$ which are functions assigning \textit{signal strengths} to vertices.
+By applying $A_G x$ the signal strength $x[v_i]$ of each vertex is added to the signal strengths of its neighbors $\Gamma_G(v_i)$.
 Using this functional perspective, one can characterize graphs via the \acf{ft}.
 We will now see how this is done;
-however since a comprehensive description of spectral graph theory would exceed the scope of this thesis, only a brief overview will be given.
+however, since a comprehensive description of spectral graph theory would exceed the scope of this thesis, only a brief overview will be given.
 For a more detailed introduction to the field we refer to \citet{Shuman2013}.
 
-\paragraph{\ac{ft} on complex domains}
-Let us begin by describing the \ac{ft} for the more common case of functions with complex domains\footnote{
-	This description of the \ac{ft} naturally also includes functions with real domains.
-	The complex case was chosen because it is more compact.
-}.
-All functions $f: \mathbb{C} \to \mathbb{C}$ can be interpreted as infinite-dimensional vectors $f = \int_{\mathbb{C}} f(t)\, b_t \dif t$ with $b_t: \mathbb{C} \to \mathbb{C}$ being a standard basis vector/function defined as $b_t(s) \coloneqq \begin{cases} 1 & \text{if } s = t \\[-6pt] 0 & \text{else} \end{cases}$. % chktex 21
-The \acl{ft} $\hat{f}$ of $f$ corresponds to a change of basis from the standard basis vectors $b_t$ to the Fourier basis vectors $u_\xi(t) \coloneqq e^{2 \pi i \xi t}$, i.e.\ $f = \int_{\mathbb{C}} \hat{f}(t)\, u_\xi \dif \xi$.
+\paragraph{\ac{ft} on real domains}
+Let us begin by describing the \ac{ft} for the more common case of functions with real domains.
+All functions $f: \mathbb{R} \to \mathbb{R}$ can be interpreted as infinite-dimensional vectors $f = \int_{\mathbb{R}} f(t)\, b_t \dif t$ with $b_t: \mathbb{R} \to \mathbb{R}$ being a standard basis vector/function defined as $b_t(s) \coloneqq \begin{cases} 1 & \text{if } s = t \\[-6pt] 0 & \text{else} \end{cases}$. % chktex 21
+The values of $f$ are then described as its $b_t$ components $\langle b_t, f \rangle = f(t)$, where $\langle b_t, \cdot \rangle = \delta_t(\cdot)$ denotes the Dirac delta function translated by $t$.
+The \acl{ft} $\hat{f}$ of $f$ corresponds to a change of basis from the standard basis vectors $b_t$ to the Fourier basis vectors $u_\xi(t) \coloneqq e^{2 \pi i \xi t}$, i.e.\ $f = \int_{\mathbb{R}} \hat{f}(t)\, u_\xi \dif \xi$.
 The Fourier basis is characterized by the fact that it is an eigenbasis of the so-called \textit{Laplace operator} $\Delta$, i.e.\ $\Delta u_\xi = \lambda_\xi u_\xi$ with $\lambda_\xi$ being the eigenvalue corresponding to $u_\xi$.
-In the complex domain this Laplace operator $\Delta$ is effectively the same as the second-derivative $\frac{\dif^2}{\dif t^2}$.
+In the real domain this Laplace operator $\Delta$ is effectively the same as the second-derivative $\frac{\dif^2}{\dif t^2}$.
 Thus it is easy to see that indeed $\Delta u_\xi = \frac{\dif^2}{\dif t^2} u_\xi = \lambda_\xi u_\xi$ for $\lambda_\xi = -{(2 \pi \xi)}^2$.
-Note that the complex exponentials $u_\xi$ are the only eigenbasis of $\Delta$ on the complex plane $\mathbb{C}$.
-This allows us to interpret the eigenvectors $u_\xi$ and their corresponding eigenvalues $\lambda_\xi$ as a characterization of the complex plane.
 
 \paragraph{\ac{ft} on vertex domains}
-Similar to how the eigenvectors and eigenvalues of the complex Laplacian $\frac{\dif^2}{\dif t^2}$ characterize $\mathbb{C}$, we can characterize a graph $G$ by the eigenvectors and eigenvalues of the so-called \textit{combinatorial graph Laplacian} $L$.
+To extend the notion of the \ac{ft} from real functions $f: \mathbb{R} \to \mathbb{R}$ to graph signals $x: \mathcal{V}_G \to \mathbb{R}$ we need to define a graph variant of the Laplace operator $\Delta$.
+It turns out that there are multiple possible ways to do so, the most simple being the so-called \textit{combinatorial graph Laplacian}.
 \begin{defn}
-	The combinatorial graph Laplacian $L$ of a graph $G$ is defined as
+	The combinatorial graph Laplacian $L_G \in \mathbb{R}^{n \times n}$ is defined as
 	\begin{align*}
-		L \coloneqq D - A\quad\text{with the degree matrix } D \coloneqq {
+		L_G \coloneqq D_G - A_G\quad\text{with the degree matrix } D_G\coloneqq {
 			\renewcommand*{\arraystretch}{0.5}
 			\begin{pmatrix}
 				d_1 & & \\
@@ -452,6 +449,36 @@ Similar to how the eigenvectors and eigenvalues of the complex Laplacian $\frac{
 		}, d_i \coloneqq |\Gamma_G(v_i)| \text{.}
 	\end{align*}
 \end{defn}
+Using this definition, applying $L_G x$ is analogous to taking the second derivative $\frac{\dif^2}{\dif t^2} f$.
+Putting both Laplacian variants, $L_G$ and $\frac{\dif^2}{\dif t^2}$, side-by-side gives an intuition for why this is the case:
+\begin{equation*}
+	\begin{split}
+		-\frac{\dif^2}{\dif t^2} f(t) = \smashoperator[l]{\lim_{h \to 0}} \frac{1}{h^2} (\underbrace{f(t) - f(t-h)}_{\Delta_{t, t-h}} + \underbrace{f(t) -  f(t+h)}_{\Delta_{t, t+h}})
+	\end{split}
+	\begin{split}\ \left|\ %
+		L_G x[v] = \smashoperator[l]{\sum_{u \in \Gamma_G(v)}}\mkern-6mu \underbrace{(x[v] - x[u])}_{\Delta_{v, u}}
+	\right.\end{split}
+\end{equation*}
+The second derivative of a function $f$ essentially averages the value differences in the neighborhood of a point $t$.
+For real-valued functions this neighborhood only consists of the two infinitesimally close points to the left and to the right of $t$, i.e.\ $t - h$ and $t + h$.
+The combinatorial graph Laplacian represents the same operation, where each point/vertex $v$ might however have more than two neighbors $u \in \Gamma_G(v)$ that need to be averaged.
+
+The \ac{ft} of a graph signal $x$ then is $\hat{x}[i] = \langle u_{G,i}, x \rangle$ with $u_G = {\{ u_{G,i} \}}_{i=1}^{n}$ being the eigenvectors of $L_G$, s.t.\ $x = \sum_{i=1}^n \hat{x}[i] u_{G,i}$.
+Note that $L_G$ is guaranteed to only have real eigenvectors $u_G$ and eigenvalues $\lambda_G$ due to the fact that we only consider undirected graphs with symmetric adjacency matrices $A_G$.
+By convention we assume that the eigenvalues are ordered ascendingly: $\lambda_{G,0} \leq \cdots \leq \lambda_{G,n}$.
+Those eigenvalues are called the \textit{spectrum of $G$} and they are a vertex-permutation-invariant graph characterization.
+Intuitively those eigenvalues describe the connectivity between different parts of the graph.
+The initial eigenvalues represent connectivity at a general, coarse level while the last eigenvalues represent the connectivity between finer substructures.
+\Cref{fig:related:graph-fourier} illustrates this idea.
+A more concrete example for the relation between a graph's structure and its spectrum is that a graph with $m$ connected components has exactly $m$ zero eigenvalues, i.e.\ $\lambda_{G,1} \cdots = \lambda_{G,m} = 0$.
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=\linewidth]{gfx/related-work/graph-fourier.pdf}
+	\caption[Comparison between the basis vectors of the real domain \acl{ft} and the graph \acl{ft}.]{
+		Comparison between the basis functions/vectors of the real domain \ac{ft} and the graph \ac{ft}.
+		For the eigenfunctions on the upper half only the real cosine components of the complex exponentials are shown.
+	}\label{fig:related:graph-fourier}
+\end{figure}
 
 \section{Graph Classification and Regression}%
 \label{sec:related:gcr}
