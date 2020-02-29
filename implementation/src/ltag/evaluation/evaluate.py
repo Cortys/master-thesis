@@ -39,7 +39,7 @@ def train(
   t = time_str()
   tb = keras.callbacks.TensorBoard(
     log_dir=log_dir_base / f"{t}{label}/",
-    histogram_freq=1,
+    histogram_freq=10,
     write_images=False)
   es = keras.callbacks.EarlyStopping(
     monitor="loss" if val_ds is None else "val_loss",

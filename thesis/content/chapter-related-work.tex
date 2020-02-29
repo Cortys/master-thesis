@@ -151,7 +151,7 @@ Using this model, the aggregation problem boils down to optimizing the shape of 
 
 \begin{figure}[ht]
 	\centering
-	\includegraphics[width=0.75\linewidth]{gfx/related-work/bum.pdf}
+	\includegraphics[width=0.72\linewidth]{gfx/related-work/bum.pdf}
 	\caption[Illustration of how a \ac{bum} function is described as a linear spline and its relation to the \ac{owa} weights.]{
 		Illustration of how \textcolor{t_blue}{$a$} describes \textcolor{t_blue}{$q$} and its relation to \textcolor{t_red}{$\lambda$} ($n = 4$, $m = 7$).
 	}\label{fig:related:bum}
@@ -424,16 +424,16 @@ We will now see how this is done;
 however, since a comprehensive description of spectral graph theory would exceed the scope of this thesis, only a brief overview will be given.
 For a more detailed introduction to the field we refer to \citet{Shuman2013}.
 
-\paragraph{\ac{ft} on real domains}
+\paragraph{The classical \acl{ft}}
 Let us begin by describing the \ac{ft} for the more common case of functions with real domains.
 All functions $f: \mathbb{R} \to \mathbb{R}$ can be interpreted as infinite-dimensional vectors $f = \int_{\mathbb{R}} f(t)\, b_t \dif t$ with $b_t: \mathbb{R} \to \mathbb{R}$ being a standard basis vector/function defined as $b_t(s) \coloneqq \begin{cases} 1 & \text{if } s = t \\[-6pt] 0 & \text{else} \end{cases}$. % chktex 21
 The values of $f$ are then described as its $b_t$ components $\langle b_t, f \rangle = f(t)$, where $\langle b_t, \cdot \rangle = \delta_t(\cdot)$ denotes the Dirac delta function translated by $t$.
 The \acl{ft} $\hat{f}$ of $f$ corresponds to a change of basis from the standard basis vectors $b_t$ to the Fourier basis vectors $u_\xi(t) \coloneqq e^{2 \pi i \xi t}$, i.e.\ $f = \int_{\mathbb{R}} \hat{f}(t)\, u_\xi \dif \xi$.
 The Fourier basis is characterized by the fact that it is an eigenbasis of the so-called \textit{Laplace operator} $\Delta$, i.e.\ $\Delta u_\xi = \lambda_\xi u_\xi$ with $\lambda_\xi$ being the eigenvalue corresponding to $u_\xi$.
 In the real domain this Laplace operator $\Delta$ is effectively the same as the second-derivative $\frac{\dif^2}{\dif t^2}$.
-Thus it is easy to see that indeed $\Delta u_\xi = \frac{\dif^2}{\dif t^2} u_\xi = \lambda_\xi u_\xi$ for $\lambda_\xi = -{(2 \pi \xi)}^2$.
+Thus it is easy to see that indeed $\Delta u_\xi = -\frac{\dif^2}{\dif t^2} u_\xi = \lambda_\xi u_\xi$ for $\lambda_\xi = {(2 \pi \xi)}^2$.
 
-\paragraph{\ac{ft} on vertex domains}
+\paragraph{The graph \acl{ft}}
 To extend the notion of the \ac{ft} from real functions $f: \mathbb{R} \to \mathbb{R}$ to graph signals $x: \mathcal{V}_G \to \mathbb{R}$ we need to define a graph variant of the Laplace operator $\Delta$.
 It turns out that there are multiple possible ways to do so, the most simple being the so-called \textit{combinatorial graph Laplacian}.
 \begin{defn}
@@ -468,9 +468,10 @@ Note that $L_G$ is guaranteed to only have real eigenvectors $u_G$ and eigenvalu
 By convention we assume that the eigenvalues are ordered ascendingly: $\lambda_{G,0} \leq \cdots \leq \lambda_{G,n}$.
 Those eigenvalues are called the \textit{spectrum of $G$} and they are a vertex-permutation-invariant graph characterization.
 Intuitively those eigenvalues describe the connectivity between different parts of the graph.
-The initial eigenvalues represent connectivity at a general, coarse level while the last eigenvalues represent the connectivity between finer substructures.
+The first eigenvalues represent connectivity at a general, coarse level while the last eigenvalues represent the connectivity of finer substructures.
 \Cref{fig:related:graph-fourier} illustrates this idea.
-A more concrete example for the relation between a graph's structure and its spectrum is that a graph with $m$ connected components has exactly $m$ zero eigenvalues, i.e.\ $\lambda_{G,1} \cdots = \lambda_{G,m} = 0$.
+A concrete example for the relation between a graph's structure and its spectrum is the fact that a graph with $m$ connected components has exactly $m$ zero eigenvalues, i.e.\ $0 = \lambda_{G,1} = \cdots = \lambda_{G,m} < \lambda_{G,m+1}$.
+For a more detailed discussion of this relation we refer to \citet{Das2004}.
 \begin{figure}[ht]
 	\centering
 	\includegraphics[width=\linewidth]{gfx/related-work/graph-fourier.pdf}
@@ -480,6 +481,25 @@ A more concrete example for the relation between a graph's structure and its spe
 		\source[based on]{Shuman2013}
 	}\label{fig:related:graph-fourier}
 \end{figure}
+\begin{defn}
+	Two graphs $G$ and $H$ are \textit{cospectral} ($G \mathrel{\simeq_\lambda} H$) iff.\ $\forall i: \lambda_{G,i} = \lambda_{H,i}$.
+\end{defn}
+\citet{Alzaga2010} have shown that the cospectrality test can be more powerful than 1-\acs{wl} but is always weaker than 2-\acs{wl}, i.e.\ $G \mathrel{\simeq_2} H \implies G \mathrel{\simeq_\lambda} H$.
+Despite this limit on the discriminative power of the graph spectrum, it is still useful for determining graph similarity, e.g.\ by defining a distance measure on the vector space of spectra~\cite{Gu2015}.
+
+As briefly mentioned before, the combinatorial graph Laplacian $L_G$ is not the only possible choice of graph Laplacian.
+Note that the eigenvalues of $L_G$ grow with the number of edges in $G$\footnote{
+	This is trivially shown by $\sum_{i=1}^n \lambda_{G,i} = \Tr(L_G) = \Tr(D_G) = |\mathcal{E}_G|$.
+}.
+Consequently a small graph $G$ will always have a large spectral distance to a large graph $H$ (assuming $|\mathcal{V}_G| \ll |\mathcal{V}_H|$) irrespective of their similarity when ignoring the scale difference.
+In domains where the absolute size of a graph should not influence its spectral characterization, it can therefore be useful to normalize the spectrum.
+One common way to do so is via the so-called \textit{symmetric normalized Laplacian} $L^{\text{sym}}_G$.
+\begin{defn}
+	$L^{\text{sym}}_G \coloneqq D^{-\frac{1}{2}} L_G D^{-\frac{1}{2}}$ is the symmetric normalized Laplacian of $G$.
+\end{defn}
+The eigenvalues $\lambda^{\text{sym}}_{G, i}$  of this Laplacian all lie in the range $[0, 1]$.
+There are also other ways to normalize the spectrum, e.g.\ by using the random walk Laplacian $L^{\text{rw}}_G \coloneqq D^{-1} L_G$, which we will however not cover here (see \citet{Shuman2013}).
+This concludes our overview of spectral graph characterization.
 
 \section{Graph Classification and Regression}%
 \label{sec:related:gcr}
@@ -495,12 +515,12 @@ We will now look at the characteristics of those families and give a brief overv
 \subsection{Explicit Graph Embeddings}%
 \label{sec:related:gcr:embed}
 
-The basic idea of explicit graph embedding approaches is to map a graph $G \in \mathbb{G}$ to some vector in a finite vector space $\mathcal{X} = \mathbb{R}^d$.
-A function $f: \mathbb{G} \to \mathcal{X}$ is called a \textit{graph embedding function}.
+The basic idea of explicit graph embedding approaches is to map a graph $G \in \mathcal{G}$ to some vector in a finite vector space $\mathcal{X} = \mathbb{R}^d$.
+A function $f: \mathcal{G} \to \mathcal{X}$ is called a \textit{graph embedding function}.
 By embedding a graph into $\mathcal{X}$, any classification or regression algorithm that works with vectors can then be applied to solve the \ac{gcr} problem.
 
 The so-called vertex embedding problem is closely related to the graph embedding problem.
-As the name suggests, a \textit{vertex embedding function} $f_G: V \to \mathcal{X}$ maps all vertices $v \in V$ of a graph $G$ into $\mathcal{X}$.
+As the name suggests, a \textit{vertex embedding function} $f_G$ maps all vertices $v \in \mathcal{V}_G$ to $\mathcal{X}$.
 The embedding vector $f_G(v)$ ideally encodes relevant information about a vertex and its structural position in $G$.
 It can be used to solve the vertex classification and regression problem via arbitrary \ac{ml} methods for vectors.
 We will now look at two main families of explicit graph and vertex embedding approaches.
@@ -547,16 +567,16 @@ The combination of random walk context sampling and and the feature space symmet
 Skip-gram methods can not only be used for vertex embeddings but also to embed entire graphs.
 One way to do this is via the \texttt{graph2vec}~\cite{Narayanan2017} method.
 It is inspired by \texttt{doc2vec}~\cite{Le2014} which in turn is based on \texttt{word2vec}.
-\texttt{graph2vec} gets a set of graphs $\mathbb{G} = \{ G_1, \dots G_N \}$ as input and outputs graph embeddings $f(G_1), \dots, f(G_N)$.
-While in \texttt{word2vec} every word can be a context root as well as a context element, \texttt{graph2vec} uses the graphs $\mathbb{G}$ as context roots.
+\texttt{graph2vec} gets a set of graphs $\mathcal{G} = \{ G_1, \dots G_N \}$ as input and outputs graph embeddings $f(G_1), \dots, f(G_N)$.
+While in \texttt{word2vec} every word can be a context root as well as a context element, \texttt{graph2vec} uses the graphs $\mathcal{G}$ as context roots.
 The context $C_k(G_i)$ of a graph $G_i$ is defined as
 \begin{equation}
 	C_k(G_i) \coloneqq \bigcup_{\mathclap{v_j \in \mathcal{V}_{G_i}}}\, {\left\{ \chi_{G_i, 1}^{(l)}(v_j) \right\}}_{l = 0}^k % chktex 21
-	\text{ with $k \in \mathbb{N}$ and $\chi_{G_i, 1}^{(l)}$ as in \cref{defn:related:wl1-refine}.}
+	\quad\text{with $k \in \mathbb{N}$ and $\chi_{G_i, 1}^{(l)}$ as in \cref{defn:related:wl1-refine}.}
 \end{equation}
 Intuitively this context can be understood as the set of 1-\acs{wl}-distinguishable subgraphs of $G_i$ with diameter $\leq 2k$.
 Since \ac{wl} is used to identify distinct subgraphs, \texttt{graph2vec} can only be applied to graphs with discrete vertex labels.
-Using the previous definitions, the context root embedding function has the signature $f: \mathbb{G} \to \mathbb{R}^d$ while the context element embedding function is of type $f_C: \bigcup_{G_i \in \mathbb{G}} C_k(G_i) \to \mathbb{R}^d$.
+Using the previous definitions, the context root embedding function has the signature $f: \mathcal{G} \to \mathbb{R}^d$ while the context element embedding function is of type $f_C: \bigcup_{G_i \in \mathcal{G}} C_k(G_i) \to \mathbb{R}^d$.
 To find those embeddings the \texttt{word2vec} objective from \cref{eq:related:gcr:embed:word2vec} is reused.
 Analogous to \texttt{word2vec}, \texttt{graph2vec} therefore embeds graphs that share subgraphs close to each other, whereas graphs that do not share substructures tend to be embedded further away from each other.
 

@@ -118,7 +118,7 @@
 }{%
   \popQED\endtrivlist\@endpefalse% chktex 21
 }
-\def\th@plain{\thm@preskip\parskip\thm@postskip0pt} % chktex 6
+\def\th@plain{\thm@preskip\parskip\thm@postskip0pt\itshape} % chktex 6
 \def\th@definition{\thm@preskip\parskip\thm@postskip0pt\normalfont}
 \def\th@remark{\thm@headfont{\itshape}\normalfont\thm@preskip\parskip\thm@postskip0pt} % chktex 6
 \makeatother
@@ -176,6 +176,9 @@
 \newcommand{\sourceinline}[2][source]{{\scriptsize\textsc{#1:~\cite{#2}}}}
 \newcommand{\source}[2][source]{\null\hfill\sourceinline[#1]{#2}}
 
+\DeclareMathOperator{\Tr}{Tr}
+
+\theoremstyle{plain}
 \newtheorem{thm}{Theorem}
 \numberwithin{thm}{chapter}
 \newtheorem{prop}[thm]{Proposition}
@@ -186,5 +189,7 @@
 \numberwithin{fact}{chapter}
 \newtheorem{cor}[thm]{Corollary}
 \numberwithin{cor}{chapter}
+
+\theoremstyle{definition}
 \newtheorem{defn}[thm]{Definition}
 \numberwithin{defn}{chapter}
