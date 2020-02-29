@@ -234,7 +234,7 @@ We denote the final, maximally refined $k$-\acs{wl} coloring with $\chi^{*}_{G, 
 	The color distribution $\mathit{dist}_{\chi_{G, k}}: \mathcal{C} \to \mathbb{N}$ of a $k$-coloring $\chi_{G, k}$ counts each color $c \in \mathcal{C}$ in the coloring, i.e.\ $\mathit{dist}_{\chi_{G, k}}(c) \coloneqq \left|\left\{ v \in \mathcal{V}_G^k\, |\, \chi_{G, k}(v) = c \right\}\right|$. % chktex 21
 \end{defn}
 \begin{defn}\label{defn:related:wl-distinguishable}
-	Two graphs $G$ and $H$ are are $k$-\acs{wl} \textit{distinguishable} ($G \mathrel{{\not\simeq}_k} H$) iff.\ there exists a color $c \in \mathcal{C}$ s.t.\ $\mathit{dist}_{\chi^{*}_{G, k}}(c) \neq \mathit{dist}_{\chi^{*}_{H, k}}(c)$.
+	Two graphs $G$ and $H$ are $k$-\acs{wl} \textit{distinguishable} ($G \mathrel{{\not\simeq}_k} H$) iff.\ there exists a color $c \in \mathcal{C}$ s.t.\ $\mathit{dist}_{\chi^{*}_{G, k}}(c) \neq \mathit{dist}_{\chi^{*}_{H, k}}(c)$.
 \end{defn}
 As we will see, the way in which \ac{wl} colorings are refined is vertex order invariant;
 thus any difference in the final coloring of two graphs always implies the non-isomorphism of the colored graphs, i.e.\ $G \mathrel{{\not\simeq}_k} H \implies G \not\simeq H$.
@@ -366,17 +366,17 @@ However it turns out that almost all graphs are \ac{wl} distinguishable even for
 For $k = 1$ \citet{Babai1980} have shown that two randomly selected non-isomorphic graphs $G \not\simeq H$ of size $n$ are 1-\acs{wl} indistinguishable with probability $n^{-\nicefrac{1}{7}}$.
 Thus 1-\acs{wl} is already able to distinguish most graphs; it fails however to distinguish any pair of unlabeled $d$-regular graphs of the same size~\cite[cor.~1.8.5]{Immerman1990}.
 \begin{defn}
-	A graph $G$ is called $d$-regular ($\mathit{rg}_d(G)$) iff.\ $\forall v \in \mathcal{V}_G: {|\Gamma_G(v)|} = d$.
+	A graph $G$ is called \textit{$d$-regular} ($\mathit{rg}_d(G)$) iff.\ $\forall v \in \mathcal{V}_G: {|\Gamma_G(v)|} = d$.
 \end{defn}
 We have already seen this in \cref{fig:related:wl1-problem} since the ``six-cycle'' and the ``two-triangles'' graphs are in fact both 2-regular and of size 6.
 This restriction alone is typically not an issue in the context of \ac{gcr} though, as molecular structures or social interaction graphs for example are rarely perfectly regular.
 A more relevant restriction of 1-\acs{wl} is the fact that it is unable to detect cycles of length $m \geq 3$.
 \begin{defn}\label{defn:related:wl-compute}
-	$k$-\acs{wl} computes a function $f: \mathcal{G} \to Y$ iff.\ that function can be expressed as $f(G) = g(\mathit{dist}_{\chi_{G, k}^{*}})$ via some function $g: (\mathcal{C} \to \mathbb{N}) \to Y$.
+	$k$-\acs{wl} \textit{computes} a function $f: \mathcal{G} \to Y$ iff.\ that function can be expressed as $f(G) = g(\mathit{dist}_{\chi_{G, k}^{*}})$ via some function $g: (\mathcal{C} \to \mathbb{N}) \to Y$.
 \end{defn}
 \begin{defn}\label{defn:related:wl-count-detect}
-	$k$-\acs{wl} counts a certain subgraph $S$ iff.\ it computes $\mathit{count}_S(G) \coloneqq \left|\{ \hat{v}\, |\, v \in \mathcal{V}_G^{*} \land G[v] \equiv S \}\right|$ (see~\cref{defn:related:ordered-subgraph}).
-	Similarly $k$-\acs{wl} detects a subgraph $S$ iff.\ it computes $\mathit{contain}_S(G) \coloneqq \mathbbm{1}[\mathit{count}_S(G) > 0]$, with $\mathbbm{1}$ denoting the indicator function.
+	$k$-\acs{wl} \textit{counts} a certain subgraph $S$ iff.\ it computes $\mathit{count}_S(G) \coloneqq \left|\{ \hat{v}\, |\, v \in \mathcal{V}_G^{*} \land G[v] \equiv S \}\right|$ (see~\cref{defn:related:ordered-subgraph}).
+	Similarly $k$-\acs{wl} \textit{detects} a subgraph $S$ iff.\ it computes $\mathit{contain}_S(G) \coloneqq \mathbbm{1}[\mathit{count}_S(G) > 0]$, with $\mathbbm{1}$ denoting the indicator function.
 \end{defn}
 To see why 1-\acs{wl} is unable to detect $m$-cycles in graphs, note that \cref{fig:related:wl1-problem} already contradicts the positive statement for $m = 3$;
 this counterexample can be trivially generalized to all larger $m$ by replacing the ``six-cycle'' graph with a ``$(2m)$-cycle-graph'' graph and the ``two-triangles'' graph with a ``two-$m$-cycles'' graph which preserves the 2-regularity and therefore the 1-\acs{wl} indistinguishability.
@@ -477,6 +477,7 @@ A more concrete example for the relation between a graph's structure and its spe
 	\caption[Comparison between the basis vectors of the real domain \acl{ft} and the graph \acl{ft}.]{
 		Comparison between the basis functions/vectors of the real domain \ac{ft} and the graph \ac{ft}.
 		For the eigenfunctions on the upper half only the real cosine components of the complex exponentials are shown.
+		\source[based on]{Shuman2013}
 	}\label{fig:related:graph-fourier}
 \end{figure}
 
