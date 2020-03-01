@@ -312,7 +312,7 @@ This more abstract notion of neighborhood is illustrated in \cref{fig:related:wl
 		Tuple neighborhoods for different values of $k$.
 		The vertices highlighted in \textcolor{t_blue}{blue} form the root tuple $v \in \mathcal{V}_G^k$ whose neighbors are shown;
 		for simplicity neighbors with $u \in v$ are left out (see~\cref{defn:related:wlk-refine}).
-		Each neighbor is highlighted with a different color, except for 3-WL where the \textcolor{t_red}{red}, \textcolor{t_green}{green} and \textcolor{t_darkyellow}{yellow} triples actually form the single neighbor for $u = v_4$.
+		Each neighbor is highlighted with a different color, except for 3-WL where the \textcolor{t_red}{red}, \textcolor{t_darkgreen}{green} and \textcolor{t_darkyellow}{yellow} triples actually form the single neighbor for $u = v_4$.
 	}\label{fig:related:wl-neighbors}
 \end{figure}
 For $k = 2$ this means that each potential edge $(v, w) \in \mathcal{V}_G^2$ has all possible paths of length $2$ from $v$ to $w$ as its neighbors (see~\cref{fig:related:wl-neighbors:2}).
@@ -484,22 +484,32 @@ For a more detailed discussion of this relation we refer to \citet{Das2004}.
 \begin{defn}
 	Two graphs $G$ and $H$ are \textit{cospectral} ($G \mathrel{\simeq_\lambda} H$) iff.\ $\forall i: \lambda_{G,i} = \lambda_{H,i}$.
 \end{defn}
-\citet{Alzaga2010} have shown that the cospectrality test can be more powerful than 1-\acs{wl} but is always weaker than 2-\acs{wl}, i.e.\ $G \mathrel{\simeq_2} H \implies G \mathrel{\simeq_\lambda} H$.
-Despite this limit on the discriminative power of the graph spectrum, it is still useful for determining graph similarity, e.g.\ by defining a distance measure on the vector space of spectra~\cite{Gu2015}.
+\citet{Alzaga2010} have shown that, while the cospectrality test can be more powerful than 1-\acs{wl}, it is always weaker than 2-\acs{wl}, i.e.\ $G \mathrel{\simeq_2} H \implies G \mathrel{\simeq_\lambda} H$.
+Despite this limit on the discriminative power of the graph spectrum, it is still useful for determining graph similarity, e.g.\ by defining a distance measure on the vector space of spectra (see \citet{Gu2015}).
 
 As briefly mentioned before, the combinatorial graph Laplacian $L_G$ is not the only possible choice of graph Laplacian.
 Note that the eigenvalues of $L_G$ grow with the number of edges in $G$\footnote{
 	This is trivially shown by $\sum_{i=1}^n \lambda_{G,i} = \Tr(L_G) = \Tr(D_G) = |\mathcal{E}_G|$.
 }.
-Consequently a small graph $G$ will always have a large spectral distance to a large graph $H$ (assuming $|\mathcal{V}_G| \ll |\mathcal{V}_H|$) irrespective of their similarity when ignoring the scale difference.
+Consequently a small graph $G$ will typically have a large spectral distance to a large graph $H$ (assuming ${|\mathcal{V}_G|} \ll {|\mathcal{V}_H|}$) irrespective of their similarity when ignoring the scale difference.
 In domains where the absolute size of a graph should not influence its spectral characterization, it can therefore be useful to normalize the spectrum.
 One common way to do so is via the so-called \textit{symmetric normalized Laplacian} $L^{\text{sym}}_G$.
 \begin{defn}
 	$L^{\text{sym}}_G \coloneqq D^{-\frac{1}{2}} L_G D^{-\frac{1}{2}}$ is the symmetric normalized Laplacian of $G$.
 \end{defn}
-The eigenvalues $\lambda^{\text{sym}}_{G, i}$  of this Laplacian all lie in the range $[0, 1]$.
-There are also other ways to normalize the spectrum, e.g.\ by using the random walk Laplacian $L^{\text{rw}}_G \coloneqq D^{-1} L_G$, which we will however not cover here (see \citet{Shuman2013}).
-This concludes our overview of spectral graph characterization.
+The eigenvalues $\lambda^{\text{sym}}_{G, i}$  of this Laplacian all lie in the range $[0, 2]$.
+\Cref{fig:related:spectral-normalization} illustrates how this makes it possible to compare the structure of graphs across varying vertex counts.
+Besides $L^{\text{sym}}_G$ there are also other ways to normalize the spectrum, e.g.\ by using the random walk Laplacian $L^{\text{rw}}_G \coloneqq D^{-1} L_G$, which will however not be covered here (see \citet{Shuman2013}).
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=\linewidth]{gfx/related-work/spectral-normalization.pdf}
+	\caption[Comparison of the unnormalized $L_G$ spectrum and the normalized $L^{\text{sym}}_G$ spectrum.]{
+		Comparison of the unnormalized $L_G$ spectrum and the normalized $L^{\text{sym}}_G$ spectrum.
+		Two structurally similar graphs of different size are compared.
+		The \textcolor{t_red}{large graph} is derived by replacing each vertex of the \textcolor{t_blue}{small 4-cycle graph} by a triangle.
+		While their unnormalized spectra have different absolute ranges (\textcolor{t_blue}{$[0, 4]$} vs.\ \textcolor{t_red}{$[0, 12]$}), the histogram on the right shows that their normalized eigenvalue distributions align.
+	}\label{fig:related:spectral-normalization}
+\end{figure}
 
 \section{Graph Classification and Regression}%
 \label{sec:related:gcr}
@@ -571,10 +581,10 @@ It is inspired by \texttt{doc2vec}~\cite{Le2014} which in turn is based on \text
 While in \texttt{word2vec} every word can be a context root as well as a context element, \texttt{graph2vec} uses the graphs $\mathcal{G}$ as context roots.
 The context $C_k(G_i)$ of a graph $G_i$ is defined as
 \begin{equation}
-	C_k(G_i) \coloneqq \bigcup_{\mathclap{v_j \in \mathcal{V}_{G_i}}}\, {\left\{ \chi_{G_i, 1}^{(l)}(v_j) \right\}}_{l = 0}^k % chktex 21
+	C_k(G_i) \coloneqq \bigcup_{\mathclap{v_j \in \mathcal{V}_{G_i}}}\, {\left\{ \chi_{G_i, 1}^{(l)}(v_j) \right\}}_{l = 0}^L % chktex 21
 	\quad\text{with $k \in \mathbb{N}$ and $\chi_{G_i, 1}^{(l)}$ as in \cref{defn:related:wl1-refine}.}
 \end{equation}
-Intuitively this context can be understood as the set of 1-\acs{wl}-distinguishable subgraphs of $G_i$ with diameter $\leq 2k$.
+Intuitively this context can be understood as the set of 1-\acs{wl}-distinguishable subgraphs of $G_i$ with diameter $\leq 2L$.
 Since \ac{wl} is used to identify distinct subgraphs, \texttt{graph2vec} can only be applied to graphs with discrete vertex labels.
 Using the previous definitions, the context root embedding function has the signature $f: \mathcal{G} \to \mathbb{R}^d$ while the context element embedding function is of type $f_C: \bigcup_{G_i \in \mathcal{G}} C_k(G_i) \to \mathbb{R}^d$.
 To find those embeddings the \texttt{word2vec} objective from \cref{eq:related:gcr:embed:word2vec} is reused.
@@ -583,20 +593,38 @@ Analogous to \texttt{word2vec}, \texttt{graph2vec} therefore embeds graphs that 
 \subsection{Graph Kernels}%
 \label{sec:related:gcr:kernel}
 
-Instead of explicitly mapping a graph or vertices into a vector space, one can also do so implicitly by employing the kernel trick.
+Instead of mapping a graph into an explicitly defined vector space of fixed dimension, one can also do so implicitly by employing the kernel trick.
 There is a large variety of so-called \acp{gk} to do this.
 \acp{gk} can be used in combination with any kernelized learner, typically \acp{svm}, to solve the \ac{gcr} problem.
 While there is a large variety of different \acp{gk}, we will focus on those that are based on the previously described family of \ac{wl} algorithms.
 
 \paragraph{\ac{wl} subtree kernel}
+One well-known \ac{gk} is based directly on the 1-\acs{wl} coloring algorithm, the so-called \textit{\ac{wl} subtree kernel}~\cite{Shervashidze2011}.
+It is uses the mapping
+\begin{align}
+	\varphi_{\text{ST}}(G) \coloneqq \bigoplus_{l=0}^{L} {\left( \mathit{dist}_{\chi_{G,1}^{(l)}}(c) \right)}_{c \in \mathcal{C}}
+	\quad\text{with $\oplus$ denoting vector concatenation.}
+\end{align}
+$\varphi_{\text{ST}}(G)$ encodes the color counts across a fixed number $L$ of 1-\acs{wl} refinement steps.
+Via this mapping, the \ac{wl} subtree kernel function $k_{\text{ST}}: \mathcal{G} \times \mathcal{G} \to \mathbb{R}$ can then be simply written as the standard inner vector product $k_{\text{ST}}(G, H) = \langle \varphi_{\text{ST}}(G), \varphi_{\text{ST}}(H) \rangle$.
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=0.7\linewidth]{gfx/related-work/wl-subtree.pdf}
+	\caption[Illustration of the correspondence between the \ac{wl} color $\chi_{G,1}^{(l)}(v)$ and the breadth-first subtree of depth $l$ rooted at $v$.]{
+		Illustration of the correspondence between the \ac{wl} color $\chi_{G,1}^{(l)}(v)$ and the breadth-first subtree of depth $l$ rooted at $v$ (for $l = 2$ and $v = \texttt{\textcolor{t_blue}{\circled{1}}}$). % chktex 25
+		\source[based~on]{Shervashidze2011}
+	}\label{fig:related:wl-subtree}
+\end{figure}
+
+\Cref{fig:related:wl-subtree} illustrates how this definition relates to subtrees.
+Since alls vertex colors $c \in \mathcal{C}$ correspond to a subtree isomorphism classes, $k_{\text{ST}}(G, H)$ effectively computes the similarity of $G$ and $H$ by comparing their local subtree structures of depth at most $L$.
+Note that the underlying mapping $\varphi_{\text{ST}}$ cannot be computed independently for each graph in a given training dataset since the set of colors $c \in \mathcal{C}$ introduced by the hashing function $h$ is conjointly determined by all graphs in the dataset (see \cref{defn:related:wl1-refine}).
+Consequently the dimensionality $d$ of $\varphi_{\text{ST}}(G) \in \mathbb{N}^d$ varies depending on the other training graphs.
 
 \paragraph{\ac{wl} shortest path kernel}
+Extending the idea of the \ac{wl} subtree kernel, the \textit{\ac{wl} shortest path kernel}~\cite{Shervashidze2011} adds global structural information to the local subtree comparisons.
 
 \paragraph{Higher dimensional \ac{wl} kernels}
 
 \subsection{Graph Neural Networks}%
 \label{sec:related:gcr:nn}
-
-\subsubsection{Spatial GNNs}
-
-\subsubsection{Spectral GNNs}

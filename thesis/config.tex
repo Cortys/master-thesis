@@ -55,6 +55,7 @@
 \definecolor{t_green}{HTML}{3bb335}
 \definecolor{t_yellow}{HTML}{b39735}
 \definecolor{t_darkblue}{HTML}{1e3666}
+\definecolor{t_darkgreen}{HTML}{22661e}
 \definecolor{t_darkyellow}{HTML}{66571e}
 \definecolor{t_lightblue}{HTML}{8ea7d7}
 
@@ -172,6 +173,8 @@
 % Custom commands:
 \newcommand{\tikzmark}[1]{\tikz[overlay,remember picture] \node (#1) {};} % chktex 1
 \newcommand{\dac}[3]{\DeclareAcronym{#1}{short = #2, long = #3}}
+\newcommand*\circled[2][1pt]{\tikz[baseline=(char.base)]{ % chktex 36
+    \node[shape=circle,draw,inner sep=#1] (char) {#2};}}
 
 \newcommand{\sourceinline}[2][source]{{\scriptsize\textsc{#1:~\cite{#2}}}}
 \newcommand{\source}[2][source]{\null\hfill\sourceinline[#1]{#2}}
