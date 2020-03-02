@@ -257,8 +257,6 @@ In each iteration of the 1-\acs{wl} color refinement algorithm, the following ne
 	$\chi_{G,1}^{(i+1)}(v) \coloneqq h\left(\chi_{G,1}^{(i)}(v), \ldblbrace \chi_{G,1}^{(i)}(u)\, |\, u \in \Gamma_{G}(v) \rdblbrace\right)$,
 	with $\Gamma_G(v)$ denoting the set of adjacent vertices of $v \in \mathcal{V}_G$ and $h: \mathcal{C}^* \to \mathcal{C}$ denoting a perfect hash function that assigns a unique color to each finite combination of colors.
 \end{defn}
-In practice the hash function $h$ is usually defined lazily by using $\mathcal{C} = \mathbb{N}$ and enumerating color combinations in whichever order they are hashed s.t.\ a new color is introduced every time a previously unseen color combination appears at runtime.
-This is illustrated in \cref{fig:related:wl1-refine}.
 \begin{figure}[ht]
 	\centering
 	\includegraphics[width=0.72\linewidth]{gfx/related-work/wl1-refine.pdf}
@@ -268,6 +266,9 @@ This is illustrated in \cref{fig:related:wl1-refine}.
 		Each vertex $v$ is labeled with its current color and has its previous color and the colors of the hashed neighbors $\Gamma_G(v)$ written next to it (see \cref{defn:related:wl1-refine}).
 	}\label{fig:related:wl1-refine}
 \end{figure}
+In practice the hash function $h$ is usually defined lazily by using $\mathcal{C} \subseteq \mathbb{N}$ and enumerating color combinations in whichever order they are hashed s.t.\ a new color is introduced every time a previously unseen color combination appears at runtime\footnote{
+	Note that, even though $\mathcal{C}$ is formally countably infinite, we will assume that it only contains the finite number of colors occurring in a given finite graph dataset.
+}.
 
 \subsubsection{The $k$-dimensional \acs{wl} algorithm}
 As we just saw, the 1-\acs{wl} algorithm iteratively refines colorings of single vertices.
@@ -278,17 +279,17 @@ While the obtained colorings differ for most non-isomorphic graphs $G \not\simeq
 	\caption[Two simple non-isomorphic graphs that are indistinguishable by 1-\acs{wl}.]{
 		Two simple non-isomorphic graphs that are indistinguishable by 1-\acs{wl}.
 	}\label{fig:related:wl1-problem}
-\end{figure}
+\end{figure}\\
 By extending \ac{wl} to higher dimensions, such 1-\acs{wl} indistinguishable cases can however be handled.
 Analogous to the 1-dimensional \cref{defn:related:wl1-refine}, the $k$-dimensional color refinement step is defined by
 \begin{defn}\label{defn:related:wlk-refine}
 	$\begin{aligned}[t]
-		\chi_{G,k}^{(i+1)}(v) \coloneqq h\left(\chi_{G,k}^{(i)}(v), \ldblbrace (\chi_{G,k}^{(i)}(v[u/1]), \dots, \chi_{G,k}^{(i)}(v[u/k]))\, |\, u \in \mathcal{V}_G \rdblbrace\right)\\
-		\text{with } v = (v_1, \dots, v_k) \in \mathcal{V}_G^k,\quad v[u/j] \coloneqq (v_1, \dots, v_{j-1}, u, v_{j+1}, \dots, v_k) \text{.}
+		\chi_{G,k}^{(i+1)}(s) \coloneqq h\left(\chi_{G,k}^{(i)}(s), \ldblbrace (\chi_{G,k}^{(i)}(s[u/1]), \dots, \chi_{G,k}^{(i)}(s[u/k]))\, |\, u \in \mathcal{V}_G \rdblbrace\right)\\
+		\text{with } s = (v_1, \dots, v_k) \in \mathcal{V}_G^k,\quad s[u/j] \coloneqq (v_1, \dots, v_{j-1}, u, v_{j+1}, \dots, v_k) \text{.}
 	\end{aligned}$
 \end{defn}
 In 1-\acs{wl} a vertex color is refined by combining the colors of neighboring vertices.
-In $k$-\acs{wl} the color of a $k$-tuple $v \in \mathcal{V}_G^k$ is refined by combining the colors of its neighborhood which is defined as the set of all $k$-tuples in which at most one vertex differs from $v$.
+In $k$-\acs{wl} the color of a $k$-tuple $s \in \mathcal{V}_G^k$ is refined by combining the colors of its neighborhood which is defined as the set of all $k$-tuples in which at most one vertex differs from $s$.
 Note that each vertex $k$-tuple has one neighbor for each $u \in \mathcal{V}_G$, each of which is a $k$-tuple of vertex $k$-tuples.
 This more abstract notion of neighborhood is illustrated in \cref{fig:related:wl-neighbors}.
 \begin{figure}[ht]
@@ -310,8 +311,8 @@ This more abstract notion of neighborhood is illustrated in \cref{fig:related:wl
 	\end{subfigure}
 	\caption[\ac{wl} neighborhoods for different values of $k$.]{
 		Tuple neighborhoods for different values of $k$.
-		The vertices highlighted in \textcolor{t_blue}{blue} form the root tuple $v \in \mathcal{V}_G^k$ whose neighbors are shown;
-		for simplicity neighbors with $u \in v$ are left out (see~\cref{defn:related:wlk-refine}).
+		The vertices highlighted in \textcolor{t_blue}{blue} form the root tuple $s \in \mathcal{V}_G^k$ whose neighbors are shown;
+		for simplicity neighbors with $u \in s$ are left out (see~\cref{defn:related:wlk-refine}).
 		Each neighbor is highlighted with a different color, except for 3-WL where the \textcolor{t_red}{red}, \textcolor{t_darkgreen}{green} and \textcolor{t_darkyellow}{yellow} triples actually form the single neighbor for $u = v_4$.
 	}\label{fig:related:wl-neighbors}
 \end{figure}
@@ -319,11 +320,11 @@ For $k = 2$ this means that each potential edge $(v, w) \in \mathcal{V}_G^2$ has
 Also note that, even though $k$-\acs{wl} refines $k$-tuple colors, lower-dimensional structures still get their own colors since a tuple does not have to consist of distinct vertices, i.e.\ in $k$-\acs{wl} the color of a single vertex $v \in \mathcal{V}_G$ is described by $\chi^{*}_{G, k}(s)$ for $s = (v, \dots, v) \in \mathcal{V}_G^k$.
 
 Let us now look at how the tuple colors are initialized.
-For this we use the ordered subgraph equivalence classes $[G[v]]$ (see~\cref{defn:related:ordered-subgraph-equivalence}) which determine the initial color $\chi_{G,k}^{(0)}(v)$ of each $k$-tuple $v$.
+For this we use the ordered subgraph equivalence classes $[G[s]]$ (see~\cref{defn:related:ordered-subgraph-equivalence}) which determine the initial color $\chi_{G,k}^{(0)}(v)$ of each $k$-tuple $s$.
 For $k = 1$ the equivalence class of a single vertex $v$ directly corresponds to its label $l_G[v]$.
 More generally for $k > 1$ this means that
 \begin{align}
-	\chi_{G,k}^{(0)}(v) = \chi_{G,k}^{(0)}(w) \iff G[v] \equiv G[w] \text{.} \label{eq:related:wlk-init}
+	\chi_{G,k}^{(0)}(s) = \chi_{G,k}^{(0)}(t) \iff G[s] \equiv G[t] \text{.} \label{eq:related:wlk-init}
 \end{align}
 Note that there is a fundamental difference in how the adjacency information encoded in $\mathcal{E}_G$ is used in 1-\acs{wl} vs.\ $k$-\acs{wl}:
 In 1-\acs{wl} a vertex coloring by itself cannot encode adjacency which is why this information is explicitly incorporated in each refinement step via $\Gamma_G$ (see~\cref{defn:related:wl1-refine}).
@@ -338,11 +339,11 @@ Now we will look at the types of graphs that can be distinguished by \acs{wl} in
 \end{lem}
 \begin{hproof}
 	All $k$-tuples can be mapped to $(k+1)$-tuples via $\varphi(v_1, \dots, v_k) \coloneqq (v_1, \dots,\allowbreak v_k, v_k)$.
-	For each neighbor $(v[u/1], \dots,\allowbreak v[u/k])$ of $v$, there is a corresponding neighbor $(\varphi(v[u/1]), \dots \varphi(v[u/k]), \varphi(v[u/k]))$ of $\varphi(v)$.
-	Using \cref{eq:related:wlk-init} (for $i = 0$) and \cref{defn:related:wlk-refine} (for $i > 0$) it follows that $\forall v, w \in \mathcal{V}_G^k: \chi_{G, k}^{(i)}(v) \neq \chi_{G, k}^{(i)}(w) \rightarrow \chi_{G, k+1}^{(i)}(\varphi(v)) \neq \chi_{G, k+1}^{(i)}(\varphi(w))$.
+	For each neighbor $(s[u/1], \dots,\allowbreak s[u/k])$ of $s \in \mathcal{V}_G^k$, there is a corresponding neighbor $(\varphi(s[u/1]), \dots \varphi(s[u/k]), \varphi(s[u/k]))$ of $\varphi(s)$.
+	Using \cref{eq:related:wlk-init} (for $i = 0$) and \cref{defn:related:wlk-refine} (for $i > 0$) it follows that $\forall s, t \in \mathcal{V}_G^k: \chi_{G, k}^{(i)}(s) \neq \chi_{G, k}^{(i)}(t) \rightarrow \chi_{G, k+1}^{(i)}(\varphi(s)) \neq \chi_{G, k+1}^{(i)}(\varphi(t))$.
 	The lemma then follows by \cref{defn:related:wl-distinguishable}.
 \end{hproof}
-\begin{prop}[see~\citet{Immerman1990}]\label{prop:related:wl-upper}
+\begin{prop}[see~\citet{Immerman1990} for the proof]\label{prop:related:wl-upper}
 	For all $k \in \mathbb{N}$ there are non-isomorphic graphs $G \not\simeq H$ of size $\mathcal{O}(k)$ with $G \mathrel{\simeq_k} H$.
 \end{prop}
 \begin{cor}\label{cor:related:wl-monotonous}
@@ -381,11 +382,11 @@ A more relevant restriction of 1-\acs{wl} is the fact that it is unable to detec
 To see why 1-\acs{wl} is unable to detect $m$-cycles in graphs, note that \cref{fig:related:wl1-problem} already contradicts the positive statement for $m = 3$;
 this counterexample can be trivially generalized to all larger $m$ by replacing the ``six-cycle'' graph with a ``$(2m)$-cycle-graph'' graph and the ``two-triangles'' graph with a ``two-$m$-cycles'' graph which preserves the 2-regularity and therefore the 1-\acs{wl} indistinguishability.
 
-This cycle-detection restriction of 1-\acs{wl} is relevant in practice because cycle counts are used in many domains to analyze graphs, e.g.\ triangle counts are commonly used in social network analysis to find interaction clusters~\cite{Newman2003}\cite{Welser2007} and the detection of 4-, 5- or 6-cycles is required to determine important chemical properties like the aromaticity of a molecule~\cite{Adamson1973}\cite{Kekule1866}.
+This cycle-detection restriction of 1-\acs{wl} is relevant in practice because cycle counts are used in many domains to analyze graphs, e.g.\ triangle counts are commonly used in social network analysis to find interaction clusters~\cite{Milo2002}\cite{Newman2003}\cite{Welser2007} and the detection of 4-, 5- or 6-cycles is required to determine important chemical properties like the aromaticity of a molecule~\cite{Adamson1973}\cite{Kekule1866}.
 
 If we increase the \acs{wl}-dimension to $k = 2$, the described 1-\acs{wl} restrictions no longer apply.
 2-\acs{wl} is able to distinguish more than $1 - \mathcal{O}(\nicefrac{1}{n})$ of the regular $n$-vertex graphs~\cite[cor.~1.8.6]{Immerman1990} and can even count cycles:
-\begin{prop}[see \citet{Fuerer2017} and \citet{Arvind2019}]\label{prop:related:wl2-cycle-count}
+\begin{prop}[see \citet{Fuerer2017} and \citet{Arvind2019} for the full proof]\label{prop:related:wl2-cycle-count}
 	2-\acs{wl} is able to count $m$-cycles for $m \leq 7$ but it cannot detect 8-cycles.
 \end{prop}
 \begin{hproof}
@@ -488,7 +489,7 @@ For a more detailed discussion of this relation we refer to \citet{Das2004}.
 Despite this limit on the discriminative power of the graph spectrum, it is still useful for determining graph similarity, e.g.\ by defining a distance measure on the vector space of spectra (see \citet{Gu2015}).
 
 As briefly mentioned before, the combinatorial graph Laplacian $L_G$ is not the only possible choice of graph Laplacian.
-Note that the eigenvalues of $L_G$ grow with the number of edges in $G$\footnote{
+Note that the eigenvalues of $L_G$ grow with the number of edges\footnote{
 	This is trivially shown by $\sum_{i=1}^n \lambda_{G,i} = \Tr(L_G) = \Tr(D_G) = |\mathcal{E}_G|$.
 }.
 Consequently a small graph $G$ will typically have a large spectral distance to a large graph $H$ (assuming ${|\mathcal{V}_G|} \ll {|\mathcal{V}_H|}$) irrespective of their similarity when ignoring the scale difference.
@@ -555,7 +556,7 @@ It gets a sequence of words $(w_0, \dots, w_n)$ as input and outputs embedding v
 To do this the context $C_k(w_i) = \{ w_{i-k}, \dots, w_{i + k} \}$ is computed for all words where $w_i$ is the so-called \textit{context root}.
 The word contexts are then used to optimize the following log-likelihood objective:
 \begin{gather}
-	\max_{f, f_C} \sum_{i = 1}^n \log P(C_k(w_i) | w_i)\ =\ \max_{f, f_C} \sum_{i = 1}^n \smashoperator[r]{\sum_{w_j \in C_k(w_i)}}\, \left[ {f(w_i)}^\top f_C(w_j) - \log Z_{w_i} \right] \label{eq:related:gcr:embed:word2vec}\\
+	\max_{f, f_C} \sum_{i = 1}^n \log P(C_k(w_i) | w_i)\ =\ \max_{f, f_C} \sum_{i = 1}^n \smashoperator[r]{\sum_{w_j \in C_k(w_i)}}\, \left[ {f(w_i)}^\top f_C(w_j) - \log Z_{w_i} \right] \label{eq:related:word2vec}\\
 	\text{with } P(C_k(w_i) | w_i) \coloneqq \prod_{\mathclap{w_j \in C_k(w_i)}}\, \overbrace{\frac{\exp\left({f(w_i)}^\top f_C(w_j)\right)}{Z_{w_i}}}^{P(w_j | w_i)}
 	\text{ and } Z_{w_i} \coloneqq \sum_{j = 1}^n \exp\left({f(w_i)}^\top f_C(w_j)\right) \nonumber
 \end{gather}
@@ -587,7 +588,7 @@ The context $C_k(G_i)$ of a graph $G_i$ is defined as
 Intuitively this context can be understood as the set of 1-\acs{wl}-distinguishable subgraphs of $G_i$ with diameter $\leq 2L$.
 Since \ac{wl} is used to identify distinct subgraphs, \texttt{graph2vec} can only be applied to graphs with discrete vertex labels.
 Using the previous definitions, the context root embedding function has the signature $f: \mathcal{G} \to \mathbb{R}^d$ while the context element embedding function is of type $f_C: \bigcup_{G_i \in \mathcal{G}} C_k(G_i) \to \mathbb{R}^d$.
-To find those embeddings the \texttt{word2vec} objective from \cref{eq:related:gcr:embed:word2vec} is reused.
+To find those embeddings the \texttt{word2vec} objective from \cref{eq:related:word2vec} is reused.
 Analogous to \texttt{word2vec}, \texttt{graph2vec} therefore embeds graphs that share subgraphs close to each other, whereas graphs that do not share substructures tend to be embedded further away from each other.
 
 \subsection{Graph Kernels}%
@@ -603,10 +604,10 @@ One well-known \ac{gk} is based directly on the 1-\acs{wl} coloring algorithm, t
 It is uses the mapping
 \begin{align}
 	\varphi_{\text{ST}}(G) \coloneqq \bigoplus_{l=0}^{L} {\left( \mathit{dist}_{\chi_{G,1}^{(l)}}(c) \right)}_{c \in \mathcal{C}}
-	\quad\text{with $\oplus$ denoting vector concatenation.}
+	\quad\text{with $\oplus$ denoting vector concatenation.} \label{eq:related:wl-subtree-kernel}
 \end{align}
 $\varphi_{\text{ST}}(G)$ encodes the color counts across a fixed number $L$ of 1-\acs{wl} refinement steps.
-Via this mapping, the \ac{wl} subtree kernel function $k_{\text{ST}}: \mathcal{G} \times \mathcal{G} \to \mathbb{R}$ can then be simply written as the standard inner vector product $k_{\text{ST}}(G, H) = \langle \varphi_{\text{ST}}(G), \varphi_{\text{ST}}(H) \rangle$.
+Via this mapping, the \ac{wl} subtree kernel function $k_{\text{ST}}: \mathcal{G} \times \mathcal{G} \to \mathbb{R}$ can then be simply written as the standard inner vector product $k_{\text{ST}}(G, H) \coloneqq \langle \varphi_{\text{ST}}(G), \varphi_{\text{ST}}(H) \rangle$.
 \begin{figure}[ht]
 	\centering
 	\includegraphics[width=0.7\linewidth]{gfx/related-work/wl-subtree.pdf}
@@ -617,14 +618,47 @@ Via this mapping, the \ac{wl} subtree kernel function $k_{\text{ST}}: \mathcal{G
 \end{figure}
 
 \Cref{fig:related:wl-subtree} illustrates how this definition relates to subtrees.
-Since alls vertex colors $c \in \mathcal{C}$ correspond to a subtree isomorphism classes, $k_{\text{ST}}(G, H)$ effectively computes the similarity of $G$ and $H$ by comparing their local subtree structures of depth at most $L$.
-Note that the underlying mapping $\varphi_{\text{ST}}$ cannot be computed independently for each graph in a given training dataset since the set of colors $c \in \mathcal{C}$ introduced by the hashing function $h$ is conjointly determined by all graphs in the dataset (see \cref{defn:related:wl1-refine}).
-Consequently the dimensionality $d$ of $\varphi_{\text{ST}}(G) \in \mathbb{N}^d$ varies depending on the other training graphs.
+Since alls vertex colors $c \in \mathcal{C}$ correspond to a subtree isomorphism class, $k_{\text{ST}}(G, H)$ effectively computes the similarity of $G$ and $H$ by comparing their local subtree structures of depth at most $L$.
+Note that the underlying mapping $\varphi_{\text{ST}}$ cannot be computed independently for each graph $G \in \mathcal{G}_{\mathcal{D}} \subseteq \mathcal{G}$ in a given training dataset $\mathcal{D}$ since the set of colors $c \in \mathcal{C}$ introduced by the hashing function $h$ is conjointly determined by all graphs $\mathcal{G}_{\mathcal{D}}$ (see \cref{defn:related:wl1-refine}).
+Consequently the dimensionality $d$ of $\varphi_{\text{ST}}(G) \in \mathbb{N}^d$ varies, depending on the entire dataset $\mathcal{D}$.
 
 \paragraph{\ac{wl} shortest path kernel}
-Extending the idea of the \ac{wl} subtree kernel, the \textit{\ac{wl} shortest path kernel}~\cite{Shervashidze2011} adds global structural information to the local subtree comparisons.
+Extending the idea of the \ac{wl} subtree kernel, the \textit{\ac{wl} shortest path kernel}~\cite{Shervashidze2011}\cite{Borgwardt2005} adds global structural information to the local subtree comparisons.
+The $i$-th component of a graph's shortest path vector $\varphi_{\text{SP}}(G)$ corresponds to the 4-tuple $(l_i, a_i, b_i, d_i) \in {\{ 0, \dots, L \}} \times \mathcal{C} \times \mathcal{C} \times \mathbb{N}$ and its value is described by
+\begin{align}
+	{\varphi_{\text{SP}}(G)}_i \coloneqq \left| \left\{ (v, u) \in \mathcal{V}_G^2 \,|\, {\chi_{G,1}^{(l_i)}(v) = a_i} \land {\chi_{G,1}^{(l_i)}(u) = b_i} \land {d_{\text{SP}}(v, u) = d_i} \right\} \right| \text{,} % chktex 21
+\end{align}
+with $d_{\text{SP}}(v, u)$ denoting the length of the shortest path from $v$ to $u$ in $G$.
+Analogous to $k_{\text{ST}}$, the shortest path kernel function is defined as $k_{\text{SP}}(G, H) \coloneqq \langle \varphi_{\text{SP}}(G), \varphi_{\text{SP}}(H) \rangle$.
+Since $\varphi_{\text{SP}}(G)$ has one component for each possible 4-tuple $(l_i, a_i, b_i, d_i)$, its dimensionality grows quadratically with the total number of introduced 1-\acs{wl} colors $\mathcal{C}$ and linearly with the length of the longest shortest path $\max_{G \in \mathcal{G}_{\mathcal{D}}, (v, u) \in \mathcal{V}_G^2} d_{\text{SP}}(v, u)$.
+While this approach is computationally significantly more expensive than the subtree kernel, it also has a higher discriminative power and allows the shortest path kernel to distinguish even some 1-\acs{wl} indistinguishable graphs.
+The subtree kernel only compares graphs by the presence of local subtrees;
+the shortest path kernel additionally checks how well the distances between those subtrees align.
+Looking back at the 1-\acs{wl} indistinguishable ``six-cycle''/``two-triangles'' example from \cref{fig:related:wl1-problem}, we see that this additional information distinguishes the two graphs due to the fact that the longest shortest path in a six-cycle has length 3 while the longest shortest path in a triangle is of length 1.
 
 \paragraph{Higher dimensional \ac{wl} kernels}
+Instead of incorporating shortest path information to increase the power of the \ac{wl} kernel, one can alternatively just increase the \acs{wl}-dimension $k$.
+A na{\"\i}ve generalization of the 1-\acs{wl} subtree kernel would simply use \cref{eq:related:wl-subtree-kernel} but with the k-\acs{wl} colorings $\chi_{G,k}^{(l)}$ instead of $\chi_{G,1}^{(l)}$.
+The problem with this approach is that the runtime of \ac{wl} increases exponentially with $k$;
+even for $k = 2$ the cost often becomes infeasibly high when working with large graphs.
+To tackle this problem \citet{Morris2017} proposed a combination of two optimizations:
+\begin{enumerate}[label=\textbf{\arabic*.}]
+	\item \textbf{$k$-multisets:}
+		The first optimization is to assign colors to vertex $k$-multisets instead of vertex $k$-tuples, where a $k$-multiset is any multiset $s \subseteq \mathcal{V}_G$ with ${|s|} = k$.
+		This reduces the amount of colors that have to be refined in each \ac{wl} iteration by a factor of $k!$. % chktex 40
+		Based on \cref{defn:related:wlk-refine}, the multiset color refinement step is defined as
+		\begin{align}
+			\chi_{G,k}^{(l+1)}(s) \coloneqq h\left(\chi_{G,k}^{(l)}(s), \ldblbrace \{ \chi_{G,k}^{(l)}(s \setminus \{v\} \cup \{u\})\, |\, v \in s \}\, |\, u \in \mathcal{V}_G \rdblbrace\right) \text{.} \label{eq:related:wlk-set-refine} % chktex 21
+		\end{align}
+		Even though this simplification generally reduces the discriminative power of the kernel, for $k = 2$ specifically no information and therefore no power is lost by replacing the tuples $(v, u)$ and $(u, v)$ with $\ldblbrace v, u \rdblbrace$ since the undirectedness of graphs implies that $\chi_{G,2}^{(l)}(v, u) = \chi_{G,2}^{(l)}(u, v)$ even when doing tuple-based color refinement.
+	\item \textbf{Neighborhood localization:}
+		The second optimization uses the fact that most real-world graphs tend to be sparse~\cite{Chung2010}, i.e.\ ${|\mathcal{E}_G|} = \mathcal{O}(|\mathcal{V}_G|)$.
+		The multiset-based $k$-\acs{wl} algorithm refines the color of a $k$-multiset $s$ by hashing the colors of its neighbors as defined in \cref{eq:related:wlk-set-refine} where there is one neighbor per vertex $u \in \mathcal{V}_G$.
+		By the sparsity assumption, most of those vertices $u$ are however not connected with any of the vertices in $s$, i.e.\ $u \notin \Gamma_G(s)$ with $\Gamma_G(s) \coloneqq \bigcup_{v \in s} \Gamma_G(v)$.
+		The refinement runtime can therefore often be reduced significantly by only considering ``local'' neighbors $u \in \Gamma_G(s)$ instead of the ``global'' neighborhood $u \in \mathcal{V}_G$ in \cref{eq:related:wlk-set-refine}.
+\end{enumerate}
+We call the kernel that only uses the first optimization \textit{$k$-GWL}~($k$-dim.\ global \ac{wl}) and the kernel that uses both optimizations \textit{$k$-LWL}~($k$-dim.\ local \ac{wl}).
+\citet{Morris2017} have empirically shown that focusing on local graph structures via LWL often actually performs better than the computationally more expensive GWL kernel.
 
 \subsection{Graph Neural Networks}%
 \label{sec:related:gcr:nn}
