@@ -597,7 +597,7 @@ Analogous to \texttt{word2vec}, \texttt{graph2vec} therefore embeds graphs that 
 Instead of mapping a graph into an explicitly defined vector space of fixed dimension, one can also do so implicitly by employing the kernel trick.
 There is a large variety of so-called \acp{gk} to do this.
 \acp{gk} can be used in combination with any kernelized learner, typically \acp{svm}, to solve the \ac{gcr} problem.
-While there is a large variety of different \acp{gk}, we will focus on those that are based on the previously described family of \ac{wl} algorithms.
+While there is a large variety of different \acp{gk}~\cite{Kriege2020}, we will focus on those that are based on the previously described family of \ac{wl} algorithms.
 
 \paragraph{\ac{wl} subtree kernel}
 One well-known \ac{gk} is based directly on the 1-\acs{wl} coloring algorithm, the so-called \textit{\ac{wl} subtree kernel}~\cite{Shervashidze2011}.
@@ -662,3 +662,16 @@ We call the kernel that only uses the first optimization \textit{$k$-GWL}~($k$-d
 
 \subsection{Graph Neural Networks}%
 \label{sec:related:gcr:nn}
+
+The last family of \ac{gcr} approaches we will look at is that of \acp{gnn}.
+The idea to feed a graph into a \ac{nn} was first described by \citet{Gori2005}.
+Since then many variants and extensions of that idea have been proposed~\cite{Wu2019}.
+We will focus specifically on the so-called \acp{gcnn} which can be divided into two variants:
+Spectral and spatial \acp{gcnn}.
+
+\subsubsection{Spectral \acp{gcnn}}
+The class of spectral \acp{gcnn} is motivated by spectral graph theory (see \cref{sec:related:character:spectral}).
+
+\subsubsection{Spatial \acp{gcnn}}
+
+\subsubsection{Graph Pooling}

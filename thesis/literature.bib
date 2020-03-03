@@ -31,7 +31,7 @@
   doi       = {10.1007/978-3-319-46227-1_47},
 }
 
-@Article{Narayanan2017,
+@Misc{Narayanan2017,
   author      = {Annamalai Narayanan and Mahinthan Chandramohan and Rajasekar Venkatesan and Lihui Chen and Yang Liu and Shantanu Jaiswal},
   title       = {graph2vec: Learning Distributed Representations of Graphs},
   year        = {2017},
@@ -44,7 +44,7 @@
   keywords    = {cs.AI, cs.CL, cs.CR, cs.NE, cs.SE},
 }
 
-@Article{Grover2016,
+@Misc{Grover2016,
   author      = {Aditya Grover and Jure Leskovec},
   title       = {node2vec: Scalable Feature Learning for Networks},
   year        = {2016},
@@ -74,7 +74,7 @@
   abstract = {In this article, we propose a family of efficient kernels for large graphs with discrete node labels. Key to our method is a rapid feature extraction scheme based on the Weisfeiler-Lehman test of isomorphism on graphs. It maps the original graph to a sequence of graphs, whose node attributes capture topological and label information. A family of kernels can be defined based on this Weisfeiler-Lehman sequence of graphs, including a highly efficient kernel comparing subtree-like patterns. Its runtime scales only linearly in the number of edges of the graphs and the length of the Weisfeiler-Lehman graph sequence. In our experimental evaluation, our kernels outperform state-of-the-art graph kernels on several graph classification benchmark data sets in terms of accuracy and runtime. Our kernels open the door to large-scale applications of graph kernels in various disciplines such as computational biology and social network analysis. },
 }
 
-@Article{Kondor2016,
+@Misc{Kondor2016,
   author      = {Risi Kondor and Horace Pan},
   title       = {The Multiscale Laplacian Graph Kernel},
   abstract    = {Many real world graphs, such as the graphs of molecules, exhibit structure at multiple different scales, but most existing kernels between graphs are either purely local or purely global in character. In contrast, by building a hierarchy of nested subgraphs, the Multiscale Laplacian Graph kernels (MLG kernels) that we define in this paper can account for structure at a range of different scales. At the heart of the MLG construction is another new graph kernel, called the Feature Space Laplacian Graph kernel (FLG kernel), which has the property that it can lift a base kernel defined on the vertices of two graphs to a kernel between the graphs. The MLG kernel applies such FLG kernels to subgraphs recursively. To make the MLG kernel computationally feasible, we also introduce a randomized projection procedure, similar to the Nystr\"om method, but for RKHS operators.},
@@ -128,7 +128,7 @@
   year      = {2018},
 }
 
-@Article{Lee2019,
+@Misc{Lee2019,
   author      = {Junhyun Lee and Inyeop Lee and Jaewoo Kang},
   title       = {Self-Attention Graph Pooling},
   abstract    = {Advanced methods of applying deep learning to structured data such as graphs have been proposed in recent years. In particular, studies have focused on generalizing convolutional neural networks to graph data, which includes redefining the convolution and the downsampling (pooling) operations for graphs. The method of generalizing the convolution operation to graphs has been proven to improve performance and is widely used. However, the method of applying downsampling to graphs is still difficult to perform and has room for improvement. In this paper, we propose a graph pooling method based on self-attention. Self-attention using graph convolution allows our pooling method to consider both node features and graph topology. To ensure a fair comparison, the same training procedures and model architectures were used for the existing pooling methods and our method. The experimental results demonstrate that our method achieves superior graph classification performance on the benchmark datasets using a reasonable number of parameters.},
@@ -150,7 +150,7 @@
   pages   = {12--16},
 }
 
-@Article{Bruna2013,
+@Misc{Bruna2013,
   author      = {Joan Bruna and Wojciech Zaremba and Arthur Szlam and Yann LeCun},
   title       = {Spectral Networks and Locally Connected Networks on Graphs},
   abstract    = {Convolutional Neural Networks are extremely efficient architectures in image and audio recognition tasks, thanks to their ability to exploit the local translational invariance of signal classes over their domain. In this paper we consider possible generalizations of CNNs to signals defined on more general domains without the action of a translation group. In particular, we propose two constructions, one based upon a hierarchical clustering of the domain, and another based on the spectrum of the graph Laplacian. We show through experiments that for low-dimensional graphs it is possible to learn convolutional layers with a number of parameters independent of the input size, resulting in efficient deep architectures.},
@@ -162,7 +162,7 @@
   keywords    = {cs.LG, cs.CV, cs.NE},
 }
 
-@Article{Chen2018,
+@Misc{Chen2018,
   author      = {Jie Chen and Tengfei Ma and Cao Xiao},
   title       = {FastGCN: Fast Learning with Graph Convolutional Networks via Importance Sampling},
   abstract    = {The graph convolutional networks (GCN) recently proposed by Kipf and Welling are an effective graph model for semi-supervised learning. This model, however, was originally designed to be learned with the presence of both training and test data. Moreover, the recursive neighborhood expansion across layers poses time and memory challenges for training with large, dense graphs. To relax the requirement of simultaneous availability of test data, we interpret graph convolutions as integral transforms of embedding functions under probability measures. Such an interpretation allows for the use of Monte Carlo approaches to consistently estimate the integrals, which in turn leads to a batched training scheme as we propose in this work---FastGCN. Enhanced with importance sampling, FastGCN not only is efficient for training but also generalizes well for inference. We show a comprehensive set of experiments to demonstrate its effectiveness compared with GCN and related models. In particular, training is orders of magnitude more efficient while predictions remain comparably accurate.},
@@ -174,7 +174,7 @@
   keywords    = {cs.LG},
 }
 
-@Article{Chen2017,
+@Misc{Chen2017,
   author      = {Jianfei Chen and Jun Zhu and Le Song},
   title       = {Stochastic Training of Graph Convolutional Networks with Variance Reduction},
   abstract    = {Graph convolutional networks (GCNs) are powerful deep neural networks for graph-structured data. However, GCN computes the representation of a node recursively from its neighbors, making the receptive field size grow exponentially with the number of layers. Previous attempts on reducing the receptive field size by subsampling neighbors do not have a convergence guarantee, and their receptive field size per node is still in the order of hundreds. In this paper, we develop control variate based algorithms which allow sampling an arbitrarily small neighbor size. Furthermore, we prove new theoretical guarantee for our algorithms to converge to a local optimum of GCN. Empirical results show that our algorithms enjoy a similar convergence with the exact algorithm using only two neighbors per node. The runtime of our algorithms on a large Reddit dataset is only one seventh of previous neighbor sampling algorithms.},
@@ -186,7 +186,7 @@
   keywords    = {stat.ML, cs.LG},
 }
 
-@Article{Chiang2019,
+@Misc{Chiang2019,
   author      = {Wei-Lin Chiang and Xuanqing Liu and Si Si and Yang Li and Samy Bengio and Cho-Jui Hsieh},
   title       = {Cluster-GCN: An Efficient Algorithm for Training Deep and Large Graph Convolutional Networks},
   abstract    = {Graph convolutional network (GCN) has been successfully applied to many graph-based applications; however, training a large-scale GCN remains challenging. Current SGD-based algorithms suffer from either a high computational cost that exponentially grows with number of GCN layers, or a large space requirement for keeping the entire graph and the embedding of each node in memory. In this paper, we propose Cluster-GCN, a novel GCN algorithm that is suitable for SGD-based training by exploiting the graph clustering structure. Cluster-GCN works as the following: at each step, it samples a block of nodes that associate with a dense subgraph identified by a graph clustering algorithm, and restricts the neighborhood search within this subgraph. This simple but effective strategy leads to significantly improved memory and computational efficiency while being able to achieve comparable test accuracy with previous algorithms. To test the scalability of our algorithm, we create a new Amazon2M data with 2 million nodes and 61 million edges which is more than 5 times larger than the previous largest publicly available dataset (Reddit). For training a 3-layer GCN on this data, Cluster-GCN is faster than the previous state-of-the-art VR-GCN (1523 seconds vs 1961 seconds) and using much less memory (2.2GB vs 11.2GB). Furthermore, for training 4 layer GCN on this data, our algorithm can finish in around 36 minutes while all the existing GCN training algorithms fail to train due to the out-of-memory issue. Furthermore, Cluster-GCN allows us to train much deeper GCN without much time and memory overhead, which leads to improved prediction accuracy---using a 5-layer Cluster-GCN, we achieve state-of-the-art test F1 score 99.36 on the PPI dataset, while the previous best result was 98.71 by [16]. Our codes are publicly available at https://github.com/google-research/google-research/tree/master/cluster_gcn.},
@@ -199,7 +199,7 @@
   keywords    = {cs.LG, cs.AI, stat.ML},
 }
 
-@Article{Hamilton2017,
+@Misc{Hamilton2017,
   author      = {William L. Hamilton and Rex Ying and Jure Leskovec},
   title       = {Inductive Representation Learning on Large Graphs},
   abstract    = {Low-dimensional embeddings of nodes in large graphs have proved extremely useful in a variety of prediction tasks, from content recommendation to identifying protein functions. However, most existing approaches require that all nodes in the graph are present during training of the embeddings; these previous approaches are inherently transductive and do not naturally generalize to unseen nodes. Here we present GraphSAGE, a general, inductive framework that leverages node feature information (e.g., text attributes) to efficiently generate node embeddings for previously unseen data. Instead of training individual embeddings for each node, we learn a function that generates embeddings by sampling and aggregating features from a node's local neighborhood. Our algorithm outperforms strong baselines on three inductive node-classification benchmarks: we classify the category of unseen nodes in evolving information graphs based on citation and Reddit post data, and we show that our algorithm generalizes to completely unseen graphs using a multi-graph dataset of protein-protein interactions.},
@@ -219,7 +219,6 @@
   pages     = {e170710},
   volume    = {17},
   doi       = {10.2903/j.efsa.2019.e170710},
-  groups    = {[clemens:]},
   publisher = {Wiley Online Library},
 }
 
@@ -275,7 +274,7 @@
   publisher = {Oxford University Press ({OUP})},
 }
 
-@Article{Pope2018,
+@Misc{Pope2018,
   author      = {Phillip Pope and Soheil Kolouri and Mohammad Rostrami and Charles Martin and Heiko Hoffmann},
   title       = {Discovering Molecular Functional Groups Using Graph Convolutional Neural Networks},
   abstract    = {Functional groups (FGs) are molecular substructures that are served as a foundation for analyzing and predicting chemical properties of molecules. Automatic discovery of FGs will impact various fields of research, including medicinal chemistry and material sciences, by reducing the amount of lab experiments required for discovery or synthesis of new molecules. In this paper, we investigate methods based on graph convolutional neural networks (GCNNs) for localizing FGs that contribute to specific chemical properties of interest. In our framework, molecules are modeled as undirected relational graphs with atoms as nodes and bonds as edges. Using this relational graph structure, we trained GCNNs in a supervised way on experimentally-validated molecular training sets to predict specific chemical properties, e.g., toxicity. Upon learning a GCNN, we analyzed its activation patterns to automatically identify FGs using four different explainability methods that we have developed: gradient-based saliency maps, Class Activation Mapping (CAM), gradient-weighted CAM (Grad-CAM), and Excitation Back-Propagation. Although these methods are originally derived for convolutional neural networks (CNNs), we adapt them to develop the corresponding suitable versions for GCNNs. We evaluated the contrastive power of these methods with respect to the specificity of the identified molecular substructures and their relevance for chemical functions. Grad-CAM had the highest contrastive power and generated qualitatively the best FGs. This work paves the way for automatic analysis and design of new molecules.},
@@ -287,7 +286,7 @@
   keywords    = {cs.LG, stat.ML},
 }
 
-@Article{Du2017,
+@Misc{Du2017,
   author      = {Jian Du and Shanghang Zhang and Guanhang Wu and Jose M. F. Moura and Soummya Kar},
   title       = {Topology Adaptive Graph Convolutional Networks},
   abstract    = {Spectral graph convolutional neural networks (CNNs) require approximation to the convolution to alleviate the computational complexity, resulting in performance loss. This paper proposes the topology adaptive graph convolutional network (TAGCN), a novel graph convolutional network defined in the vertex domain. We provide a systematic way to design a set of fixed-size learnable filters to perform convolutions on graphs. The topologies of these filters are adaptive to the topology of the graph when they scan the graph to perform convolution. The TAGCN not only inherits the properties of convolutions in CNN for grid-structured data, but it is also consistent with convolution as defined in graph signal processing. Since no approximation to the convolution is needed, TAGCN exhibits better performance than existing spectral CNNs on a number of data sets and is also computationally simpler than other recent methods.},
@@ -299,7 +298,7 @@
   keywords    = {cs.LG, stat.ML},
 }
 
-@Article{Li2018,
+@Misc{Li2018,
   author      = {Ruoyu Li and Sheng Wang and Feiyun Zhu and Junzhou Huang},
   title       = {Adaptive Graph Convolutional Neural Networks},
   abstract    = {Graph Convolutional Neural Networks (Graph CNNs) are generalizations of classical CNNs to handle graph data such as molecular data, point could and social networks. Current filters in graph CNNs are built for fixed and shared graph structure. However, for most real data, the graph structures varies in both size and connectivity. The paper proposes a generalized and flexible graph CNN taking data of arbitrary graph structure as input. In that way a task-driven adaptive graph is learned for each graph data while training. To efficiently learn the graph, a distance metric learning is proposed. Extensive experiments on nine graph-structured datasets have demonstrated the superior performance improvement on both convergence speed and predictive accuracy.},
@@ -311,7 +310,7 @@
   keywords    = {cs.LG, stat.ML},
 }
 
-@Article{Gong2018,
+@Misc{Gong2018,
   author      = {Liyu Gong and Qiang Cheng},
   title       = {Exploiting Edge Features in Graph Neural Networks},
   abstract    = {Edge features contain important information about graphs. However, current state-of-the-art neural network models designed for graph learning, e.g. graph convolutional networks (GCN) and graph attention networks (GAT), adequately utilize edge features, especially multi-dimensional edge features. In this paper, we build a new framework for a family of new graph neural network models that can more sufficiently exploit edge features, including those of undirected or multi-dimensional edges. The proposed framework can consolidate current graph neural network models; e.g. graph convolutional networks (GCN) and graph attention networks (GAT). The proposed framework and new models have the following novelties: First, we propose to use doubly stochastic normalization of graph edge features instead of the commonly used row or symmetric normalization approches used in current graph neural networks. Second, we construct new formulas for the operations in each individual layer so that they can handle multi-dimensional edge features. Third, for the proposed new framework, edge features are adaptive across network layers. As a result, our proposed new framework and new models can exploit a rich source of graph information. We apply our new models to graph node classification on several citation networks, whole graph classification, and regression on several molecular datasets. Compared with the current state-of-the-art methods, i.e. GCNs and GAT, our models obtain better performance, which testify to the importance of exploiting edge features in graph neural networks.},
@@ -323,7 +322,7 @@
   keywords    = {cs.LG, cs.SI, stat.ML},
 }
 
-@Article{Battaglia2018,
+@Misc{Battaglia2018,
   author      = {Peter W. Battaglia and Jessica B. Hamrick and Victor Bapst and Alvaro Sanchez-Gonzalez and Vinicius Zambaldi and Mateusz Malinowski and Andrea Tacchetti and David Raposo and Adam Santoro and Ryan Faulkner and Caglar Gulcehre and Francis Song and Andrew Ballard and Justin Gilmer and George Dahl and Ashish Vaswani and Kelsey Allen and Charles Nash and Victoria Langston and Chris Dyer and Nicolas Heess and Daan Wierstra and Pushmeet Kohli and Matt Botvinick and Oriol Vinyals and Yujia Li and Razvan Pascanu},
   title       = {Relational inductive biases, deep learning, and graph networks},
   abstract    = {Artificial intelligence (AI) has undergone a renaissance recently, making major progress in key domains such as vision, language, control, and decision-making. This has been due, in part, to cheap data and cheap compute resources, which have fit the natural strengths of deep learning. However, many defining characteristics of human intelligence, which developed under much different pressures, remain out of reach for current approaches. In particular, generalizing beyond one's experiences--a hallmark of human intelligence from infancy--remains a formidable challenge for modern AI. The following is part position paper, part review, and part unification. We argue that combinatorial generalization must be a top priority for AI to achieve human-like abilities, and that structured representations and computations are key to realizing this objective. Just as biology uses nature and nurture cooperatively, we reject the false choice between "hand-engineering" and "end-to-end" learning, and instead advocate for an approach which benefits from their complementary strengths. We explore how using relational inductive biases within deep learning architectures can facilitate learning about entities, relations, and rules for composing them. We present a new building block for the AI toolkit with a strong relational inductive bias--the graph network--which generalizes and extends various approaches for neural networks that operate on graphs, and provides a straightforward interface for manipulating structured knowledge and producing structured behaviors. We discuss how graph networks can support relational reasoning and combinatorial generalization, laying the foundation for more sophisticated, interpretable, and flexible patterns of reasoning. As a companion to this paper, we have released an open-source software library for building graph networks, with demonstrations of how to use them in practice.},
@@ -348,7 +347,7 @@
   publisher = {Springer Science and Business Media {LLC}},
 }
 
-@Article{Wu2017,
+@Misc{Wu2017,
   author      = {Zhenqin Wu and Bharath Ramsundar and Evan N. Feinberg and Joseph Gomes and Caleb Geniesse and Aneesh S. Pappu and Karl Leswing and Vijay Pande},
   title       = {MoleculeNet: A Benchmark for Molecular Machine Learning},
   abstract    = {Molecular machine learning has been maturing rapidly over the last few years. Improved methods and the presence of larger datasets have enabled machine learning algorithms to make increasingly accurate predictions about molecular properties. However, algorithmic progress has been limited due to the lack of a standard benchmark to compare the efficacy of proposed methods; most new algorithms are benchmarked on different datasets making it challenging to gauge the quality of proposed methods. This work introduces MoleculeNet, a large scale benchmark for molecular machine learning. MoleculeNet curates multiple public datasets, establishes metrics for evaluation, and offers high quality open-source implementations of multiple previously proposed molecular featurization and learning algorithms (released as part of the DeepChem open source library). MoleculeNet benchmarks demonstrate that learnable representations are powerful tools for molecular machine learning and broadly offer the best performance. However, this result comes with caveats. Learnable representations still struggle to deal with complex tasks under data scarcity and highly imbalanced classification. For quantum mechanical and biophysical datasets, the use of physics-aware featurizations can be more important than choice of particular learning algorithm.},
@@ -500,7 +499,7 @@
   publisher = {Springer Science and Business Media {LLC}},
 }
 
-@Article{Babai2015,
+@Misc{Babai2015,
   author      = {László Babai},
   title       = {Graph Isomorphism in Quasipolynomial Time},
   abstract    = {We show that the Graph Isomorphism (GI) problem and the related problems of String Isomorphism (under group action) (SI) and Coset Intersection (CI) can be solved in quasipolynomial ($\exp((\log n)^{O(1)})$) time. The best previous bound for GI was $\exp(O(\sqrt{n\log n}))$, where $n$ is the number of vertices (Luks, 1983); for the other two problems, the bound was similar, $\exp(\tilde{O}(\sqrt{n}))$, where $n$ is the size of the permutation domain (Babai, 1983). The algorithm builds on Luks's SI framework and attacks the barrier configurations for Luks's algorithm by group theoretic "local certificates" and combinatorial canonical partitioning techniques. We show that in a well-defined sense, Johnson graphs are the only obstructions to effective canonical partitioning. Luks's barrier situation is characterized by a homomorphism {\phi} that maps a given permutation group $G$ onto $S_k$ or $A_k$, the symmetric or alternating group of degree $k$, where $k$ is not too small. We say that an element $x$ in the permutation domain on which $G$ acts is affected by {\phi} if the {\phi}-image of the stabilizer of $x$ does not contain $A_k$. The affected/unaffected dichotomy underlies the core "local certificates" routine and is the central divide-and-conquer tool of the algorithm.},
@@ -523,7 +522,7 @@
   publisher = {SIAM},
 }
 
-@Article{McKay2013,
+@Misc{McKay2013,
   author      = {Brendan D. McKay and Adolfo Piperno},
   title       = {Practical graph isomorphism, II},
   abstract    = {We report the current state of the graph isomorphism problem from the practical point of view. After describing the general principles of the refinement-individualization paradigm and proving its validity, we explain how it is implemented in several of the key programs. In particular, we bring the description of the best known program nauty up to date and describe an innovative approach called Traces that outperforms the competitors for many difficult graph classes. Detailed comparisons against saucy, Bliss and conauto are presented.},
@@ -702,6 +701,33 @@
   year    = {2010},
   month   = {06},
   volume  = {57},
+}
+
+@Article{Kriege2020,
+  author      = {Nils M. Kriege and Fredrik D. Johansson and Christopher Morris},
+  journal     = {Applied Network Science},
+  title       = {A survey on graph kernels},
+  year        = {2020},
+  month       = {jan},
+  number      = {1},
+  volume      = {5},
+  doi         = {10.1007/s41109-019-0195-3},
+  eprint      = {1903.11835v2},
+  eprintclass = {cs.LG},
+  eprinttype  = {arXiv},
+  publisher   = {Springer Science and Business Media {LLC}},
+}
+
+@Misc{Wu2019,
+  author      = {Zonghan Wu and Shirui Pan and Fengwen Chen and Guodong Long and Chengqi Zhang and Philip S. Yu},
+  title       = {A Comprehensive Survey on Graph Neural Networks},
+  abstract    = {Deep learning has revolutionized many machine learning tasks in recent years, ranging from image classification and video processing to speech recognition and natural language understanding. The data in these tasks are typically represented in the Euclidean space. However, there is an increasing number of applications where data are generated from non-Euclidean domains and are represented as graphs with complex relationships and interdependency between objects. The complexity of graph data has imposed significant challenges on existing machine learning algorithms. Recently, many studies on extending deep learning approaches for graph data have emerged. In this survey, we provide a comprehensive overview of graph neural networks (GNNs) in data mining and machine learning fields. We propose a new taxonomy to divide the state-of-the-art graph neural networks into four categories, namely recurrent graph neural networks, convolutional graph neural networks, graph autoencoders, and spatial-temporal graph neural networks. We further discuss the applications of graph neural networks across various domains and summarize the open source codes, benchmark data sets, and model evaluation of graph neural networks. Finally, we propose potential research directions in this rapidly growing field.},
+  date        = {2019-01-03},
+  eprint      = {1901.00596v4},
+  eprintclass = {cs.LG},
+  eprinttype  = {arXiv},
+  file        = {:http\://arxiv.org/pdf/1901.00596v4:PDF},
+  keywords    = {cs.LG, stat.ML},
 }
 
 @Comment{jabref-meta: databaseType:bibtex;}
