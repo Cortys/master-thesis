@@ -671,6 +671,19 @@ Spectral and spatial \acp{gcnn}.
 
 \subsubsection{Spectral \acp{gcnn}}
 The class of spectral \acp{gcnn} is motivated by spectral graph theory (see \cref{sec:related:character:spectral}).
+The spectral perspective on \ac{gcr} expects a graph $G$ with real vertex feature vectors $x_G[v_i] \in \mathbb{R}^f$ as its input.
+We call $X_G \coloneqq {(x_G[v_1], \dots, x_G[v_n])}^{\top} \in \mathbb{n \times f}$ the vertex feature matrix of $G$.
+Note that each of the $f$ columns of $X_G$ can be interpreted as a separate graph signal function $x_{G,j}: \mathcal{V}_G \to \mathbb{R}$.
+The core idea of spectral \acp{gcnn} is to learn a graph convolution kernel $g$, similar to the grid kernels in conventional \acp{cnn}~\cite{LeCun1998}.
+The problem with this idea is that the convolution operation $g * x$ requires some notion of distance in order to move the kernel $g$ over the function $x$.
+Graphs do not generally satisfy this requirement, i.e.\ the notion of a vertex distance $|v_i - v_j|$ is not clearly defined.
+Via the convolution theorem $\widehat{g * x} = \hat{g} \cdot \hat{f}$ we can however still define a graph convolution operator that works directly in the spectral domain:
+\begin{align}
+	g * x_{G,j} \coloneqq U \hat{g}(\Lambda) U^{\top} x_{G,j}
+	\text{ with the eigendecomposition $L_G = U \Lambda U^{\top}$}
+\end{align}
+To see the connection to the convolutional theorem, note that the matrix of eigenvector rows $U^{\top}$ describes the graph Fourier transform and conversely that $U$ describes the inverse graph Fourier transform.
+\citet{Bruna2013} proposed a \ac{nn} architecture that learns such a spectral filter $\hat{g}$.
 
 \subsubsection{Spatial \acp{gcnn}}
 
