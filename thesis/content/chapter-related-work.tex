@@ -429,7 +429,7 @@ For a more detailed introduction to the field we refer to \citet{Shuman2013}.
 Let us begin by describing the \ac{ft} for the more common case of functions with real domains.
 All functions $f: \mathbb{R} \to \mathbb{R}$ can be interpreted as infinite-dimensional vectors $f = \int_{\mathbb{R}} f(t)\, b_t \dif t$ with $b_t: \mathbb{R} \to \mathbb{R}$ being a standard basis vector/function defined as $b_t(s) \coloneqq \begin{cases} 1 & \text{if } s = t \\[-6pt] 0 & \text{else} \end{cases}$. % chktex 21
 The values of $f$ are then described as its $b_t$ components $\langle b_t, f \rangle = f(t)$, where $\langle b_t, \cdot \rangle = \delta_t(\cdot)$ denotes the Dirac delta function translated by $t$.
-The \acl{ft} $\hat{f}$ of $f$ corresponds to a change of basis from the standard basis vectors $b_t$ to the Fourier basis vectors $u_\xi(t) \coloneqq e^{2 \pi i \xi t}$, i.e.\ $f = \int_{\mathbb{R}} \hat{f}(t)\, u_\xi \dif \xi$.
+The \acl{ft} $\hat{f} = \mathcal{F}(f)$ of $f$ corresponds to a change of basis from the standard basis vectors $b_t$ to the Fourier basis vectors $u_\xi(t) \coloneqq e^{2 \pi i \xi t}$, i.e.\ $f = \int_{\mathbb{R}} \hat{f}(t)\, u_\xi \dif \xi$.
 The Fourier basis is characterized by the fact that it is an eigenbasis of the so-called \textit{Laplace operator} $\Delta$, i.e.\ $\Delta u_\xi = \lambda_\xi u_\xi$ with $\lambda_\xi$ being the eigenvalue corresponding to $u_\xi$.
 In the real domain this Laplace operator $\Delta$ is effectively the same as the second-derivative $\frac{\dif^2}{\dif t^2}$.
 Thus it is easy to see that indeed $\Delta u_\xi = -\frac{\dif^2}{\dif t^2} u_\xi = \lambda_\xi u_\xi$ for $\lambda_\xi = {(2 \pi \xi)}^2$.
@@ -465,7 +465,11 @@ For real-valued functions this neighborhood only consists of the two infinitesim
 The combinatorial graph Laplacian represents the same operation, where each point/vertex $v$ might however have more than two neighbors $u \in \Gamma_G(v)$ that need to be averaged.
 
 The \ac{ft} of a graph signal $x$ then is $\hat{x}[i] = \langle u_{G,i}, x \rangle$ with $u_G = {\{ u_{G,i} \}}_{i=1}^{n}$ being the eigenvectors of $L_G$, s.t.\ $x = \sum_{i=1}^n \hat{x}[i] u_{G,i}$.
-Note that $L_G$ is guaranteed to only have real eigenvectors $u_G$ and eigenvalues $\lambda_G$ due to the fact that we only consider undirected graphs with symmetric adjacency matrices $A_G$.
+Since the set of Laplacian eigenvectors is finite, we can express the graph \ac{ft} $\mathcal{F}_G$ as a change of basis matrix $U_G = \begin{pmatrix} u_{G,1,1} & \cdots & u_{G,1,n} \\ \vdots & \ddots & \vdots \\ u_{G,n,1} & \cdots & u_{G,n,n} \end{pmatrix} \in \mathbb{R}^{n \times n}$.
+Similarly the inverse \ac{ft} can be expressed as $\mathcal{F}^{-1} = U_G^{-1} = U_G^{\top}$ because $U_G$ is a real orthogonal matrix.
+To see why this is the case, note that $L_G$ is guaranteed to only have real eigenvectors $u_G$ and eigenvalues $\lambda_G$ due to the fact that we only consider undirected graphs with symmetric adjacency matrices $A_G$.
+
+\paragraph{Interpretation of the spectrum}
 By convention we assume that the eigenvalues are ordered ascendingly: $\lambda_{G,0} \leq \cdots \leq \lambda_{G,n}$.
 Those eigenvalues are called the \textit{spectrum of $G$} and they are a vertex-permutation-invariant graph characterization.
 Intuitively those eigenvalues describe the connectivity between different parts of the graph.
@@ -473,6 +477,7 @@ The first eigenvalues represent connectivity at a general, coarse level while th
 \Cref{fig:related:graph-fourier} illustrates this idea.
 A concrete example for the relation between a graph's structure and its spectrum is the fact that a graph with $m$ connected components has exactly $m$ zero eigenvalues, i.e.\ $0 = \lambda_{G,1} = \cdots = \lambda_{G,m} < \lambda_{G,m+1}$.
 For a more detailed discussion of this relation we refer to \citet{Das2004}.
+We will now instead look at the discriminative power of the spectrum.
 \begin{figure}[ht]
 	\centering
 	\includegraphics[width=\linewidth]{gfx/related-work/graph-fourier.pdf}
@@ -485,8 +490,10 @@ For a more detailed discussion of this relation we refer to \citet{Das2004}.
 \begin{defn}
 	Two graphs $G$ and $H$ are \textit{cospectral} ($G \mathrel{\simeq_\lambda} H$) iff.\ $\forall i: \lambda_{G,i} = \lambda_{H,i}$.
 \end{defn}
+
+{\setlength{\parskip}{0}\paragraph{Spectral graph comparisons}
 \citet{Alzaga2010} have shown that, while the cospectrality test can be more powerful than 1-\acs{wl}, it is always weaker than 2-\acs{wl}, i.e.\ $G \mathrel{\simeq_2} H \implies G \mathrel{\simeq_\lambda} H$.
-Despite this limit on the discriminative power of the graph spectrum, it is still useful for determining graph similarity, e.g.\ by defining a distance measure on the vector space of spectra (see \citet{Gu2015}).
+Despite this limit on the discriminative power of the graph spectrum, it is still useful for determining graph similarity, e.g.\ by defining a distance measure on the vector space of spectra (see \citet{Gu2015}).}
 
 As briefly mentioned before, the combinatorial graph Laplacian $L_G$ is not the only possible choice of graph Laplacian.
 Note that the eigenvalues of $L_G$ grow with the number of edges\footnote{
@@ -670,20 +677,55 @@ We will focus specifically on the so-called \acp{gcnn} which can be divided into
 Spectral and spatial \acp{gcnn}.
 
 \subsubsection{Spectral \acp{gcnn}}
+
 The class of spectral \acp{gcnn} is motivated by spectral graph theory (see \cref{sec:related:character:spectral}).
-The spectral perspective on \ac{gcr} expects a graph $G$ with real vertex feature vectors $x_G[v_i] \in \mathbb{R}^f$ as its input.
-We call $X_G \coloneqq {(x_G[v_1], \dots, x_G[v_n])}^{\top} \in \mathbb{n \times f}$ the vertex feature matrix of $G$.
-Note that each of the $f$ columns of $X_G$ can be interpreted as a separate graph signal function $x_{G,j}: \mathcal{V}_G \to \mathbb{R}$.
+A spectral \ac{gcnn} expects a graph $G$ with real vertex feature vectors $x_G[v_i] \in \mathbb{R}^d$ as its input.
+We call $X_G \coloneqq \begin{pmatrix} x_G[v_1] \\ \vdots \\ x_G[v_n] \end{pmatrix} \in \mathbb{R}^{n \times d}$ the vertex feature matrix of $G$.
+Note that each of the $d$ columns of $X_G$ can be interpreted as a separate graph signal function $x_{G,j}: \mathcal{V}_G \to \mathbb{R}$ for $j \in [d]$.
 The core idea of spectral \acp{gcnn} is to learn a graph convolution kernel $g$, similar to the grid kernels in conventional \acp{cnn}~\cite{LeCun1998}.
-The problem with this idea is that the convolution operation $g * x$ requires some notion of distance in order to move the kernel $g$ over the function $x$.
-Graphs do not generally satisfy this requirement, i.e.\ the notion of a vertex distance $|v_i - v_j|$ is not clearly defined.
-Via the convolution theorem $\widehat{g * x} = \hat{g} \cdot \hat{f}$ we can however still define a graph convolution operator that works directly in the spectral domain:
+The problem with this idea is that the convolution operation $g * x$ requires some notion of distance in order to ``move'' the kernel $g$ over the function $x$.
+Graphs do not generally satisfy this requirement, i.e.\ the notion of a vertex distance $\|v_i - v_j\|$ is not clearly defined.
+Via the convolution theorem $g * x = \mathcal{F}^{-1}(\hat{g} \odot \hat{x})$ we can however still define a graph convolution operator that works directly in the spectral domain:
 \begin{align}
-	g * x_{G,j} \coloneqq U \hat{g}(\Lambda) U^{\top} x_{G,j}
-	\text{ with the eigendecomposition $L_G = U \Lambda U^{\top}$}
+	g * x_{G,j} \coloneqq U_G^{\top} (\hat{g} \odot (U_G x_{G,j}))
+	\text{ with $\odot$ denoting element-wise multiplication.}
 \end{align}
-To see the connection to the convolutional theorem, note that the matrix of eigenvector rows $U^{\top}$ describes the graph Fourier transform and conversely that $U$ describes the inverse graph Fourier transform.
-\citet{Bruna2013} proposed a \ac{nn} architecture that learns such a spectral filter $\hat{g}$.
+To see the connection to the convolution theorem, remember that the Laplacian eigenvector matrices $U_G$ and $U_G^{\top}$ correspond to the \ac{ft} $\mathcal{F}$ and inverse \ac{ft} $\mathcal{F}^{-1}$ respectively.
+In this formulation of convolution the Fourier transformed kernel $\hat{g}$ can be interpreted as a spectral filter, i.e.\ it dampens or amplifies certain eigenvector components of a graph.
+\citet{Bruna2013}\cite{Henaff2015} first described a \ac{gnn} architecture that learns such a spectral filter $\hat{g}$.
+Since a \ac{gnn} has to accept many different graphs of varying size $n$, the filter can however not be learned as a direct mapping $\hat{g}: [n] \to \mathbb{R}$.
+Therefore it is not expressed in terms of the indices $i$ of specific eigenvectors $u_{G,i}$ but instead in terms of the corresponding eigenvalues $\lambda_{G,i}$, i.e.\ $\hat{g}(\Lambda_G) = \begin{pmatrix} \hat{g}(\lambda_{G,1}) & & \\ & \ddots & \\ & & \hat{g}(\lambda_{G,n}) \end{pmatrix}$.
+In order to learn such an eigenvalue filter $\hat{g}: \mathbb{R} \to \mathbb{R}$ via gradient descent, it requires some differentiable parameterization.
+
+\paragraph{Chebyshev filters}
+One such parameterization is based on the family of recursively defined Chebyshev polynomials $T_k(x) = 2x T_{k-1}(x) - T_{k-2}(x)$ with $T_0 = 1$ and $T_1 = x$~\cite{Defferrard2016}.
+It describes a spectral filter as a linear combination $\hat{g}_{\theta}(\lambda) \coloneqq \sum_{k=0}^{K-1} \theta_k T_k(\lambda)$ with $\theta \in \mathbb{R}^K$.
+By restricting $\hat{g}_{\theta}$ to be a polynomial, the graph convolution can be rewritten as
+\begin{align}
+	g_{\theta} * x_{G,j} = U_G^{\top}\, \hat{g}_{\theta}(\tfrac{2}{\max \lambda_{G}} \Lambda_G - I)\, U_G\, x_{G,j} = \hat{g}_{\theta}(\tfrac{2}{\max \lambda_{G}} L_G - I)\, x_{G,j} % chktex 21
+\end{align}
+because $L_G = U_G^{\top} \Lambda_G U_G$ is an eigendecomposition of the Laplacian.
+The $\tfrac{2}{\max \lambda_{G}} \Lambda_G - I$ term normalizes the eigenvalues to $[-1, 1]$ which prevents vanishing and exploding gradients.
+The advantage of this formulation is that it can be evaluated without actually having to compute the expensive eigendecomposition.
+Instead, by interpreting $\hat{g}_{\theta}$ as a matrix polynomial, one only has to compute the powers $L^1, \dots, L^{K-1}$ which is generally much cheaper.
+
+\paragraph{Linear filters}
+\citet{Kipf2017} simplify the Chebyshev filter even further in the ambiguously named \ac{gcn} architecture\footnote{
+	We use ``\acs{gcn}'' to refer to their proposed specific method and ``\acs{gcnn}'' to refer to the broader family of \acl{gcnn} methods.
+}.
+By fixing $K = 2$ and by using a single filter parameter $\theta \in \mathbb{R}$ the convolution operation is reduced to
+\begin{align}
+	g_{\theta} * x_{G,j} = \theta \left( \tilde{D}_G^{-\frac{1}{2}} \tilde{A}_G \tilde{D}_G^{-\frac{1}{2}} \right) x_{G,j}
+	\quad\text{with $\tilde{A}_G = A_G + I$ and $\tilde{D}_G = D_G + I$.}
+\end{align}
+In this formulation the spectral filter is effectively just a linear function $\hat{g}_{\theta}(\lambda) = \theta \lambda$.
+Via this simplified notion of convolution for a single feature signal $x_{G,j}$, a convolutional layer over all features can analogously be defined as
+\begin{align}
+	Z^{(i)} \coloneqq \sigma\left( \hat{A} Z^{(i-1)} \Theta^{(i)} \right)
+	\quad\text{with } \hat{A} \coloneqq \tilde{D}_G^{-\frac{1}{2}} \tilde{A}_G \tilde{D}_G^{-\frac{1}{2}}\quad\text{and}\quad Z^{(0)} \coloneqq X_G \text{.}
+\end{align}
+Here $\sigma$ is some non-linearity, e.g.\ ReLU, and $\Theta^{(i)} \in \mathbb{R}^{d^{(i-1)} \times d^{(i)}}$ is a matrix of learned filter parameters.
+This type of convolutional layer takes a graph signal $Z^{(i-1)} \in \mathbb{R}^{n \times d^{(i-1)}}$ and the corresponding adjacency matrix $A_G \in \mathbb{R}^{n \times n}$ as input and outputs a convolved signal $Z^{(i)} \in \mathbb{R}^{n \times d^{(i)}}$.
 
 \subsubsection{Spatial \acp{gcnn}}
 
