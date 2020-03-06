@@ -743,12 +743,24 @@ To see why this is the case, we rewrite \cref{eq:related:gcn-layer} and compare 
 	\text{\ac{gcn}:}\quad&& Z^{(i)}[v] &= \sigma\left(\left( {c(v)}^2 Z^{(i-1)}[v] + \smashoperator[lr]{\sum_{u \in \Gamma_G(v)}} c(v) c(u) Z^{(i-1)}[u] \right) \Theta^{(i)} \right) \\
 	\text{1-\acs{wl}:}\quad&& \chi_{G,1}^{(i)}(v) &= h\left( \chi_{G,1}^{(i-1)}(v), \ldblbrace \chi_{G,1}^{(i-1)}(u)\, |\, u \in \Gamma_{G}(v) \rdblbrace\right)
 \end{align*}
-Here $c(v) \coloneqq {\left(\left| \Gamma_G(v) \right| + 1\right)}^{-\frac{1}{2}}$ are normalization factors introduced by $\tilde{D}_G^{-\frac{1}{2}}$ which can be ignored for now.
-The comparison shows that \ac{gcn} convolutions can be understood as iterative refinements of continuous ``color vectors'' $Z^{(i)}[v] \in \mathcal{R}^{d^{(i)}}$.
-The continuous analogue to the injective 1-\acs{wl} hash function $h: \mathcal{C}^{*} \to \mathcal{C}$ is the function $h_{\text{\acs{gcn}}}(z_1, \dots, z_m) = \sigma(\sum z_i \Theta^{(i)})$.
+Here $c(v) \coloneqq {\left(\left| \Gamma_G(v) \right| + 1\right)}^{-\frac{1}{2}}$ are normalization factors introduced by $\tilde{D}_G^{-\frac{1}{2}}$.
+The comparison shows that \ac{gcn} convolutions can be understood as iterative refinements of continuous ``color vectors'' $Z^{(i)}[v] \in \mathbb{R}^{d^{(i)}}$.
+Then the continuous analogue to the injective 1-\acs{wl} hash function $h: \mathcal{C}^{*} \to \mathcal{C}$ can be defined as $h_{\text{\acs{gcn}}}(z_0, z_1, \dots, z_m) = \sigma(\sum_{j=0}^m c(v_0) c(v_j) z_j \Theta^{(i)})$ which computes a single color vector from multiple color vectors $z_j$.
 
-The relation between this type of spatial convolution and 1-\acs{wl} was formally analyzed by \citet{Xu2018}.
-They show that the discriminative power of \acp{gnn} that use a vertex-aggregation scheme is in fact bounded by 1-\acs{wl}.
-Moreover they show that the \ac{gcn} architecture is strictly less powerful than 1-\acs{wl} due to the fact that $h_{\text{\acs{gcn}}}$ is not an injective hash function.
+\paragraph{A 1-\acs{wl} bound on \ac{gnn} power}
+The relation between \acp{gcnn} using neighborhood aggregation convolution and 1-\acs{wl} was formally analyzed by \citet{Xu2018}.
+They show that the discriminative power of such a \acp{gcnn} is upper-bounded by that of 1-\acs{wl}.
+In particular the \ac{gcn} architecture is strictly less powerful than 1-\acs{wl} due to the fact that $h_{\text{\acs{gcn}}}$ is not an injective hash function.
+To overcome this limitation an alternative neighborhood aggregation architecture called \ac{gin} is proposed:
+\begin{align}
+	Z^{(i)}[v] \coloneqq \text{\acs{mlp}}^{(i)}\left( Z^{(i-1)}[v] + \smashoperator[lr]{\sum_{u \in \Gamma_G(v)}} Z^{(i-1)}[u] \right)
+\end{align}
+By leaving out the normalization factors $c(v)$ and by using a \ac{mlp} instead of the single fully-connected layer $\sigma \circ \Theta^{(i)}$ the resulting hashing function $h_{\text{\acs{gin}}}(z_1, \dots, z_m) = \text{\acs{mlp}}^{(i)}(\sum_{j=1}^{m} z_j)$ becomes injective\footnote{
+	Under the assumption that the set of possible input feature matrices $X \in \mathbb{R}^{n \times d^{(0)}}$ is countable.
+	This is reasonable since real-world \ac{gcr} domains typically only have a finite set of possible vertex feature vectors.
+}, i.e.\ it assigns a unique color vector to each multiset of color vectors.
+This implies that \ac{gin} has the same discriminative power as 1-\ac{wl}.
+As expected, \ac{gin} therefore fits training data better than non-injective \acp{gcnn} like \ac{gcn}.
+Interestingly \ac{gin}'s additionally seem to generalize better on test data than non-injective methods.
 
 \subsubsection{Graph Pooling}
