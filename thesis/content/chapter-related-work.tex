@@ -255,7 +255,7 @@ For unlabeled graphs a constant coloring is used, e.g.\ $\forall v \in \mathcal{
 In each iteration of the 1-\acs{wl} color refinement algorithm, the following neighborhood aggregation scheme is used to compute a new color for all vertices:
 \begin{defn}\label{defn:related:wl1-refine}
 	$\chi_{G,1}^{(i+1)}(v) \coloneqq h\left(\chi_{G,1}^{(i)}(v), \ldblbrace \chi_{G,1}^{(i)}(u)\, |\, u \in \Gamma_{G}(v) \rdblbrace\right)$,
-	with $\Gamma_G(v)$ denoting the set of adjacent vertices of $v \in \mathcal{V}_G$ and $h: \mathcal{C}^* \to \mathcal{C}$ denoting a perfect hash function that assigns a unique color to each finite combination of colors.
+	with $\Gamma_G(v)$ denoting the set of adjacent vertices of $v \in \mathcal{V}_G$ and $h: \mathcal{C}^* \to \mathcal{C}$ denoting an injective hash function that assigns a unique color to each finite combination of colors.
 \end{defn}
 \begin{figure}[ht]
 	\centering
@@ -437,7 +437,7 @@ Thus it is easy to see that indeed $\Delta u_\xi = -\frac{\dif^2}{\dif t^2} u_\x
 \paragraph{The graph \acl{ft}}
 To extend the notion of the \ac{ft} from real functions $f: \mathbb{R} \to \mathbb{R}$ to graph signals $x: \mathcal{V}_G \to \mathbb{R}$ we need to define a graph variant of the Laplace operator $\Delta$.
 It turns out that there are multiple possible ways to do so, the most simple being the so-called \textit{combinatorial graph Laplacian}.
-\begin{defn}
+\begin{defn}\label{defn:related:laplacian-comb}
 	The combinatorial graph Laplacian $L_G \in \mathbb{R}^{n \times n}$ is defined as
 	\begin{align*}
 		L_G \coloneqq D_G - A_G\quad\text{with the degree matrix } D_G\coloneqq {
@@ -487,11 +487,11 @@ We will now instead look at the discriminative power of the spectrum.
 		\source[based on]{Shuman2013}
 	}\label{fig:related:graph-fourier}
 \end{figure}
-\begin{defn}
+\begin{defn}\label{defn:related:cospectral}
 	Two graphs $G$ and $H$ are \textit{cospectral} ($G \mathrel{\simeq_\lambda} H$) iff.\ $\forall i: \lambda_{G,i} = \lambda_{H,i}$.
 \end{defn}
 
-{\setlength{\parskip}{0}\paragraph{Spectral graph comparisons}
+{\setlength{\parskip}{0pt}\paragraph{Spectral graph comparisons}
 \citet{Alzaga2010} have shown that, while the cospectrality test can be more powerful than 1-\acs{wl}, it is always weaker than 2-\acs{wl}, i.e.\ $G \mathrel{\simeq_2} H \implies G \mathrel{\simeq_\lambda} H$.
 Despite this limit on the discriminative power of the graph spectrum, it is still useful for determining graph similarity, e.g.\ by defining a distance measure on the vector space of spectra (see \citet{Gu2015}).}
 
@@ -502,7 +502,7 @@ Note that the eigenvalues of $L_G$ grow with the number of edges\footnote{
 Consequently a small graph $G$ will typically have a large spectral distance to a large graph $H$ (assuming ${|\mathcal{V}_G|} \ll {|\mathcal{V}_H|}$) irrespective of their similarity when ignoring the scale difference.
 In domains where the absolute size of a graph should not influence its spectral characterization, it can therefore be useful to normalize the spectrum.
 One common way to do so is via the so-called \textit{symmetric normalized Laplacian} $L^{\text{sym}}_G$.
-\begin{defn}
+\begin{defn}\label{defn:related:laplacian-sym}
 	$L^{\text{sym}}_G \coloneqq D^{-\frac{1}{2}} L_G D^{-\frac{1}{2}}$ is the symmetric normalized Laplacian of $G$.
 \end{defn}
 The eigenvalues $\lambda^{\text{sym}}_{G, i}$  of this Laplacian all lie in the range $[0, 2]$.
@@ -688,45 +688,67 @@ Graphs do not generally satisfy this requirement, i.e.\ the notion of a vertex d
 Via the convolution theorem $g * x = \mathcal{F}^{-1}(\hat{g} \odot \hat{x})$ we can however still define a graph convolution operator that works directly in the spectral domain:
 \begin{align}
 	g * x_{G,j} \coloneqq U_G^{\top} (\hat{g} \odot (U_G x_{G,j}))
-	\text{ with $\odot$ denoting element-wise multiplication.}
+	\text{ with $\odot$ denoting element-wise multiplication.} \label{eq:related:graph-conv-general}
 \end{align}
 To see the connection to the convolution theorem, remember that the Laplacian eigenvector matrices $U_G$ and $U_G^{\top}$ correspond to the \ac{ft} $\mathcal{F}$ and inverse \ac{ft} $\mathcal{F}^{-1}$ respectively.
 In this formulation of convolution the Fourier transformed kernel $\hat{g}$ can be interpreted as a spectral filter, i.e.\ it dampens or amplifies certain eigenvector components of a graph.
 \citet{Bruna2013}\cite{Henaff2015} first described a \ac{gnn} architecture that learns such a spectral filter $\hat{g}$.
 Since a \ac{gnn} has to accept many different graphs of varying size $n$, the filter can however not be learned as a direct mapping $\hat{g}: [n] \to \mathbb{R}$.
-Therefore it is not expressed in terms of the indices $i$ of specific eigenvectors $u_{G,i}$ but instead in terms of the corresponding eigenvalues $\lambda_{G,i}$, i.e.\ $\hat{g}(\Lambda_G) = \begin{pmatrix} \hat{g}(\lambda_{G,1}) & & \\ & \ddots & \\ & & \hat{g}(\lambda_{G,n}) \end{pmatrix}$.
+Therefore it is not expressed in terms of the indices $i$ of specific eigenvectors $u_{G,i}$ but instead in terms of the corresponding eigenvalues\footnote{
+	Here either the unnormalized eigenvalues of $L_G$ or the eigenvalues of some normalized Laplacian, e.g.\ $L_G^{\text{sym}}$, can be used.
+} via $\hat{g}(\Lambda_G) = \begin{pmatrix} \hat{g}(\lambda_{G,1}) & & \\ & \ddots & \\ & & \hat{g}(\lambda_{G,n}) \end{pmatrix}$.
 In order to learn such an eigenvalue filter $\hat{g}: \mathbb{R} \to \mathbb{R}$ via gradient descent, it requires some differentiable parameterization.
 
 \paragraph{Chebyshev filters}
 One such parameterization is based on the family of recursively defined Chebyshev polynomials $T_k(x) = 2x T_{k-1}(x) - T_{k-2}(x)$ with $T_0 = 1$ and $T_1 = x$~\cite{Defferrard2016}.
 It describes a spectral filter as a linear combination $\hat{g}_{\theta}(\lambda) \coloneqq \sum_{k=0}^{K-1} \theta_k T_k(\lambda)$ with $\theta \in \mathbb{R}^K$.
-By restricting $\hat{g}_{\theta}$ to be a polynomial, the graph convolution can be rewritten as
+This restricts $\hat{g}_{\theta}$ to be a polynomial which allows us to rewrite the graph convolution from \cref{eq:related:graph-conv-general} as
 \begin{align}
-	g_{\theta} * x_{G,j} = U_G^{\top}\, \hat{g}_{\theta}(\tfrac{2}{\max \lambda_{G}} \Lambda_G - I)\, U_G\, x_{G,j} = \hat{g}_{\theta}(\tfrac{2}{\max \lambda_{G}} L_G - I)\, x_{G,j} % chktex 21
+	g_{\theta} * x_{G,j}
+	\enspace=\enspace U_G^{\top}\, \hat{g}_{\theta}(\tfrac{2}{\max{\lambda_{G}}} \Lambda_G - I)\, U_G\, x_{G,j}
+	\enspace=\enspace \hat{g}_{\theta}(\tfrac{2}{\max{\lambda_{G}}} L_G - I)\, x_{G,j} \label{eq:related:graph-conv-cheby} % chktex 21
 \end{align}
 because $L_G = U_G^{\top} \Lambda_G U_G$ is an eigendecomposition of the Laplacian.
 The $\tfrac{2}{\max \lambda_{G}} \Lambda_G - I$ term normalizes the eigenvalues to $[-1, 1]$ which prevents vanishing and exploding gradients.
 The advantage of this formulation is that it can be evaluated without actually having to compute the expensive eigendecomposition.
-Instead, by interpreting $\hat{g}_{\theta}$ as a matrix polynomial, one only has to compute the powers $L^1, \dots, L^{K-1}$ which is generally much cheaper.
+Instead, by interpreting $\hat{g}_{\theta}$ as a matrix polynomial, one only has to compute the powers $L^1, \dots, L^{K-1}$ and the largest eigenvalue $\max{\lambda_G}$ which is generally much cheaper than computing the full spectrum.
 
 \paragraph{Linear filters}
-\citet{Kipf2017} simplify the Chebyshev filter even further in the ambiguously named \ac{gcn} architecture\footnote{
-	We use ``\acs{gcn}'' to refer to their proposed specific method and ``\acs{gcnn}'' to refer to the broader family of \acl{gcnn} methods.
+\citet{Kipf2017} simplify the Chebyshev filter from \cref{eq:related:graph-conv-cheby} even further in the ambiguously named \ac{gcn} architecture\footnote{
+	We use ``\acs{gcn}'' to refer to their proposed specific method in order to be consistent with other literature.
+	We use ``\acs{gcnn}'' to refer to the broader family of \acl{gcnn} methods.
 }.
-By fixing $K = 2$ and by using a single filter parameter $\theta \in \mathbb{R}$ the convolution operation is reduced to
+By fixing $K = 2$, by using a single filter parameter $\theta \in \mathbb{R}$ and by assuming that $\max{\lambda_G^{\text{sym}}} \approx 2$ (see \cref{defn:related:laplacian-sym}, \cpageref{defn:related:laplacian-sym}) the convolution operation is reduced to
 \begin{align}
 	g_{\theta} * x_{G,j} = \theta \left( \tilde{D}_G^{-\frac{1}{2}} \tilde{A}_G \tilde{D}_G^{-\frac{1}{2}} \right) x_{G,j}
-	\quad\text{with $\tilde{A}_G = A_G + I$ and $\tilde{D}_G = D_G + I$.}
+	\quad\text{with $\tilde{A}_G = A_G + I$ and $\tilde{D}_G = D_G + I$.} \label{eq:related:graph-conv-gcn}
 \end{align}
 In this formulation the spectral filter is effectively just a linear function $\hat{g}_{\theta}(\lambda) = \theta \lambda$.
-Via this simplified notion of convolution for a single feature signal $x_{G,j}$, a convolutional layer over all features can analogously be defined as
+Via this simplified notion of convolution for a single feature signal $x_{G,j}$, a convolutional \acl{nn} layer over all features ${\{ x_{G,j} \}}_{j=1}^{d}$ can analogously be defined as
 \begin{align}
 	Z^{(i)} \coloneqq \sigma\left( \hat{A} Z^{(i-1)} \Theta^{(i)} \right)
-	\quad\text{with } \hat{A} \coloneqq \tilde{D}_G^{-\frac{1}{2}} \tilde{A}_G \tilde{D}_G^{-\frac{1}{2}}\quad\text{and}\quad Z^{(0)} \coloneqq X_G \text{.}
+	\quad\text{with } \hat{A} \coloneqq \tilde{D}_G^{-\frac{1}{2}} \tilde{A}_G \tilde{D}_G^{-\frac{1}{2}}\quad\text{and}\quad Z^{(0)} \coloneqq X_G \text{.} \label{eq:related:gcn-layer}
 \end{align}
 Here $\sigma$ is some non-linearity, e.g.\ ReLU, and $\Theta^{(i)} \in \mathbb{R}^{d^{(i-1)} \times d^{(i)}}$ is a matrix of learned filter parameters.
 This type of convolutional layer takes a graph signal $Z^{(i-1)} \in \mathbb{R}^{n \times d^{(i-1)}}$ and the corresponding adjacency matrix $A_G \in \mathbb{R}^{n \times n}$ as input and outputs a convolved signal $Z^{(i)} \in \mathbb{R}^{n \times d^{(i)}}$.
+By stacking multiple of those convolutional layers, complex non-linear signal filters can be learned despite the linearity of the underlying spectral filter.
 
 \subsubsection{Spatial \acp{gcnn}}
+Looking at the \ac{gcn} layer defined in \cref{eq:related:gcn-layer}, notice that, even though it is motivated by spectral graph theory, the spectrum $\lambda_G$ is not actually directly used.
+This allows for a very different perspective on \acp{gcn}:
+Instead of interpreting convolutions as applications of linear spectral filters, we can interpret them as vertex neighborhood aggregations, similar to 1-\acs{wl}.
+From this perspective a \ac{gcn} can be seen as a so-called spatial \ac{gcnn} because it operates directly in the vertex domain.
+To see why this is the case, we rewrite \cref{eq:related:gcn-layer} and compare it with the 1-\acs{wl} color refinement strategy (see \cref{defn:related:wl1-refine}, \cpageref{defn:related:wl1-refine}):
+\begin{align*}
+	\text{\ac{gcn}:}\quad&& Z^{(i)}[v] &= \sigma\left(\left( {c(v)}^2 Z^{(i-1)}[v] + \smashoperator[lr]{\sum_{u \in \Gamma_G(v)}} c(v) c(u) Z^{(i-1)}[u] \right) \Theta^{(i)} \right) \\
+	\text{1-\acs{wl}:}\quad&& \chi_{G,1}^{(i)}(v) &= h\left( \chi_{G,1}^{(i-1)}(v), \ldblbrace \chi_{G,1}^{(i-1)}(u)\, |\, u \in \Gamma_{G}(v) \rdblbrace\right)
+\end{align*}
+Here $c(v) \coloneqq {\left(\left| \Gamma_G(v) \right| + 1\right)}^{-\frac{1}{2}}$ are normalization factors introduced by $\tilde{D}_G^{-\frac{1}{2}}$ which can be ignored for now.
+The comparison shows that \ac{gcn} convolutions can be understood as iterative refinements of continuous ``color vectors'' $Z^{(i)}[v] \in \mathcal{R}^{d^{(i)}}$.
+The continuous analogue to the injective 1-\acs{wl} hash function $h: \mathcal{C}^{*} \to \mathcal{C}$ is the function $h_{\text{\acs{gcn}}}(z_1, \dots, z_m) = \sigma(\sum z_i \Theta^{(i)})$.
+
+The relation between this type of spatial convolution and 1-\acs{wl} was formally analyzed by \citet{Xu2018}.
+They show that the discriminative power of \acp{gnn} that use a vertex-aggregation scheme is in fact bounded by 1-\acs{wl}.
+Moreover they show that the \ac{gcn} architecture is strictly less powerful than 1-\acs{wl} due to the fact that $h_{\text{\acs{gcn}}}$ is not an injective hash function.
 
 \subsubsection{Graph Pooling}

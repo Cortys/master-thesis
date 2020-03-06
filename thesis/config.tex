@@ -172,7 +172,7 @@
 
 % Custom commands:
 \newcommand{\tikzmark}[1]{\tikz[overlay,remember picture] \node (#1) {};} % chktex 1
-\newcommand{\dac}[3]{\DeclareAcronym{#1}{short = #2, long = #3}}
+\newcommand{\dac}[3]{\DeclareAcronym{#1}{short = #2, long = #3, foreign-plural={}}}
 \newcommand*\circled[2][1pt]{\tikz[baseline=(char.base)]{ % chktex 36
     \node[shape=circle,draw,inner sep=#1] (char) {#2};}}
 
