@@ -680,6 +680,7 @@ Spectral and spatial \acp{gcnn}.
 
 The class of spectral \acp{gcnn} is motivated by spectral graph theory (see \cref{sec:related:character:spectral}).
 A spectral \ac{gcnn} expects a graph $G$ with real vertex feature vectors $x_G[v_i] \in \mathbb{R}^d$ as its input.
+Those feature vectors are typically one-hot encodings of labels or, if no such information is provided, vertex embedding vectors (see \cref{sec:related:gcr:embed}).
 We call $X_G \coloneqq \begin{pmatrix} x_G[v_1] \\ \vdots \\ x_G[v_n] \end{pmatrix} \in \mathbb{R}^{n \times d}$ the vertex feature matrix of $G$.
 Note that each of the $d$ columns of $X_G$ can be interpreted as a separate graph signal function $x_{G,j}: \mathcal{V}_G \to \mathbb{R}$ for $j \in [d]$.
 The core idea of spectral \acp{gcnn} is to learn a graph convolution kernel $g$, similar to the grid kernels in conventional \acp{cnn}~\cite{LeCun1998}.
@@ -749,18 +750,36 @@ Then the continuous analogue to the injective 1-\acs{wl} hash function $h: \math
 
 \paragraph{A 1-\acs{wl} bound on \ac{gnn} power}
 The relation between \acp{gcnn} using neighborhood aggregation convolution and 1-\acs{wl} was formally analyzed by \citet{Xu2018}.
-They show that the discriminative power of such a \acp{gcnn} is upper-bounded by that of 1-\acs{wl}.
+They show that the discriminative power of such a \ac{gcnn} is upper-bounded by that of 1-\acs{wl}.
 In particular the \ac{gcn} architecture is strictly less powerful than 1-\acs{wl} due to the fact that $h_{\text{\acs{gcn}}}$ is not an injective hash function.
-To overcome this limitation an alternative neighborhood aggregation architecture called \ac{gin} is proposed:
+To overcome this limitation an alternative neighborhood aggregation architecture called \ac{gin} was proposed:
 \begin{align}
 	Z^{(i)}[v] \coloneqq \text{\acs{mlp}}^{(i)}\left( Z^{(i-1)}[v] + \smashoperator[lr]{\sum_{u \in \Gamma_G(v)}} Z^{(i-1)}[u] \right)
 \end{align}
 By leaving out the normalization factors $c(v)$ and by using a \ac{mlp} instead of the single fully-connected layer $\sigma \circ \Theta^{(i)}$ the resulting hashing function $h_{\text{\acs{gin}}}(z_1, \dots, z_m) = \text{\acs{mlp}}^{(i)}(\sum_{j=1}^{m} z_j)$ becomes injective\footnote{
 	Under the assumption that the set of possible input feature matrices $X \in \mathbb{R}^{n \times d^{(0)}}$ is countable.
-	This is reasonable since real-world \ac{gcr} domains typically only have a finite set of possible vertex feature vectors.
+	This is reasonable since real-world \ac{gcr} domains typically only have a finite set of possible vertex feature vectors, e.g\ one-hot label encodings.
 }, i.e.\ it assigns a unique color vector to each multiset of color vectors.
-This implies that \ac{gin} has the same discriminative power as 1-\ac{wl}.
+It was shown that this implies that \ac{gin} has the same discriminative power as 1-\ac{wl}.
 As expected, \ac{gin} therefore fits training data better than non-injective \acp{gcnn} like \ac{gcn}.
-Interestingly \ac{gin}'s additionally seem to generalize better on test data than non-injective methods.
+Interestingly \ac{gin} additionally seems to generalize better on test data than non-injective methods~\cite{Xu2018}\cite{Errica2020}.
+It is not yet fully understood why this is the case.
+
+\paragraph{Higher dimensional \ac{wl} \acp{gnn}}
+The majority of \ac{gnn} methods uses a neighborhood aggregation scheme which limits their discriminative and, more importantly, computational power to that of 1-\acs{wl} (see \cref{defn:related:wl-count-detect}, \cpageref{defn:related:wl-count-detect}).
+To go beyond the limits of 1-\acs{wl}, \citet{Morris2019} proposed the first \ac{gcnn} architecture inspired by the higher dimensional $k$-\acs{wl} algorithms.
+Similar to the $k$-LWL kernel which we looked at in \cref{sec:related:gcr:kernel}, their so-called $k$-\acs{gnn} uses the $k$-multiset and neighborhood localization optimizations to keep runtime costs feasible.
+The $k$-\ac{gnn} convolution is described by
+\begin{align}
+	Z^{(i)}[s] \coloneqq \sigma\left( {Z^{(i-1)}[s]} W^{(i)} + \smashoperator[lr]{\sum_{v \in s, u \in \Gamma_G(v)}} {Z^{(i-1)}[s \setminus \{ v \} \cup \{ u \}]} W_{\Gamma}^{(i)} \right) \text{.} \label{eq:related:kgnn-layer}
+\end{align}
+It convolves the feature vectors of $k$-multisets $s \subseteq \mathcal{V}_G$ instead of single vertices $v \in \mathcal{V}_G$.
+Apart from this fundamental difference to 1-\acs{wl} bounded \acp{gnn}, $k$-\acp{gnn} additionally use two learnable parameter matrices $W^{(i)}, W_{\Gamma}^{(i)} \in \mathbb{R}^{d^{(i-1)} \times d^{(i)}}$ instead of the single $\Theta^{(i)}$ used in \acp{gcn}.
+This separation of parameter matrix effectively fulfills the same purpose as the \ac{mlp} in \ac{gin}; it makes the implicitly defined $k$-\acs{gnn} hash function injective.
+This can be seen by realizing that a stack of $k$-\acs{gnn} convolution layers with $W_{\Gamma}^{(i)} = 0$ for all but the first layer simulates a \ac{mlp}.
+
+As a final remark, note that the concept of ``neighborhood'' used in \cref{eq:related:kgnn-layer} is slightly different from that used by the $k$-\acs{wl} algorithm (see \cref{defn:related:wlk-refine}, \cpageref{defn:related:wlk-refine}):
+$k$-\acs{gnn} considers a single $k$-multiset as a neighbor while $k$-\acs{wl} calls a $k$-set of $k$-multisets a neighbor.
+We will get back to this difference later.
 
 \subsubsection{Graph Pooling}
