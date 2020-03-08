@@ -205,14 +205,14 @@ To represent those encodings we introduce the notion of ordered induced subgraph
 			\land&\ \forall i, j \in [k]: x_G[v_i, v_j] = x_H[w_i, w_j] &\land&\ \forall i \in [k]: x_G[v_i] = x_H[w_i]\text{.}
 		\end{aligned}
 	\end{align*}
-	Using this notion of equivalence, we call $[G[v]] \coloneqq \{ G[w]\, |\, G[w] \equiv G[v] \land w \in \mathcal{V}_G^{*} \}$ the ordered subgraph equivalence class of $G[v]$.
+	Using this notion of equivalence, we call ${\left[ G[v] \right]} \coloneqq \{ G[w]\, |\, G[w] \equiv G[v] \land w \in \mathcal{V}_G^{*} \}$ the \textit{ordered subgraph equivalence class} of $G[v]$.
 \end{defn}
 \begin{defn}
 	Two graphs $G$ and $H$ are \textit{isomorphic} ($G \simeq H$) iff.\ there are equivalent encodings $G[v] \equiv H[w]$ of them.
-	Consequently $[G] \coloneqq \{ H\, |\, H \simeq G \}$ is called the isomorphism class of $G$.
+	Consequently $[G] \coloneqq \{ H\, |\, H \simeq G \}$ is called the \textit{isomorphism class} of $G$.
 \end{defn}
 The goal of the \ac{gi} problem is to check whether $G \simeq H$ for two arbitrary graphs.
-Even though there is no known universal algorithm in $P$ that solves \ac{gi}, \citet{Babai1980} showed that almost all graphs can be trivially distinguished in linear time.
+Even though there is no known universal polynomial algorithm that solves \ac{gi}, \citet{Babai1980} showed that almost all graphs can be trivially distinguished in linear time.
 More recently \citet{Babai2015} also presented a quasipolynomial upper time bound for the remaining hard \ac{gi} instances.
 For all practical purposes, \ac{gi} can therefore be solved efficiently; e.g.\ via the \texttt{nauty} program~\cite{McKay}\cite{McKay2013}.
 One important subroutine in most \ac{gi} checkers is the \acl{wl} algorithm which will be described next.
@@ -248,7 +248,7 @@ Then the definitions and intuitions from the 1-dimensional case are extended to 
 Lastly we will discuss the discriminative power of the \acs{wl} algorithm and its relation to the \acs{wl}-dimension $k$.
 
 \subsubsection{The 1-dimensional \acs{wl} algorithm}
-In the 1-dimensional \ac{wl} algorithm, a color is assigned to each vertex of a graph.
+In the 1-dimensional \ac{wl} algorithm (1-WL), a color is assigned to each vertex of a graph.
 If the vertices $v \in \mathcal{V}_G$ of the input graph $G$ are labeled, those labels $l_G[v] \in L_{\mathcal{V}} \subseteq \mathcal{C}$ can be used as the initial graph coloring $\chi_{G,1}^{(0)}(v) \coloneqq l_G[v]$.
 Since \ac{wl} colors are inherently discrete, continuous vertex feature vectors $x_G[v]$ are not considered here.
 For unlabeled graphs a constant coloring is used, e.g.\ $\forall v \in \mathcal{V}_G: \chi_{G,1}^{(0)}(v) = \textcolor{t_blue}{\texttt{A}}$ for some initial color $\textcolor{t_blue}{\texttt{A}} \in \mathcal{C}$. % chktex 25
@@ -497,7 +497,7 @@ Despite this limit on the discriminative power of the graph spectrum, it is stil
 
 As briefly mentioned before, the combinatorial graph Laplacian $L_G$ is not the only possible choice of graph Laplacian.
 Note that the eigenvalues of $L_G$ grow with the number of edges\footnote{
-	This is trivially shown by $\sum_{i=1}^n \lambda_{G,i} = \Tr(L_G) = \Tr(D_G) = |\mathcal{E}_G|$.
+	This is trivially shown by $\sum_{i=1}^n \lambda_{G,i} = \Tr(t_G) = \Tr(D_G) = |\mathcal{E}_G|$.
 }.
 Consequently a small graph $G$ will typically have a large spectral distance to a large graph $H$ (assuming ${|\mathcal{V}_G|} \ll {|\mathcal{V}_H|}$) irrespective of their similarity when ignoring the scale difference.
 In domains where the absolute size of a graph should not influence its spectral characterization, it can therefore be useful to normalize the spectrum.
@@ -589,8 +589,8 @@ It is inspired by \texttt{doc2vec}~\cite{Le2014} which in turn is based on \text
 While in \texttt{word2vec} every word can be a context root as well as a context element, \texttt{graph2vec} uses the graphs $\mathcal{G}$ as context roots.
 The context $C_k(G_i)$ of a graph $G_i$ is defined as
 \begin{equation}
-	C_k(G_i) \coloneqq \bigcup_{\mathclap{v_j \in \mathcal{V}_{G_i}}}\, {\left\{ \chi_{G_i, 1}^{(l)}(v_j) \right\}}_{l = 0}^L % chktex 21
-	\quad\text{with $k \in \mathbb{N}$ and $\chi_{G_i, 1}^{(l)}$ as in \cref{defn:related:wl1-refine}.}
+	C_k(G_i) \coloneqq \bigcup_{\mathclap{v_j \in \mathcal{V}_{G_i}}}\, {\left\{ \chi_{G_i, 1}^{(t)}(v_j) \right\}}_{l = 0}^L % chktex 21
+	\quad\text{with $k \in \mathbb{N}$ and $\chi_{G_i, 1}^{(t)}$ as in \cref{defn:related:wl1-refine}.}
 \end{equation}
 Intuitively this context can be understood as the set of 1-\acs{wl}-distinguishable subgraphs of $G_i$ with diameter $\leq 2L$.
 Since \ac{wl} is used to identify distinct subgraphs, \texttt{graph2vec} can only be applied to graphs with discrete vertex labels.
@@ -610,34 +610,34 @@ While there is a large variety of different \acp{gk}~\cite{Kriege2020}, we will 
 One well-known \ac{gk} is based directly on the 1-\acs{wl} coloring algorithm, the so-called \textit{\ac{wl} subtree kernel}~\cite{Shervashidze2011}.
 It is uses the mapping
 \begin{align}
-	\varphi_{\text{ST}}(G) \coloneqq \bigoplus_{l=0}^{L} {\left( \mathit{dist}_{\chi_{G,1}^{(l)}}(c) \right)}_{c \in \mathcal{C}}
+	\varphi_{\text{ST}}(G) \coloneqq \bigoplus_{t=0}^{T} {\left( \mathit{dist}_{\chi_{G,1}^{(t)}}(c) \right)}_{c \in \mathcal{C}}
 	\quad\text{with $\oplus$ denoting vector concatenation.} \label{eq:related:wl-subtree-kernel}
 \end{align}
-$\varphi_{\text{ST}}(G)$ encodes the color counts across a fixed number $L$ of 1-\acs{wl} refinement steps.
+$\varphi_{\text{ST}}(G)$ encodes the color counts across a fixed number $T$ of 1-\acs{wl} refinement steps.
 Via this mapping, the \ac{wl} subtree kernel function $k_{\text{ST}}: \mathcal{G} \times \mathcal{G} \to \mathbb{R}$ can then be simply written as the standard inner vector product $k_{\text{ST}}(G, H) \coloneqq \langle \varphi_{\text{ST}}(G), \varphi_{\text{ST}}(H) \rangle$.
 \begin{figure}[ht]
 	\centering
 	\includegraphics[width=0.7\linewidth]{gfx/related-work/wl-subtree.pdf}
-	\caption[Illustration of the correspondence between the \ac{wl} color $\chi_{G,1}^{(l)}(v)$ and the breadth-first subtree of depth $l$ rooted at $v$.]{
-		Illustration of the correspondence between the \ac{wl} color $\chi_{G,1}^{(l)}(v)$ and the breadth-first subtree of depth $l$ rooted at $v$ (for $l = 2$ and $v = \texttt{\textcolor{t_blue}{\circled{1}}}$). % chktex 25
+	\caption[Illustration of the correspondence between the \ac{wl} color $\chi_{G,1}^{(t)}(v)$ and the breadth-first subtree of depth $l$ rooted at $v$.]{
+		Illustration of the correspondence between the \ac{wl} color $\chi_{G,1}^{(t)}(v)$ and the breadth-first subtree of depth $l$ rooted at $v$ (for $l = 2$ and $v = \texttt{\textcolor{t_blue}{\circled{1}}}$). % chktex 25
 		\source[based~on]{Shervashidze2011}
 	}\label{fig:related:wl-subtree}
 \end{figure}
 
 \Cref{fig:related:wl-subtree} illustrates how this definition relates to subtrees.
-Since alls vertex colors $c \in \mathcal{C}$ correspond to a subtree isomorphism class, $k_{\text{ST}}(G, H)$ effectively computes the similarity of $G$ and $H$ by comparing their local subtree structures of depth at most $L$.
+Since alls vertex colors $c \in \mathcal{C}$ correspond to a subtree isomorphism class, $k_{\text{ST}}(G, H)$ effectively computes the similarity of $G$ and $H$ by comparing their local subtree structures of depth at most $T$.
 Note that the underlying mapping $\varphi_{\text{ST}}$ cannot be computed independently for each graph $G \in \mathcal{G}_{\mathcal{D}} \subseteq \mathcal{G}$ in a given training dataset $\mathcal{D}$ since the set of colors $c \in \mathcal{C}$ introduced by the hashing function $h$ is conjointly determined by all graphs $\mathcal{G}_{\mathcal{D}}$ (see \cref{defn:related:wl1-refine}).
 Consequently the dimensionality $d$ of $\varphi_{\text{ST}}(G) \in \mathbb{N}^d$ varies, depending on the entire dataset $\mathcal{D}$.
 
 \paragraph{\ac{wl} shortest path kernel}
 Extending the idea of the \ac{wl} subtree kernel, the \textit{\ac{wl} shortest path kernel}~\cite{Shervashidze2011}\cite{Borgwardt2005} adds global structural information to the local subtree comparisons.
-The $i$-th component of a graph's shortest path vector $\varphi_{\text{SP}}(G)$ corresponds to the 4-tuple $(l_i, a_i, b_i, d_i) \in {\{ 0, \dots, L \}} \times \mathcal{C} \times \mathcal{C} \times \mathbb{N}$ and its value is described by
+The $i$-th component of a graph's shortest path vector $\varphi_{\text{SP}}(G)$ corresponds to the 4-tuple $(t_i, a_i, b_i, d_i) \in {\{ 0, \dots, T \}} \times \mathcal{C} \times \mathcal{C} \times \mathbb{N}$ and its value is described by
 \begin{align}
-	{\varphi_{\text{SP}}(G)}_i \coloneqq \left| \left\{ (v, u) \in \mathcal{V}_G^2 \,|\, {\chi_{G,1}^{(l_i)}(v) = a_i} \land {\chi_{G,1}^{(l_i)}(u) = b_i} \land {d_{\text{SP}}(v, u) = d_i} \right\} \right| \text{,} % chktex 21
+	{\varphi_{\text{SP}}(G)}_i \coloneqq \left| \left\{ (v, u) \in \mathcal{V}_G^2 \,|\, {\chi_{G,1}^{(t_i)}(v) = a_i} \land {\chi_{G,1}^{(t_i)}(u) = b_i} \land {d_{\text{SP}}(v, u) = d_i} \right\} \right| \text{,} % chktex 21
 \end{align}
 with $d_{\text{SP}}(v, u)$ denoting the length of the shortest path from $v$ to $u$ in $G$.
 Analogous to $k_{\text{ST}}$, the shortest path kernel function is defined as $k_{\text{SP}}(G, H) \coloneqq \langle \varphi_{\text{SP}}(G), \varphi_{\text{SP}}(H) \rangle$.
-Since $\varphi_{\text{SP}}(G)$ has one component for each possible 4-tuple $(l_i, a_i, b_i, d_i)$, its dimensionality grows quadratically with the total number of introduced 1-\acs{wl} colors $\mathcal{C}$ and linearly with the length of the longest shortest path $\max_{G \in \mathcal{G}_{\mathcal{D}}, (v, u) \in \mathcal{V}_G^2} d_{\text{SP}}(v, u)$.
+Since $\varphi_{\text{SP}}(G)$ has one component for each possible 4-tuple $(t_i, a_i, b_i, d_i)$, its dimensionality grows quadratically with the total number of introduced 1-\acs{wl} colors $\mathcal{C}$ and linearly with the length of the longest shortest path $\max_{G \in \mathcal{G}_{\mathcal{D}}, (v, u) \in \mathcal{V}_G^2} d_{\text{SP}}(v, u)$.
 While this approach is computationally significantly more expensive than the subtree kernel, it also has a higher discriminative power and allows the shortest path kernel to distinguish even some 1-\acs{wl} indistinguishable graphs.
 The subtree kernel only compares graphs by the presence of local subtrees;
 the shortest path kernel additionally checks how well the distances between those subtrees align.
@@ -645,7 +645,7 @@ Looking back at the 1-\acs{wl} indistinguishable ``six-cycle''/``two-triangles''
 
 \paragraph{Higher dimensional \ac{wl} kernels}
 Instead of incorporating shortest path information to increase the power of the \ac{wl} kernel, one can alternatively just increase the \acs{wl}-dimension $k$.
-A na{\"\i}ve generalization of the 1-\acs{wl} subtree kernel would simply use \cref{eq:related:wl-subtree-kernel} but with the k-\acs{wl} colorings $\chi_{G,k}^{(l)}$ instead of $\chi_{G,1}^{(l)}$.
+A na{\"\i}ve generalization of the 1-\acs{wl} subtree kernel would simply use \cref{eq:related:wl-subtree-kernel} but with the k-\acs{wl} colorings $\chi_{G,k}^{(t)}$ instead of $\chi_{G,1}^{(t)}$.
 The problem with this approach is that the runtime of \ac{wl} increases exponentially with $k$;
 even for $k = 2$ the cost often becomes infeasibly high when working with large graphs.
 To tackle this problem \citet{Morris2017} proposed a combination of two optimizations:
@@ -655,9 +655,9 @@ To tackle this problem \citet{Morris2017} proposed a combination of two optimiza
 		This reduces the amount of colors that have to be refined in each \ac{wl} iteration by a factor of $k!$. % chktex 40
 		Based on \cref{defn:related:wlk-refine}, the multiset color refinement step is defined as
 		\begin{align}
-			\chi_{G,k}^{(l+1)}(s) \coloneqq h\left(\chi_{G,k}^{(l)}(s), \ldblbrace \{ \chi_{G,k}^{(l)}(s \setminus \{v\} \cup \{u\})\, |\, v \in s \}\, |\, u \in \mathcal{V}_G \rdblbrace\right) \text{.} \label{eq:related:wlk-set-refine} % chktex 21
+			\chi_{G,k}^{(t+1)}(s) \coloneqq h\left(\chi_{G,k}^{(t)}(s), \ldblbrace \{ \chi_{G,k}^{(t)}(s \setminus \{v\} \cup \{u\})\, |\, v \in s \}\, |\, u \in \mathcal{V}_G \rdblbrace\right) \text{.} \label{eq:related:wlk-set-refine} % chktex 21
 		\end{align}
-		Even though this simplification generally reduces the discriminative power of the kernel, for $k = 2$ specifically no information and therefore no power is lost by replacing the tuples $(v, u)$ and $(u, v)$ with $\ldblbrace v, u \rdblbrace$ since the undirectedness of graphs implies that $\chi_{G,2}^{(l)}(v, u) = \chi_{G,2}^{(l)}(u, v)$ even when doing tuple-based color refinement.
+		Even though this simplification generally reduces the discriminative power of the kernel, for $k = 2$ specifically no information and therefore no power is lost by replacing the tuples $(v, u)$ and $(u, v)$ with $\ldblbrace v, u \rdblbrace$ since the undirectedness of graphs implies that $\chi_{G,2}^{(t)}(v, u) = \chi_{G,2}^{(t)}(u, v)$ even when doing tuple-based color refinement.
 	\item \textbf{Neighborhood localization:}
 		The second optimization uses the fact that most real-world graphs tend to be sparse~\cite{Chung2010}, i.e.\ ${|\mathcal{E}_G|} = \mathcal{O}(|\mathcal{V}_G|)$.
 		The multiset-based $k$-\acs{wl} algorithm refines the color of a $k$-multiset $s$ by hashing the colors of its neighbors as defined in \cref{eq:related:wlk-set-refine} where there is one neighbor per vertex $u \in \mathcal{V}_G$.
@@ -711,8 +711,8 @@ This restricts $\hat{g}_{\theta}$ to be a polynomial which allows us to rewrite 
 \end{align}
 because $L_G = U_G^{\top} \Lambda_G U_G$ is an eigendecomposition of the Laplacian.
 The $\tfrac{2}{\max \lambda_{G}} \Lambda_G - I$ term normalizes the eigenvalues to $[-1, 1]$ which prevents vanishing and exploding gradients.
-The advantage of this formulation is that it can be evaluated without actually having to compute the expensive eigendecomposition.
-Instead, by interpreting $\hat{g}_{\theta}$ as a matrix polynomial, one only has to compute the powers $L^1, \dots, L^{K-1}$ and the largest eigenvalue $\max{\lambda_G}$ which is generally much cheaper than computing the full spectrum.
+The advantage of this formulation is that it can be evaluated without actually having to compute the expensive eigendecomposition of $L_G$.
+Instead, by interpreting $\hat{g}_{\theta}$ as a matrix polynomial, one only has to compute the powers $L_G^1, \dots, L_G^{K-1}$ and the largest eigenvalue $\max{\lambda_G}$ which is generally much cheaper than computing the full spectrum.
 
 \paragraph{Linear filters}
 \citet{Kipf2017} simplify the Chebyshev filter from \cref{eq:related:graph-conv-cheby} even further in the ambiguously named \ac{gcn} architecture\footnote{
@@ -727,11 +727,11 @@ By fixing $K = 2$, by using a single filter parameter $\theta \in \mathbb{R}$ an
 In this formulation the spectral filter is effectively just a linear function $\hat{g}_{\theta}(\lambda) = \theta \lambda$.
 Via this simplified notion of convolution for a single feature signal $x_{G,j}$, a convolutional \acl{nn} layer over all features ${\{ x_{G,j} \}}_{j=1}^{d}$ can analogously be defined as
 \begin{align}
-	Z^{(i)} \coloneqq \sigma\left( \hat{A} Z^{(i-1)} \Theta^{(i)} \right)
+	Z^{(t)} \coloneqq \sigma\left( \hat{A} Z^{(t-1)} \Theta^{(t)} \right)
 	\quad\text{with } \hat{A} \coloneqq \tilde{D}_G^{-\frac{1}{2}} \tilde{A}_G \tilde{D}_G^{-\frac{1}{2}}\quad\text{and}\quad Z^{(0)} \coloneqq X_G \text{.} \label{eq:related:gcn-layer}
 \end{align}
-Here $\sigma$ is some non-linearity, e.g.\ ReLU, and $\Theta^{(i)} \in \mathbb{R}^{d^{(i-1)} \times d^{(i)}}$ is a matrix of learned filter parameters.
-This type of convolutional layer takes a graph signal $Z^{(i-1)} \in \mathbb{R}^{n \times d^{(i-1)}}$ and the corresponding adjacency matrix $A_G \in \mathbb{R}^{n \times n}$ as input and outputs a convolved signal $Z^{(i)} \in \mathbb{R}^{n \times d^{(i)}}$.
+Here $\sigma$ is some non-linearity, e.g.\ ReLU, and $\Theta^{(t)} \in \mathbb{R}^{d^{(t-1)} \times d^{(t)}}$ is a matrix of learned filter parameters.
+This type of convolutional layer takes a graph signal $Z^{(t-1)} \in \mathbb{R}^{n \times d^{(t-1)}}$ and the corresponding adjacency matrix $A_G \in \mathbb{R}^{n \times n}$ as input and outputs a convolved signal $Z^{(t)} \in \mathbb{R}^{n \times d^{(t)}}$.
 By stacking multiple of those convolutional layers, complex non-linear signal filters can be learned despite the linearity of the underlying spectral filter.
 
 \subsubsection{Spatial \acp{gcnn}}
@@ -741,12 +741,12 @@ Instead of interpreting convolutions as applications of linear spectral filters,
 From this perspective a \ac{gcn} can be seen as a so-called spatial \ac{gcnn} because it operates directly in the vertex domain.
 To see why this is the case, we rewrite \cref{eq:related:gcn-layer} and compare it with the 1-\acs{wl} color refinement strategy (see \cref{defn:related:wl1-refine}, \cpageref{defn:related:wl1-refine}):
 \begin{align*}
-	\text{\ac{gcn}:}\quad&& Z^{(i)}[v] &= \sigma\left(\left( {c(v)}^2 Z^{(i-1)}[v] + \smashoperator[lr]{\sum_{u \in \Gamma_G(v)}} c(v) c(u) Z^{(i-1)}[u] \right) \Theta^{(i)} \right) \\
-	\text{1-\acs{wl}:}\quad&& \chi_{G,1}^{(i)}(v) &= h\left( \chi_{G,1}^{(i-1)}(v), \ldblbrace \chi_{G,1}^{(i-1)}(u)\, |\, u \in \Gamma_{G}(v) \rdblbrace\right)
+	\text{\ac{gcn}:}\quad&& Z^{(t)}[v] &= \sigma\left(\left( {c(v)}^2 Z^{(t-1)}[v] + \smashoperator[lr]{\sum_{u \in \Gamma_G(v)}} c(v) c(u) Z^{(t-1)}[u] \right) \Theta^{(t)} \right) \\
+	\text{1-\acs{wl}:}\quad&& \chi_{G,1}^{(t)}(v) &= h\left( \chi_{G,1}^{(t-1)}(v), \ldblbrace \chi_{G,1}^{(t-1)}(u)\, |\, u \in \Gamma_{G}(v) \rdblbrace\right)
 \end{align*}
 Here $c(v) \coloneqq {\left(\left| \Gamma_G(v) \right| + 1\right)}^{-\frac{1}{2}}$ are normalization factors introduced by $\tilde{D}_G^{-\frac{1}{2}}$.
-The comparison shows that \ac{gcn} convolutions can be understood as iterative refinements of continuous ``color vectors'' $Z^{(i)}[v] \in \mathbb{R}^{d^{(i)}}$.
-Then the continuous analogue to the injective 1-\acs{wl} hash function $h: \mathcal{C}^{*} \to \mathcal{C}$ can be defined as $h_{\text{\acs{gcn}}}(z_0, z_1, \dots, z_m) = \sigma(\sum_{j=0}^m c(v_0) c(v_j) z_j \Theta^{(i)})$ which computes a single color vector from multiple color vectors $z_j$.
+The comparison shows that \ac{gcn} convolutions can be understood as iterative refinements of continuous ``color vectors'' $Z^{(t)}[v] \in \mathbb{R}^{d^{(t)}}$.
+Then the continuous analogue to the injective 1-\acs{wl} hash function $h: \mathcal{C}^{*} \to \mathcal{C}$ can be defined as $h_{\text{\acs{gcn}}}(z_0, z_1, \dots, z_m) = \sigma(\sum_{j=0}^m c(v_0) c(v_j) z_j \Theta^{(t)})$ which computes a single color vector from multiple color vectors $z_j$.
 
 \paragraph{A 1-\acs{wl} bound on \ac{gnn} power}
 The relation between \acp{gcnn} using neighborhood aggregation convolution and 1-\acs{wl} was formally analyzed by \citet{Xu2018}.
@@ -754,9 +754,9 @@ They show that the discriminative power of such a \ac{gcnn} is upper-bounded by 
 In particular the \ac{gcn} architecture is strictly less powerful than 1-\acs{wl} due to the fact that $h_{\text{\acs{gcn}}}$ is not an injective hash function.
 To overcome this limitation an alternative neighborhood aggregation architecture called \ac{gin} was proposed:
 \begin{align}
-	Z^{(i)}[v] \coloneqq \text{\acs{mlp}}^{(i)}\left( Z^{(i-1)}[v] + \smashoperator[lr]{\sum_{u \in \Gamma_G(v)}} Z^{(i-1)}[u] \right)
+	Z^{(t)}[v] \coloneqq \text{\acs{mlp}}^{(t)}\left( Z^{(t-1)}[v] + \smashoperator[lr]{\sum_{u \in \Gamma_G(v)}} Z^{(t-1)}[u] \right)
 \end{align}
-By leaving out the normalization factors $c(v)$ and by using a \ac{mlp} instead of the single fully-connected layer $\sigma \circ \Theta^{(i)}$ the resulting hashing function $h_{\text{\acs{gin}}}(z_1, \dots, z_m) = \text{\acs{mlp}}^{(i)}(\sum_{j=1}^{m} z_j)$ becomes injective\footnote{
+By leaving out the normalization factors $c(v)$ and by using a \ac{mlp} instead of the single fully-connected layer $\sigma \circ \Theta^{(t)}$ the resulting hashing function $h_{\text{\acs{gin}}}(z_1, \dots, z_m) = \text{\acs{mlp}}^{(t)}(\sum_{j=1}^{m} z_j)$ becomes injective\footnote{
 	Under the assumption that the set of possible input feature matrices $X \in \mathbb{R}^{n \times d^{(0)}}$ is countable.
 	This is reasonable since real-world \ac{gcr} domains typically only have a finite set of possible vertex feature vectors, e.g\ one-hot label encodings.
 }, i.e.\ it assigns a unique color vector to each multiset of color vectors.
@@ -771,15 +771,50 @@ To go beyond the limits of 1-\acs{wl}, \citet{Morris2019} proposed the first \ac
 Similar to the $k$-LWL kernel which we looked at in \cref{sec:related:gcr:kernel}, their so-called $k$-\acs{gnn} uses the $k$-multiset and neighborhood localization optimizations to keep runtime costs feasible.
 The $k$-\ac{gnn} convolution is described by
 \begin{align}
-	Z^{(i)}[s] \coloneqq \sigma\left( {Z^{(i-1)}[s]} W^{(i)} + \smashoperator[lr]{\sum_{v \in s, u \in \Gamma_G(v)}} {Z^{(i-1)}[s \setminus \{ v \} \cup \{ u \}]} W_{\Gamma}^{(i)} \right) \text{.} \label{eq:related:kgnn-layer}
+	Z^{(t)}[s] \coloneqq \sigma\left( {Z^{(t-1)}[s]} W^{(t)} + \smashoperator[lr]{\sum_{v \in s, u \in \Gamma_G(v)}} {Z^{(t-1)}[s \setminus \{ v \} \cup \{ u \}]} W_{\Gamma}^{(t)} \right) \text{.} \label{eq:related:kgnn-layer}
 \end{align}
 It convolves the feature vectors of $k$-multisets $s \subseteq \mathcal{V}_G$ instead of single vertices $v \in \mathcal{V}_G$.
-Apart from this fundamental difference to 1-\acs{wl} bounded \acp{gnn}, $k$-\acp{gnn} additionally use two learnable parameter matrices $W^{(i)}, W_{\Gamma}^{(i)} \in \mathbb{R}^{d^{(i-1)} \times d^{(i)}}$ instead of the single $\Theta^{(i)}$ used in \acp{gcn}.
+Apart from this fundamental difference to 1-\acs{wl} bounded \acp{gnn}, $k$-\acp{gnn} additionally use two learnable parameter matrices $W^{(t)}, W_{\Gamma}^{(t)} \in \mathbb{R}^{d^{(t-1)} \times d^{(t)}}$ instead of the single $\Theta^{(t)}$ used in \acp{gcn}.
 This separation of parameter matrix effectively fulfills the same purpose as the \ac{mlp} in \ac{gin}; it makes the implicitly defined $k$-\acs{gnn} hash function injective.
-This can be seen by realizing that a stack of $k$-\acs{gnn} convolution layers with $W_{\Gamma}^{(i)} = 0$ for all but the first layer simulates a \ac{mlp}.
+This can be seen by realizing that a stack of $k$-\acs{gnn} convolution layers with $W_{\Gamma}^{(t)} = 0$ for all but the first layer simulates a \ac{mlp}.
 
-As a final remark, note that the concept of ``neighborhood'' used in \cref{eq:related:kgnn-layer} is slightly different from that used by the $k$-\acs{wl} algorithm (see \cref{defn:related:wlk-refine}, \cpageref{defn:related:wlk-refine}):
-$k$-\acs{gnn} considers a single $k$-multiset as a neighbor while $k$-\acs{wl} calls a $k$-set of $k$-multisets a neighbor.
+As a final remark, note that the concept of ``neighborhood'' in \cref{eq:related:kgnn-layer} is slightly different from that used by the $k$-\acs{wl} algorithm (see \cref{defn:related:wlk-refine}, \cpageref{defn:related:wlk-refine}):
+$k$-\acs{gnn} considers a single $k$-multiset as a neighbor while $k$-\acs{wl} uses $k$-sets of $k$-multisets as neighbors.
 We will get back to this difference later.
 
 \subsubsection{Graph Pooling}
+
+The graph convolution approaches that we just looked at all produce a set of convolved feature vectors ${\left\{ Z^{(T)}[s_i] \right\}}_{i=1}^{m}$ after $T$ convolutional layers. % chktex 21
+For 1-\acs{wl} bounded architectures like \ac{gcn} or \ac{gin}, there is one vector for each of the $m = {|\mathcal{V}_G|}$ vertices, while a $k$-\acs{wl} inspired architecture like $k$-\acs{gnn} produces $m \leq {|\mathcal{V}_G|}^{k}$ output vectors.
+In order to solve the \ac{gcr} problem, those vector sets need to be combined into a final predicted class or regression value.
+To do this, so-called \textit{graph pooling layers} are used.
+Generally speaking there are two types of pooling approaches:
+\begin{enumerate}[label=\textbf{\arabic*.}]
+	\item \textbf{Hierarchical Pooling:}
+		This type of pooling is similar to that found in \acp{cnn} on pictures where the resolution is iteratively reduced.
+		Similarly hierarchical graph pooling iteratively \textit{coarsens} a graph every couple of convolutional layers.
+		Graph coarsening works by merging vertices in a spectrum-preserving manner~\cite{Loukas2018}.
+		This is done until a single merged vertex is left whose feature vector then represents the entire graph.
+	\item \textbf{Global Pooling}:
+		Alternatively pooling can also be performed in a single step after the convolutional layers.
+		This type of pooling takes all $m$ feature vectors and directly maps them to a single graph feature vector.
+\end{enumerate}
+In this thesis we will focus on global pooling.
+The most simple global pooling approaches use static aggregation functions like component-wise $\min$, $\max$ or $\mean$ to produce a single graph feature vector $z_G \in \mathbb{R}^{d^{(L)}}$.
+This vector is then fed into a standard \ac{mlp} to produce the final prediction.
+The state-of-the-art graph pooling approaches go beyond static aggregation and try to incorporate structural information.
+We will now briefly look at two such approaches.
+
+\paragraph{SortPooling}
+One way to combine feature vectors is called \textit{SortPooling}~\cite{Zhang2018}.
+It interprets the convolved vectors as continuous \ac{wl} colors that encode different structural roles of vertices (or vertex sets in case of $k$-\acp{gnn}).
+By imposing a component-wise lexicographic ordering on the set of color vectors, it can be reduced to a vertex permutation invariant top-$p$ list of vectors $(z_1, \dots, z_p)$ for some fixed $p \in \mathbb{N}$.
+The final graph feature vector then is the concatenation $z_G = \left( \bigoplus_{i=1}^{p} z_i \right) \in \mathbb{R}^{d^{(L)} p}$.
+SortPooling is based on the idea that the convolutional layers will learn to use the most-significant lexicographic vector components to represent that vector's importance.
+
+\paragraph{\acs{sagpool}}
+Another global pooling approach uses self-attention to explicitly assign a structural importance score to each vertex (or vertex set in case of $k$-\acp{gnn}).
+The so-called \acf{sagpool}~\cite{Lee2019} learns those attention scores via a separate stack of convolutional layers.
+The set of convolved feature vectors is then filtered down from the size $m$ to $p = \lceil r m \rceil$ with $r \in [0, 1]$ by removing the vectors of the vertices with the lowest attention scores.
+Let $z_1, \dots, z_p$ be the remaining feature vectors.
+To obtain the final graph feature vector, \ac{sagpool} uses $z_G = {\left( \sum_{i=1}^{p} z_i \right)} \oplus {\max_{i=1}^p {z_i}}$.
