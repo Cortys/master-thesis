@@ -1,4 +1,4 @@
-% !TEX root = ../main.tex
+%!TEX root = ../main.tex
 % chktex-file 46
 \chapter{Related Work}%
 \label{sec:related}
@@ -9,8 +9,8 @@ This is done in three steps:
 	\item We begin with an overview of the existing \ac{lta} methods for unstructured inputs.
 	\item Then we look at the domain of structured inputs.
 		To solve the \ac{gcr} problem, relevant graphs characteristics have to be defined in order to determine the similarity and dissimilarity of graphs.
-		We will look at two common approaches for graph characterization: The \acl{wl} algorithm and the notion of graph spectra.
-	\item Using the described graph characterization approaches, a brief overview of current \ac{gcr} methods will then be given.
+		We will look at three approaches for graph characterization: The graph isomorphism test, the so-called \acl{wl} coloring and lastly the notion of graph spectra.W
+	\item Based on the described graph characterization approaches, an overview of current \ac{gcr} methods will then be given.
 \end{enumerate}
 
 \section{Learning to Aggregate}%
@@ -124,7 +124,7 @@ $U_\lambda$ therefore smoothly interpolates between a conjunctive and disjunctiv
 Since t-norms and t-conorms are commutative and associative they can also be applied to non-empty sets of arbitrary size, i.e. $T(\ldblbrace y_1, \dots, y_n \rdblbrace) = T(y_1, T(\ldblbrace y_2, \dots, y_n \rdblbrace))$ with fixpoint $T(\ldblbrace y \rdblbrace) = y$.
 Using this extension, a uninorm $U_\lambda$ can be applied to sets which turns it into a parameterized aggregation function $\mathcal{A}_\lambda: {[0, 1]}^* \to [0, 1]$.
 In this simple model the \ac{lta} aggregation problem boils down to the optimization of $\lambda$.
-The \ac{lta} disaggregation problem is solved by jointly optimizing a \acf{lm}, i.e.\ the constituent scores ${\ldblbrace y_i \in [0, 1] \rdblbrace}_{c_i \in \bm{c}}$ are described by $y_i = {\left( 1 + \exp(-\theta^\top x_i) \right)}^{-1}$.
+The \ac{lta} disaggregation problem is solved by jointly optimizing a \acl{lm}, i.e.\ the constituent scores ${\ldblbrace y_i \in [0, 1] \rdblbrace}_{c_i \in \bm{c}}$ are described by $y_i = {\left( 1 + \exp(-\theta^\top x_i) \right)}^{-1}$.
 Overall an \ac{lta} model is therefore described by the uninorm parameter $\lambda$ and the regression coefficients $\theta$.
 
 \subsection{\acs*{owa}-Aggregation}%
@@ -193,16 +193,16 @@ Consequently there are $n!$ equivalent encodings of $G$. % chktex 40
 To represent those encodings we introduce the notion of ordered induced subgraphs.
 \begin{defn}\label{defn:related:ordered-subgraph}
 	For all vertex $k$-tuples $v = (v_1, \dots, v_k) \in \mathcal{V}_G^k$ let $\hat{v} = \{ v_i\, |\, i \in [k] \}$.
-	Then $G[v] \coloneqq (\hat{v}, \mathcal{E}_G \cap \hat{v}^2, v)$ is called the ordered subgraph of $G$ induced by $v$.
-	If $\hat{v} = \mathcal{V}_G$ and $k = |\mathcal{V}_G|$, we call $v$ an ordering of $G$ and $G[v]$ an encoding of $G$.
+	Then $G[v] \coloneqq (\hat{v}, \mathcal{E}_G \cap \hat{v}^2, v)$ is called the \textit{ordered subgraph} of $G$ induced by $v$.
+	If $\hat{v} = \mathcal{V}_G$ and $k = |\mathcal{V}_G|$, we call $v$ an \textit{ordering} of $G$ and $G[v]$ an \textit{encoding} of $G$.
 \end{defn}
 \begin{defn}\label{defn:related:ordered-subgraph-equivalence}
 	Two ordered induced subgraphs $G[v]$ and $H[w]$ with $(v_1, \dots, v_k) \in \mathcal{V}_G^k$ and $(w_1, \dots, w_k) \in \mathcal{V}_H^k$ are \textit{equivalent} ($G[v] \equiv H[w]$) iff.\
 	\begin{align*}
 		&\quad\forall i, j \in [k]: (v_i, v_j) \in \mathcal{E}_G \leftrightarrow (w_i, w_j) \in \mathcal{E}_H \\
 		&\, \begin{aligned}
-			\land&\ \forall i, j \in [k]: l_G[v_i, v_j] = l_H[w_i, w_j] &\land&\ \forall i \in [k]: l_G[v_i] = l_H[w_i] \\
-			\land&\ \forall i, j \in [k]: x_G[v_i, v_j] = x_H[w_i, w_j] &\land&\ \forall i \in [k]: x_G[v_i] = x_H[w_i]\text{.}
+			\land&\ \forall i, j \in [k]: l_G[v_i, v_j] = l_H[w_i, w_j] &\land&\quad\forall i \in [k]: l_G[v_i] = l_H[w_i] \\
+			\land&\ \forall i, j \in [k]: x_G[v_i, v_j] = x_H[w_i, w_j] &\land&\quad\forall i \in [k]: x_G[v_i] = x_H[w_i]\text{.}
 		\end{aligned}
 	\end{align*}
 	Using this notion of equivalence, we call ${\left[ G[v] \right]} \coloneqq \{ G[w]\, |\, G[w] \equiv G[v] \land w \in \mathcal{V}_G^{*} \}$ the \textit{ordered subgraph equivalence class} of $G[v]$.
@@ -619,7 +619,7 @@ Via this mapping, the \ac{wl} subtree kernel function $k_{\text{ST}}: \mathcal{G
 	\centering
 	\includegraphics[width=0.7\linewidth]{gfx/related-work/wl-subtree.pdf}
 	\caption[Illustration of the correspondence between the \ac{wl} color $\chi_{G,1}^{(t)}(v)$ and the breadth-first subtree of depth $l$ rooted at $v$.]{
-		Illustration of the correspondence between the \ac{wl} color $\chi_{G,1}^{(t)}(v)$ and the breadth-first subtree of depth $l$ rooted at $v$ (for $l = 2$ and $v = \texttt{\textcolor{t_blue}{\circled{1}}}$). % chktex 25
+		Illustration of the correspondence between the \ac{wl} color $\chi_{G,1}^{(t)}(v)$ and the breadth-first subtree of depth $t$ rooted at $v$ (for $t = 2$ and $v = \texttt{\textcolor{t_blue}{\circled{1}}}$). % chktex 25
 		\source[based~on]{Shervashidze2011}
 	}\label{fig:related:wl-subtree}
 \end{figure}
@@ -741,22 +741,22 @@ Instead of interpreting convolutions as applications of linear spectral filters,
 From this perspective a \ac{gcn} can be seen as a so-called spatial \ac{gcnn} because it operates directly in the vertex domain.
 To see why this is the case, we rewrite \cref{eq:related:gcn-layer} and compare it with the 1-\acs{wl} color refinement strategy (see \cref{defn:related:wl1-refine}, \cpageref{defn:related:wl1-refine}):
 \begin{align*}
-	\text{\ac{gcn}:}\quad&& Z^{(t)}[v] &= \sigma\left(\left( {c(v)}^2 Z^{(t-1)}[v] + \smashoperator[lr]{\sum_{u \in \Gamma_G(v)}} c(v) c(u) Z^{(t-1)}[u] \right) \Theta^{(t)} \right) \\
+	\text{\ac*{gcn}:}\quad&& Z^{(t)}[v] &= \sigma\left(\left( {c(v)}^2 Z^{(t-1)}[v] + \smashoperator[lr]{\sum_{u \in \Gamma_G(v)}} c(v) c(u) Z^{(t-1)}[u] \right) \Theta^{(t)} \right) \\
 	\text{1-\acs{wl}:}\quad&& \chi_{G,1}^{(t)}(v) &= h\left( \chi_{G,1}^{(t-1)}(v), \ldblbrace \chi_{G,1}^{(t-1)}(u)\, |\, u \in \Gamma_{G}(v) \rdblbrace\right)
 \end{align*}
 Here $c(v) \coloneqq {\left(\left| \Gamma_G(v) \right| + 1\right)}^{-\frac{1}{2}}$ are normalization factors introduced by $\tilde{D}_G^{-\frac{1}{2}}$.
 The comparison shows that \ac{gcn} convolutions can be understood as iterative refinements of continuous ``color vectors'' $Z^{(t)}[v] \in \mathbb{R}^{d^{(t)}}$.
-Then the continuous analogue to the injective 1-\acs{wl} hash function $h: \mathcal{C}^{*} \to \mathcal{C}$ can be defined as $h_{\text{\acs{gcn}}}(z_0, z_1, \dots, z_m) = \sigma(\sum_{j=0}^m c(v_0) c(v_j) z_j \Theta^{(t)})$ which computes a single color vector from multiple color vectors $z_j$.
+Then the continuous analogue to the injective 1-\acs{wl} hash function $h: \mathcal{C}^{*} \to \mathcal{C}$ can be defined as $h_{\text{\acs*{gcn}}}(z_0, z_1, \dots, z_m) = \sigma(\sum_{j=0}^m c(v_0) c(v_j) z_j \Theta^{(t)})$ which computes a single color vector from multiple color vectors $z_j$.
 
 \paragraph{A 1-\acs{wl} bound on \ac{gnn} power}
 The relation between \acp{gcnn} using neighborhood aggregation convolution and 1-\acs{wl} was formally analyzed by \citet{Xu2018}.
 They show that the discriminative power of such a \ac{gcnn} is upper-bounded by that of 1-\acs{wl}.
-In particular the \ac{gcn} architecture is strictly less powerful than 1-\acs{wl} due to the fact that $h_{\text{\acs{gcn}}}$ is not an injective hash function.
+In particular the \ac{gcn} architecture is strictly less powerful than 1-\acs{wl} due to the fact that $h_{\text{\acs*{gcn}}}$ is not an injective hash function.
 To overcome this limitation an alternative neighborhood aggregation architecture called \ac{gin} was proposed:
 \begin{align}
-	Z^{(t)}[v] \coloneqq \text{\acs{mlp}}^{(t)}\left( Z^{(t-1)}[v] + \smashoperator[lr]{\sum_{u \in \Gamma_G(v)}} Z^{(t-1)}[u] \right)
+	Z^{(t)}[v] \coloneqq \text{\acs*{mlp}}^{(t)}\left( Z^{(t-1)}[v] + \smashoperator[lr]{\sum_{u \in \Gamma_G(v)}} Z^{(t-1)}[u] \right)
 \end{align}
-By leaving out the normalization factors $c(v)$ and by using a \ac{mlp} instead of the single fully-connected layer $\sigma \circ \Theta^{(t)}$ the resulting hashing function $h_{\text{\acs{gin}}}(z_1, \dots, z_m) = \text{\acs{mlp}}^{(t)}(\sum_{j=1}^{m} z_j)$ becomes injective\footnote{
+By leaving out the normalization factors $c(v)$ and by using a \ac{mlp} instead of the single fully-connected layer $\sigma \circ \Theta^{(t)}$ the resulting hashing function $h_{\text{\acs*{gin}}}(z_1, \dots, z_m) = \text{\acs*{mlp}}^{(t)}(\sum_{j=1}^{m} z_j)$ becomes injective\footnote{
 	Under the assumption that the set of possible input feature matrices $X \in \mathbb{R}^{n \times d^{(0)}}$ is countable.
 	This is reasonable since real-world \ac{gcr} domains typically only have a finite set of possible vertex feature vectors, e.g\ one-hot label encodings.
 }, i.e.\ it assigns a unique color vector to each multiset of color vectors.
@@ -812,9 +812,9 @@ By imposing a component-wise lexicographic ordering on the set of color vectors,
 The final graph feature vector then is the concatenation $z_G = \left( \bigoplus_{i=1}^{p} z_i \right) \in \mathbb{R}^{d^{(L)} p}$.
 SortPooling is based on the idea that the convolutional layers will learn to use the most-significant lexicographic vector components to represent that vector's importance.
 
-\paragraph{\acs{sagpool}}
+\paragraph{\acs*{sagpool}}
 Another global pooling approach uses self-attention to explicitly assign a structural importance score to each vertex (or vertex set in case of $k$-\acp{gnn}).
-The so-called \acf{sagpool}~\cite{Lee2019} learns those attention scores via a separate stack of convolutional layers.
+The so-called \ac{sagpool}~\cite{Lee2019} learns those attention scores via a separate stack of convolutional layers.
 The set of convolved feature vectors is then filtered down from the size $m$ to $p = \lceil r m \rceil$ with $r \in [0, 1]$ by removing the vectors of the vertices with the lowest attention scores.
 Let $z_1, \dots, z_p$ be the remaining feature vectors.
 To obtain the final graph feature vector, \ac{sagpool} uses $z_G = {\left( \sum_{i=1}^{p} z_i \right)} \oplus {\max_{i=1}^p {z_i}}$.

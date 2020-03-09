@@ -1,13 +1,50 @@
-% !TEX root = ../main.tex
+%!TEX root = ../main.tex
 % chktex-file 46
 \chapter{Learning to Aggregate on Graphs}%
 \label{sec:ltag}
 
-\section{Formalization of LTA Characteristics}%
-\label{sec:ltag:formal}
+In the previous chapter an introduction to two separate fields of research was given:
+\begin{enumerate*}
+	\item \Acf{lta},
+	\item \Acf{gcr}
+\end{enumerate*}.
+In this chapter we will combine them and define an extension of \ac{lta} to the \ac{gcr} problem.
+This will be done in three steps:
+\begin{enumerate}
+	\item We begin with a formal definition of what actually constitutes an \ac{lta} method as opposed to non-\acs{lta} methods.
+	\item Using this definition, we will see that some of the previously described \ac{gcnn} methods can be interpreted as \ac{lta} variants under certain conditions.
+	\item Finally a new \acs{lta}-inspired \ac{gcnn} architecture will be described.
+\end{enumerate}
 
-\section{An LTA Interpretation of \acs{gcr} Methods}%
+\section{A Generalized Definition of \acs*{lta}}%
+\label{sec:ltag:definition}
+
+In order to formally define \ac{lta}, we must first decide on its defining characteristic.
+We propose that this characteristic should be the \textit{localized explainability} of \ac{lta} predictions.
+As we saw in \cref{sec:related:lta}, an \ac{lta} prediction $y \in \mathcal{Y}$ for some multiset composition $\bm{c} = \ldblbrace c_1, \dots, c_n \rdblbrace$ can always be tracked back to a set of local constituent predictions $y_1, \dots, y_n \in \mathcal{Y}$.
+Under the assumption that each constituent $c_i$ represents some human interpretable object, a composition's prediction can therefore be explained by the presence of the constituents/objects whose local predictions are indicative of the global prediction.
+
+Based on this intuition we now give a generalized definition of \ac{lta} which applies to unstructured as well as structured input data.
+We assume that compositions are represented by graphs $G \in \mathcal{G}$;
+unstructured inputs are represented by graphs with one vertex per constituent ($\mathcal{V}_G = \{ v_{c_1}, \dots, v_{c_n} \}$) and no edges ($\mathcal{E}_G = \emptyset$).
+Given such graph inputs, an \ac{lta} method must satisfy three criteria:
+\begin{enumerate}[label=\textbf{\arabic*.}]
+	\item \textbf{Decomposition:}
+		A given graph must be decomposed into a set of constituents via a decomposition function $\varphi: \mathcal{G} \to \mathcal{P}(\mathcal{G})$ for which it holds that $\forall G \in \mathcal{G}: \forall c \in \varphi(G): \exists s \in \mathcal{V}_G^{*}: c \equiv G[s]$.
+		The decomposition function splits a given composition/graph $G$ into its constituents $c$ which must be subgraphs of $G$.
+
+		In the existing unstructured \ac{lta} approaches, the decomposition function is implicitly defined as $\varphi(G) \coloneqq {\{ G[v] \}}_{v \in \mathcal{V}_G}$ since each vertex corresponds to an interpretable constituent by definition.
+		For structured data however, a split into individual vertices is typically not appropriate.
+		Molecular graphs from chemical datasets for example are meaningfully characterized by the presence of so-called \textit{functional groups} consisting of multiple bonded atoms while a characterization on the level of individual atoms is generally less meaningful~\cite{McNaught1997}.
+	\item \textbf{Disaggregation:}
+		Each constituent $c \in \varphi(G)$ must be evaluated via some function $f: \mathcal{G} \to \mathcal{Y}$.
+		Learning this constituent evaluation function is called the \textit{disaggregation problem}.
+	\item \textbf{Aggregation:}
+		Lastly an aggregation function $\mathcal{A}_{\text{\acs*{sd}}}: \mathcal{Y}^{*} \to \mathcal{Y}$ must be learned.
+\end{enumerate}
+
+\section{An \acs*{lta} Interpretation of Existing \acsp*{gcnn}}%
 \label{sec:ltag:interpretation}
 
-\section{LTA on Dynamically Decomposed Graphs}%
-\label{sec:ltag:dyndecomp}
+\section{A Novel \acs*{lta}-Inspired \acs*{gcnn} Architecture}%
+\label{sec:ltag:wl2gnn}
