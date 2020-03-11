@@ -21,35 +21,56 @@ This will be done in three steps:
 
 In order to formally define \ac{lta}, we must first decide on its defining characteristic.
 We propose that this characteristic should be the \textit{localized explainability} of \ac{lta} predictions.
-As seen in \cref{sec:related:lta}, an \ac{lta} prediction $\hat{y}_{C} \in \mathcal{Y}$ for some multiset composition $C = \ldblbrace c_1, \dots, c_n \rdblbrace$ can always be tracked back to a set of local constituent predictions $\hat{y}_1, \dots, \hat{y}_n \in \mathcal{Y}$.
-Under the assumption that each constituent $c_i$ represents some human interpretable object, a composition's prediction $\hat{y}_{C}$ can therefore be explained by the presence of the constituents/objects whose local predictions $\hat{y}_i$ are indicative of the global prediction.
+As seen in \cref{sec:related:lta}, an \ac{lta} score $y_{C} \in \mathcal{Y}$ for some multiset composition $C = \ldblbrace c_1, \dots, c_n \rdblbrace$ can always be tracked back to a set of local constituent scores $y_1, \dots, y_n \in \mathcal{Y}$.
+Under the assumption that each constituent $c_i$ represents some human interpretable object, a composition's score $y_{C}$ can therefore be explained by the presence of certain indicative constituents/objects $c_i$.
 
 Based on this intuition we now give a generalized definition of \ac{lta} which applies to unstructured as well as structured input data.
-We assume that compositions are represented by graphs $G \in \mathcal{G}$;
-unstructured inputs are represented by graphs with one vertex per constituent ($\mathcal{V}_G = \{ v_{c_1}, \dots, v_{c_n} \}$) and no edges ($\mathcal{E}_G = \emptyset$).
-Each composition has some target value $y_G \in \mathcal{Y}$ which could be a discrete class or continuous score.
-An \textit{\ac{lta} model} $h: \mathcal{G} \to \mathcal{Y}$ assigns predictions $\hat{y}_G \in \mathcal{Y}$ to compositions $G$.
+We assume that all compositions are represented by graphs $G \in \mathcal{G}$;
+an unstructured input is represented by a graph with one vertex per constituent ($\mathcal{V}_G = \{ v_{c_1}, \dots, v_{c_n} \}$) and no edges ($\mathcal{E}_G = \emptyset$).
+Each composition has some target score $y_G \in \mathcal{Y}$ which could be a discrete class or continuous value.
+An \textit{\ac{lta} model} $h: \mathcal{G} \to \mathcal{Y}$ assigns predictions $\hat{y}_G \in \mathcal{Y}$ to compositions $G$ which ideally correspond to the true score $y_G$.
 Such a model must satisfy three criteria:
 \begin{enumerate}[label=\textbf{\arabic*.}]
 	\item \textbf{Decomposition:}
-		A given composition $G$ must be decomposed into a set of constituents $c_{G,i}$ via a decomposition function $\varphi: \mathcal{G} \to \mathcal{P}(\mathcal{G})$ for which it holds that $\forall G \in \mathcal{G}: \forall c_{G,i} \in \varphi(G): \exists s \in \mathcal{V}_G^{*}: c_{G,i} \equiv G[s]$.
-		The decomposition function splits $G$ into its constituents $c_{G,i}$ which must be subgraphs of $G$.
+		A given composition $G$ must be decomposed into a set of constituents $c_{G,i}$ via a \textit{decomposition function} $\varphi$.
+		\begin{defn}
+			$\varphi: \mathcal{G} \to \mathcal{P}(\mathcal{G})$ is a \textit{decomposition function} iff.\ it splits a graph into a subset of its subgraphs, i.e.\ $\forall G \in \mathcal{G}: \forall c_{G,i} \in \varphi(G): \exists s \in \mathcal{V}_G^{*}: c_{G,i} \equiv G[s]$.
+		\end{defn}
 
 		In the existing unstructured \ac{lta} approaches the decomposition function is implicitly defined as $\varphi(G) \coloneqq {\{ G[v_{c_i}] \}}_{v_{c_i} \in \mathcal{V}_G}$ since each vertex $v_{c_i}$ corresponds to an interpretable constituent $c_i$ by definition.
 		For structured data however, a split into individual vertices is typically not appropriate.
 		Molecular graphs from chemical datasets for example are meaningfully characterized by the presence of so-called \textit{functional groups} consisting of multiple bonded atoms while a characterization on the level of individual atoms is generally less meaningful~\cite{McNaught1997}.
 	\item \textbf{Disaggregation:}
 		The constituents $c_{G, i} \in \varphi(G)$ must be evaluated via some function $f: \mathcal{G} \to \mathcal{Y} \times \mathbb{R}$.
-		This evaluation function assigns a prediction $\hat{y}_{G, i} \in \mathcal{Y}$ and a weight $w_{G, i} \in \mathbb{R}$ to each constituent.
-		A constituent's weight $w_{G, i}$ can intuitively be interpreted as a measure of the confidence that the local prediction $\hat{y}_{G, i}$ is indicative of the composition's global target value $y_G$.
+		This \textit{evaluation function} assigns a prediction $\hat{y}_{G, i} \in \mathcal{Y}$ and a weight $w_{G, i} \in \mathbb{R}$ to each constituent.
+		A constituent's weight $w_{G, i}$ can intuitively be interpreted as a measure of the confidence that the local prediction $\hat{y}_{G, i}$ is indicative of the composition's global target score $y_G$.
 		Learning local predictions and weights for all possible constituents is called the \textit{disaggregation problem}.
 
-		Note that there are no explicit constituent weights in the existing unstructured \ac{lta} approaches (i.e.\ all $w_{G, i} = 1$) because the constituents are explicitly given and assumed to be similarly indicative of $y_G$.
+		Note that there are no explicit constituent weights in the existing unstructured \ac{lta} approaches (i.e.\ implicitly all $w_{G, i} = 1$) because the explicitly given constituents are assumed to be equally indicative of $y_G$.
 		For structured data however, where the decomposition $\varphi(G)$ is not given as part of the input, this assumption does not necessarily hold.
+		By weighting the constituents, an \ac{lta} model can reduce the relevance or even ignore constituents that turn out to be irrelevant for the compositions target score $y_G$.
 	\item \textbf{Aggregation:}
-		Lastly a weighted aggregation function $\mathcal{A}: {(\mathcal{Y} \times \mathbb{R})}^{*} \to \mathcal{Y}$ must be learned.
+		Lastly a \textit{weighted aggregation function} $\mathcal{A}: {(\mathcal{Y} \times \mathbb{R})}^{*} \to \mathcal{Y}$ must be applied.
 		It combines the multiset of local constituent predictions and weights into a single global composition prediction.
+		\begin{defn}\label{defn:ltag:weighted-agg}
+			We call $\mathcal{A}$ a \textit{weighted aggregation function} iff.\ it satisfies
+			\begin{align*}
+				\text{idempotency: } & \forall y \in \mathcal{Y}, w \in \mathbb{R}_{> 0}^n: \mathcal{A}({\ldblbrace (y, w_i) \rdblbrace}_{i=1}^n) = y \\
+				\land\text{ zero invariance: } & \forall y_0 \in \mathcal{Y}, S = {\ldblbrace (y_i, w_i) \rdblbrace}_{i=1}^n: \mathcal{A}(S \cup \{ (y_0, 0) \}) = \mathcal{A}(S) \text{.}
+			\end{align*}
+		\end{defn}
+		One such weighted aggregator is the \textit{weighted mean} $\mean_w({\ldblbrace (y_i, w_i) \rdblbrace}_{i=1}^n) \coloneqq \sum_{i=1}^n w_i y_i$ which requires $\sum w_i = 1$ and $w_i \in [0, 1]$.
+		Alternatively an unweighted aggregation function like $\min$, $\max$ or \ac{owa} also trivially satisfies \cref{defn:ltag:weighted-agg} if all inputs $y_i$ with $w_i = 0$ are filtered out and the weights for all remaining inputs are ignored.
 \end{enumerate}
+Based on the notion of decomposition, disaggregation and aggregation we can now define the concept of \textit{\ac{lta} formulations}.
+\begin{defn}
+	A model $h: \mathcal{G} \to \mathcal{Y}$ is in an \textit{\ac{lta} formulation} iff.\ it is expressed as
+	\begin{align*}
+		h(G) \coloneqq \mathcal{A}(\ldblbrace f(c_{G,i})\, |\, c_{G,i} \in \varphi(G) \rdblbrace) \quad\text{with $\varphi$, $f$ and $\mathcal{A}$ as defined above.}
+	\end{align*}
+\end{defn}
+Note that every model $h: \mathcal{G} \to \mathcal{Y}$ has a trivial recursive \ac{lta} formulation by choosing $\varphi(G) = \{ G \}$, $f(G) = (h(G), 1)$ and an arbitrary weighted aggregation function $\mathcal{A}$.
+Those trivial \ac{lta} formulations do not split compositions into locally evaluated constituents and therefore do not fulfill the localized explainability characteristic of \ac{lta}.
 
 \section{An \acs*{lta} Interpretation of Existing \acsp*{gcnn}}%
 \label{sec:ltag:interpretation}
