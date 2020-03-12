@@ -226,7 +226,7 @@ A mapping $\chi_{G, k}: \mathcal{V}_G^k \to \mathcal{C}$ is called a \textit{$k$
 	A coloring $\chi'$ \textit{refines} $\chi$ ($\chi' \preceq \chi$) iff.\ $\forall a, b \in \mathcal{V}_G^k: \chi(a) \neq \chi(b) \rightarrow \chi'(a) \neq \chi'(b)$, i.e.\ $\chi'$ distinguishes at least those tuples that are distinguished by $\chi$.
 \end{defn}
 \begin{defn}
-	Two colorings $\chi$ and $\chi'$ are \textit{equivalent} ($\chi \equiv \chi'$) iff.\ $\chi \preceq \chi' \land \chi' \preceq \chi$, i.e.\ $\chi$ is identical to $\chi'$ up to color substitutions.
+	Two colorings $\chi$ and $\chi'$ are \textit{equivalent} ($\chi \equiv \chi'$) iff.\ $\chi \preceq \chi' \land \chi \succeq \chi'$, i.e.\ $\chi$ is identical to $\chi'$ up to color substitutions.
 \end{defn}
 The $k$-dimensional \ac{wl} algorithm ($k$-\acs{wl}) works by iteratively refining $k$-colorings $\chi_{G, k}^{(0)} \succeq \chi_{G, k}^{(1)} \succeq \dots$ of a given graph $G$ until the convergence criterion $\chi_{G, k}^{(i)} \equiv \chi_{G, k}^{(i+1)}$ is satisfied.
 We denote the final, maximally refined $k$-\acs{wl} coloring with $\chi^{*}_{G, k}$.
@@ -497,7 +497,7 @@ Despite this limit on the discriminative power of the graph spectrum, it is stil
 
 As briefly mentioned before, the combinatorial graph Laplacian $L_G$ is not the only possible choice of graph Laplacian.
 Note that the eigenvalues of $L_G$ grow with the number of edges\footnote{
-	This is trivially shown by $\sum_{i=1}^n \lambda_{G,i} = \Tr(t_G) = \Tr(D_G) = |\mathcal{E}_G|$.
+	This is trivially shown by $\sum_{i=1}^n \lambda_{G,i} = \Tr(L_G) = \Tr(D_G) = |\mathcal{E}_G|$.
 }.
 Consequently a small graph $G$ will typically have a large spectral distance to a large graph $H$ (assuming ${|\mathcal{V}_G|} \ll {|\mathcal{V}_H|}$) irrespective of their similarity when ignoring the scale difference.
 In domains where the absolute size of a graph should not influence its spectral characterization, it can therefore be useful to normalize the spectrum.
@@ -775,7 +775,7 @@ The $k$-\ac{gnn} convolution is described by
 \end{align}
 It convolves the feature vectors of $k$-multisets $s \subseteq \mathcal{V}_G$ instead of single vertices $v \in \mathcal{V}_G$.
 Apart from this fundamental difference to 1-\acs{wl} bounded \acp{gnn}, $k$-\acp{gnn} additionally use two learnable parameter matrices $W^{(t)}, W_{\Gamma}^{(t)} \in \mathbb{R}^{d^{(t-1)} \times d^{(t)}}$ instead of the single $\Theta^{(t)}$ used in \acp{gcn}.
-This separation of parameter matrix effectively fulfills the same purpose as the \ac{mlp} in \ac{gin}; it makes the implicitly defined $k$-\acs{gnn} hash function injective.
+This separation of the parameter matrix effectively fulfills the same purpose as the \ac{mlp} in \ac{gin}; it makes the implicitly defined $k$-\acs{gnn} hash function injective.
 This can be seen by realizing that a stack of $k$-\acs{gnn} convolution layers with $W_{\Gamma}^{(t)} = 0$ for all but the first layer simulates a \ac{mlp}.
 
 As a final remark, note that the concept of ``neighborhood'' in \cref{eq:related:kgnn-layer} is slightly different from that used by the $k$-\acs{wl} algorithm (see \cref{defn:related:wlk-refine}, \cpageref{defn:related:wlk-refine}):
