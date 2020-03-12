@@ -70,7 +70,28 @@ Based on the notion of decomposition, disaggregation and aggregation we can now 
 	\end{align*}
 \end{defn}
 Note that every model $h: \mathcal{G} \to \mathcal{Y}$ has a trivial recursive \ac{lta} formulation by choosing $\varphi(G) = \{ G \}$, $f(G) = (h(G), 1)$ and an arbitrary weighted aggregation function $\mathcal{A}$.
-Those trivial \ac{lta} formulations do not split compositions into locally evaluated constituents and therefore do not fulfill the localized explainability characteristic of \ac{lta}.
+Those trivial \ac{lta} formulations do not split compositions into locally evaluated constituents and therefore intuitively do not fulfill the postulated localized explainability characteristic of \ac{lta}.
+However since there is no commonly accepted formal criterion to decide whether a model's decisions are explainable~\cite{Lipton2018}, we do not attempt to strictly distinguish between \ac{lta} and non-\acs{lta} methods.
+Instead the notion of \ac{lta} formulations should be seen as way to identify how ``\acs{lta}-like'' a model is:
+\begin{itemize}
+	\item \textbf{Negative extreme:}
+		If a model $h$ only has trivial \ac{lta} formulations with the decomposition function $\varphi(G) = \{ G \}$, it is not considered to be an \ac{lta} model.
+	\item \textbf{Positive extreme:}
+		If a model has an \ac{lta} formulation with a decomposition function that returns interpretable constituents, it is considered to be an \ac{lta} model.
+		By definition this is true for the constituents $\varphi(G) \coloneqq {\{ G[v_{c_i}] \}}_{v_{c_i} \in \mathcal{V}_G}$ of \ac{lta} methods for unstructured data.
+	\item \textbf{In-between cases:}
+		An \ac{lta} method for structured data must produce models that lie somewhere in-between the two extremes.
+\end{itemize}
+
+The more ``\acs{lta}-like'' a given model is, the stronger its bias towards locally explainable predictions, which in turn reduces the potential expressive power of the model.
+\citet{Gilpin2018} describe this trade-off between explainability and expressive power in more detail.
+When considering problem domains in which the true composition scores $y_G$ are accurately described by an \acs{lta}-like generative process, a less expressive \ac{lta}-like model could however generalize better than a more expressive non-\ac{lta} model.
+This idea is captured by the so-called \textit{\ac{lta} assumption}.
+\begin{defn}
+	A problem domain $\mathcal{D}$ satisfies the \textit{\ac{lta} assumption} iff.\ there is an \ac{lta} method which produces models with an equal or lower out-of-sample error than the models produced by non-\acs{lta} methods for most training samples from $\mathcal{D}$.
+\end{defn}
+Due to the fuzziness of the class of \ac{lta} methods, the \ac{lta} assumption is of course also a fuzzy concept.
+Nonetheless evidence for its truthiness in a given domain can be empirically obtained by comparing candidate \ac{lta} methods with the best known non-\ac{lta} method, assuming that some cut-off condition for the required ``\ac{lta}-likeness'' of an \ac{lta} method is agreed upon.
 
 \section{An \acs*{lta} Interpretation of Existing \acsp*{gcnn}}%
 \label{sec:ltag:interpretation}
