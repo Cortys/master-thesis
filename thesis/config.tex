@@ -178,9 +178,12 @@
 
 \newcommand{\sourceinline}[2][source]{{\scriptsize\textsc{#1:~\cite{#2}}}}
 \newcommand{\source}[2][source]{\null\hfill\sourceinline[#1]{#2}}
+\newcommand{\cfullref}[2][, ]{\cref{#2}#1\cpageref{#2}}
 
 \DeclareMathOperator{\Tr}{Tr}
 \DeclareMathOperator{\mean}{mean}
+\DeclareMathOperator{\wmean}{wmean}
+\DeclareMathOperator{\sgn}{sgn}
 
 \theoremstyle{plain}
 \newtheorem{thm}{Theorem}

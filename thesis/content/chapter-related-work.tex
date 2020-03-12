@@ -534,12 +534,12 @@ We will now look at the characteristics of those families and give a brief overv
 \label{sec:related:gcr:embed}
 
 The basic idea of explicit graph embedding approaches is to map a graph $G \in \mathcal{G}$ to some vector in a finite vector space $\mathcal{X} = \mathbb{R}^d$.
-A function $f: \mathcal{G} \to \mathcal{X}$ is called a \textit{graph embedding function}.
+A function $\varphi: \mathcal{G} \to \mathcal{X}$ is called a \textit{graph embedding function}.
 By embedding a graph into $\mathcal{X}$, any classification or regression algorithm that works with vectors can then be applied to solve the \ac{gcr} problem.
 
 The so-called vertex embedding problem is closely related to the graph embedding problem.
-As the name suggests, a \textit{vertex embedding function} $f_G$ maps all vertices $v \in \mathcal{V}_G$ to $\mathcal{X}$.
-The embedding vector $f_G(v)$ ideally encodes relevant information about a vertex and its structural position in $G$.
+As the name suggests, a \textit{vertex embedding function} $\varphi_G$ maps all vertices $v \in \mathcal{V}_G$ to $\mathcal{X}$.
+The embedding vector $\varphi_G(v)$ ideally encodes relevant information about a vertex and its structural position in $G$.
 It can be used to solve the vertex classification and regression problem via arbitrary \ac{ml} methods for vectors.
 We will now look at two main families of explicit graph and vertex embedding approaches.
 
@@ -548,9 +548,9 @@ We will now look at two main families of explicit graph and vertex embedding app
 The first works on graph embeddings were motivated by the study of chemical structures~\cite{Adamson1973}\cite{Willett1986}.
 There a molecule can be interpreted as a labeled graph for which the \ac{gcr} problem corresponds to the prediction of some chemical property, e.g.\ toxicity or solubility.
 So-called \textit{fingerprint embeddings} try to match a fixed set of subgraphs $S_1, \dots, S_d$ to the input graph.
-The embedding of a graph $G$ is a binary vector $f(G) = x \in {\{0, 1\}}^d$ with $x_i \coloneqq \mathit{contain}_{S_i}(G)$ (see~\cref{defn:related:wl-count-detect}).
+The embedding of a graph $G$ is a binary vector $\varphi(G) = x \in {\{0, 1\}}^d$ with $x_i \coloneqq \mathit{contain}_{S_i}(G)$ (see~\cref{defn:related:wl-count-detect}).
 This simple approach usually requires a careful choice of subgraphs but can still be competitive with the other more recent approaches we will look at in the following sections.
-Fingerprint embeddings are for example used in multiple state-of-the-art toxicity prediction tools like RASAR~\cite{Luechtefeld2018}\cite{ToxTrack}, ProTox~\cite{Drwal2014}\cite{Banerjee2018}\cite{ProTox} or the \ac{toxTest}~\cite{TEST}.
+Fingerprint embeddings are for example used in multiple state-of-the-art toxicity prediction tools like RASAR~\cite{Luechtefeld2018}\cite{ToxTrack}, ProTox~\cite{Drwal2014}\cite{ProTox}\cite{Banerjee2018} or the \ac{toxTest}~\cite{TEST}.
 
 \subsubsection{Skip-gram inspired Embeddings}
 
@@ -559,42 +559,42 @@ While a fingerprint embedding explicitly assigns an interpretation to each embed
 
 \paragraph{word2vec}
 Let us first look at the \texttt{word2vec} skip-gram method.
-It gets a sequence of words $(w_0, \dots, w_n)$ as input and outputs embedding vectors $f(w_0), \dots, f(w_n) \in \mathbb{R}^d$.
-To do this the context $C_k(w_i) = \{ w_{i-k}, \dots, w_{i + k} \}$ is computed for all words where $w_i$ is the so-called \textit{context root}.
+It gets a sequence of words $(w_0, \dots, w_n)$ as input and outputs embedding vectors $\varphi(w_0), \dots, \varphi(w_n) \in \mathbb{R}^d$.
+To do this the context $\Gamma_k(w_i) = \{ w_{i-k}, \dots, w_{i + k} \}$ is computed for all words where $w_i$ is the so-called \textit{context root}.
 The word contexts are then used to optimize the following log-likelihood objective:
 \begin{gather}
-	\max_{f, f_C} \sum_{i = 1}^n \log P(C_k(w_i) | w_i)\ =\ \max_{f, f_C} \sum_{i = 1}^n \smashoperator[r]{\sum_{w_j \in C_k(w_i)}}\, \left[ {f(w_i)}^\top f_C(w_j) - \log Z_{w_i} \right] \label{eq:related:word2vec}\\
-	\text{with } P(C_k(w_i) | w_i) \coloneqq \prod_{\mathclap{w_j \in C_k(w_i)}}\, \overbrace{\frac{\exp\left({f(w_i)}^\top f_C(w_j)\right)}{Z_{w_i}}}^{P(w_j | w_i)}
-	\text{ and } Z_{w_i} \coloneqq \sum_{j = 1}^n \exp\left({f(w_i)}^\top f_C(w_j)\right) \nonumber
+	\max_{\varphi, \varphi_{\Gamma}} \sum_{i = 1}^n \log P(\Gamma_k(w_i) | w_i)\ =\ \max_{\varphi, \varphi_{\Gamma}} \sum_{i = 1}^n \smashoperator[r]{\sum_{w_j \in \Gamma_k(w_i)}}\, \left[ {\varphi(w_i)}^\top \varphi_{\Gamma}(w_j) - \log Z_{w_i} \right] \label{eq:related:word2vec}\\
+	\text{with } P(\Gamma_k(w_i) | w_i) \coloneqq \prod_{\mathclap{w_j \in \Gamma_k(w_i)}}\, \overbrace{\frac{\exp\left({\varphi(w_i)}^\top \varphi_{\Gamma}(w_j)\right)}{Z_{w_i}}}^{P(w_j | w_i)}
+	\text{ and } Z_{w_i} \coloneqq \sum_{j = 1}^n \exp\left({\varphi(w_i)}^\top \varphi_{\Gamma}(w_j)\right) \nonumber
 \end{gather}
-\texttt{word2vec} essentially uses an expectation maximization scheme to maximize the probabilities $P(w_j | w_i)$ of observing the context words $w_j \in C_k(w_i)$ of all words $w_i$.
-Those probabilities are described by the overlap of the embeddings $f(w_i)$ of words $w_i$ and the embeddings $f_C(w_j)$ of their context words $w_j$.
+\texttt{word2vec} essentially uses an expectation maximization scheme to maximize the probabilities $P(w_j | w_i)$ of observing the context words $w_j \in \Gamma_k(w_i)$ of all words $w_i$.
+Those probabilities are described by the overlap of the embeddings $\varphi(w_i)$ of words $w_i$ and the embeddings $\varphi_{\Gamma}(w_j)$ of their context words $w_j$.
 Intuitively this means that words with similar contexts will be mapped close to each other in the embedding space.
-Note that \texttt{word2vec} actually finds two embeddings $f(w)$ and $f_C(w)$ for each word of which only the first is returned.
-The two embeddings represent two different perspectives on words: $f$ describes a word $w_i$ as the root of a context $C_k(w_i)$, $f_C$ on the other hand describes a word $w_j$ as part of a context $C_k(w_i) \ni w_j$.
+Note that \texttt{word2vec} actually finds two embeddings $\varphi(w)$ and $\varphi_{\Gamma}(w)$ for each word of which only the first is returned.
+The two embeddings represent two different perspectives on words: $\varphi$ describes a word $w_i$ as the root of a context $\Gamma_k(w_i)$, $\varphi_{\Gamma}$ on the other hand describes a word $w_j$ as part of a context $\Gamma_k(w_i) \ni w_j$.
 
 \paragraph{Vertex Embeddings}
-Skip-gram embeddings can be  na{\"\i}vely extended to graphs by realizing that \texttt{word2vec} effectively already is a vertex embedding method for linear graphs in which $C_k(v)$ is simply the $k$-neighborhood of the vertex/word $v$.
+Skip-gram embeddings can be  na{\"\i}vely extended to graphs by realizing that \texttt{word2vec} effectively already is a vertex embedding method for linear graphs in which $\Gamma_k(v)$ is simply the $k$-neighborhood of the vertex/word $v$.
 The problem with this na{\"\i}ve extension is that the sizes of $k$-neighborhoods in arbitrary graphs can be much larger and often tend to grow exponentially with $k$.
 To deal with this computational problem the so-called DeepWalk~\cite{Perozzi2014} and \texttt{node2vec}~\cite{Grover2016} methods perform random walks of fixed length to effectively take samples from the neighborhood of vertices.
 Both methods only differ in the transition matrix that is used for the random walk.
-Another difference of DeepWalk and \texttt{node2vec} compared to \texttt{word2vec} is the so-called \textit{feature space symmetry} which states that the context root interpretation ($f$) of a vertex should be symmetric to its context element interpretation ($f_C$), i.e.\ $f = f_C$.
+Another difference of DeepWalk and \texttt{node2vec} compared to \texttt{word2vec} is the so-called \textit{feature space symmetry} which states that the context root interpretation ($\varphi$) of a vertex should be symmetric to its context element interpretation ($\varphi_{\Gamma}$), i.e.\ $\varphi = \varphi_{\Gamma}$.
 The combination of random walk context sampling and and the feature space symmetry assumption can be used to compute vertex embeddings even for very large graphs.
 
 \paragraph{Graph Embeddings}
 Skip-gram methods can not only be used for vertex embeddings but also to embed entire graphs.
 One way to do this is via the \texttt{graph2vec}~\cite{Narayanan2017} method.
 It is inspired by \texttt{doc2vec}~\cite{Le2014} which in turn is based on \texttt{word2vec}.
-\texttt{graph2vec} gets a set of graphs $\mathcal{G} = \{ G_1, \dots G_N \}$ as input and outputs graph embeddings $f(G_1), \dots, f(G_N)$.
+\texttt{graph2vec} gets a set of graphs $\mathcal{G} = \{ G_1, \dots G_N \}$ as input and outputs graph embeddings $\varphi(G_1), \dots, \varphi(G_N)$.
 While in \texttt{word2vec} every word can be a context root as well as a context element, \texttt{graph2vec} uses the graphs $\mathcal{G}$ as context roots.
-The context $C_k(G_i)$ of a graph $G_i$ is defined as
+The context $\Gamma_T(G_i)$ of a graph $G_i$ is defined as
 \begin{equation}
-	C_k(G_i) \coloneqq \bigcup_{\mathclap{v_j \in \mathcal{V}_{G_i}}}\, {\left\{ \chi_{G_i, 1}^{(t)}(v_j) \right\}}_{l = 0}^L % chktex 21
-	\quad\text{with $k \in \mathbb{N}$ and $\chi_{G_i, 1}^{(t)}$ as in \cref{defn:related:wl1-refine}.}
+	\Gamma_T(G_i) \coloneqq \bigcup_{\mathclap{v_j \in \mathcal{V}_{G_i}}}\, {\left\{ \chi_{G_i, 1}^{(t)}(v_j) \right\}}_{t = 0}^T % chktex 21
+	\quad\text{with $T \in \mathbb{N}$ and $\chi_{G_i, 1}^{(t)}$ as in \cref{defn:related:wl1-refine}.}
 \end{equation}
-Intuitively this context can be understood as the set of 1-\acs{wl}-distinguishable subgraphs of $G_i$ with diameter $\leq 2L$.
+Intuitively this context can be understood as the set of 1-\acs{wl}-distinguishable subgraphs of $G_i$ with diameter $\leq 2T$.
 Since \ac{wl} is used to identify distinct subgraphs, \texttt{graph2vec} can only be applied to graphs with discrete vertex labels.
-Using the previous definitions, the context root embedding function has the signature $f: \mathcal{G} \to \mathbb{R}^d$ while the context element embedding function is of type $f_C: \bigcup_{G_i \in \mathcal{G}} C_k(G_i) \to \mathbb{R}^d$.
+Using the previous definitions, the context root embedding function has the signature $\varphi: \mathcal{G} \to \mathbb{R}^d$ while the context element embedding function is of type $\varphi_{\Gamma}: \bigcup_{G_i \in \mathcal{G}} \Gamma_T(G_i) \to \mathbb{R}^d$.
 To find those embeddings the \texttt{word2vec} objective from \cref{eq:related:word2vec} is reused.
 Analogous to \texttt{word2vec}, \texttt{graph2vec} therefore embeds graphs that share subgraphs close to each other, whereas graphs that do not share substructures tend to be embedded further away from each other.
 
@@ -719,7 +719,7 @@ Instead, by interpreting $\hat{g}_{\theta}$ as a matrix polynomial, one only has
 	We use ``\acs{gcn}'' to refer to their proposed specific method in order to be consistent with other literature.
 	We use ``\acs{gcnn}'' to refer to the broader family of \acl{gcnn} methods.
 }.
-By fixing $K = 2$, by using a single filter parameter $\theta \in \mathbb{R}$ and by assuming that $\max{\lambda_G^{\text{sym}}} \approx 2$ (see \cref{defn:related:laplacian-sym}, \cpageref{defn:related:laplacian-sym}) the convolution operation is reduced to
+By fixing $K = 2$, by using a single filter parameter $\theta \in \mathbb{R}$ and by assuming that $\max{\lambda_G^{\text{sym}}} \approx 2$ (see \cfullref{defn:related:laplacian-sym}) the convolution operation is reduced to
 \begin{align}
 	g_{\theta} * x_{G,j} = \theta \left( \tilde{D}_G^{-\frac{1}{2}} \tilde{A}_G \tilde{D}_G^{-\frac{1}{2}} \right) x_{G,j}
 	\quad\text{with $\tilde{A}_G = A_G + I$ and $\tilde{D}_G = D_G + I$.} \label{eq:related:graph-conv-gcn}
@@ -739,7 +739,7 @@ Looking at the \ac{gcn} layer defined in \cref{eq:related:gcn-layer}, notice tha
 This allows for a very different perspective on \acp{gcn}:
 Instead of interpreting convolutions as applications of linear spectral filters, we can interpret them as vertex neighborhood aggregations, similar to 1-\acs{wl}.
 From this perspective a \ac{gcn} can be seen as a so-called spatial \ac{gcnn} because it operates directly in the vertex domain.
-To see why this is the case, we rewrite \cref{eq:related:gcn-layer} and compare it with the 1-\acs{wl} color refinement strategy (see \cref{defn:related:wl1-refine}, \cpageref{defn:related:wl1-refine}):
+To see why this is the case, we rewrite \cref{eq:related:gcn-layer} and compare it with the 1-\acs{wl} color refinement strategy (see \cfullref{defn:related:wl1-refine}):
 \begin{align*}
 	\text{\ac*{gcn}:}\quad&& Z^{(t)}[v] &= \sigma\left(\left( {c(v)}^2 Z^{(t-1)}[v] + \smashoperator[lr]{\sum_{u \in \Gamma_G(v)}} c(v) c(u) Z^{(t-1)}[u] \right) \Theta^{(t)} \right) \\
 	\text{1-\acs{wl}:}\quad&& \chi_{G,1}^{(t)}(v) &= h\left( \chi_{G,1}^{(t-1)}(v), \ldblbrace \chi_{G,1}^{(t-1)}(u)\, |\, u \in \Gamma_{G}(v) \rdblbrace\right)
@@ -766,7 +766,7 @@ Interestingly \ac{gin} additionally seems to generalize better on test data than
 It is not yet fully understood why this is the case.
 
 \paragraph{Higher dimensional \ac{wl} \acp{gnn}}
-The majority of \ac{gnn} methods uses a neighborhood aggregation scheme which limits their discriminative and, more importantly, computational power to that of 1-\acs{wl} (see \cref{defn:related:wl-count-detect}, \cpageref{defn:related:wl-count-detect}).
+The majority of \ac{gnn} methods uses a neighborhood aggregation scheme which limits their discriminative and, more importantly, computational power to that of 1-\acs{wl} (see \cfullref{defn:related:wl-count-detect}).
 To go beyond the limits of 1-\acs{wl}, \citet{Morris2019} proposed the first \ac{gcnn} architecture inspired by the higher dimensional $k$-\acs{wl} algorithms.
 Similar to the $k$-LWL kernel which we looked at in \cref{sec:related:gcr:kernel}, their so-called $k$-\acs{gnn} uses the $k$-multiset and neighborhood localization optimizations to keep runtime costs feasible.
 The $k$-\ac{gnn} convolution is described by
@@ -778,7 +778,7 @@ Apart from this fundamental difference to 1-\acs{wl} bounded \acp{gnn}, $k$-\acp
 This separation of the parameter matrix effectively fulfills the same purpose as the \ac{mlp} in \ac{gin}; it makes the implicitly defined $k$-\acs{gnn} hash function injective.
 This can be seen by realizing that a stack of $k$-\acs{gnn} convolution layers with $W_{\Gamma}^{(t)} = 0$ for all but the first layer simulates a \ac{mlp}.
 
-As a final remark, note that the concept of ``neighborhood'' in \cref{eq:related:kgnn-layer} is slightly different from that used by the $k$-\acs{wl} algorithm (see \cref{defn:related:wlk-refine}, \cpageref{defn:related:wlk-refine}):
+As a final remark, note that the concept of ``neighborhood'' in \cref{eq:related:kgnn-layer} is slightly different from that used by the $k$-\acs{wl} algorithm (see \cfullref{defn:related:wlk-refine}):
 $k$-\acs{gnn} considers a single $k$-multiset as a neighbor while $k$-\acs{wl} uses $k$-sets of $k$-multisets as neighbors.
 We will get back to this difference later.
 
