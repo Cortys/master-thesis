@@ -33,9 +33,10 @@ Such a model must satisfy three criteria:
 \begin{enumerate}[label=\textbf{\arabic*.}]
 	\item \textbf{Decomposition:}
 		A given composition $G$ must be decomposed into a set of constituents $c_{G,i}$ via a \textit{decomposition function} $\psi: \mathcal{G} \to \mathcal{P}(\mathcal{G})$.
-		\begin{defn}
-			$\psi$ is a \textit{decomposition function} iff.\ it splits a graph into a subset of its subgraphs, i.e.\ $\forall G \in \mathcal{G}: \forall c_{G,i} \in \psi(G): \exists s \in \mathcal{V}_G^{*}: c_{G,i} \equiv G[s]$.
+		\begin{defn}\label{defn:ltag:decomp}
+			$\psi$ is a \textit{decomposition function} iff.\ it splits a graph into a subset of its subgraphs, i.e.\ $\forall G \in \mathcal{G}: \forall c_{G,i} \in \psi(G): \exists s \in \mathcal{P}(\mathcal{V}_G): c_{G,i} = G[s]$.
 		\end{defn}
+		Note that the strict equality $c_{G,i} = G[s]$ is used in \cref{defn:ltag:decomp} instead of just requiring subgraph isomorphism ($c_{G,i} \simeq G[s]$) because a constituent $c_{G,i}$ represents a specific localized subgraph of a structured composition.
 
 		In the existing unstructured \ac{lta} approaches the decomposition function is implicitly defined as $\psi(G) \coloneqq {\{ G[v_{c_i}] \}}_{v_{c_i} \in \mathcal{V}_G}$ since each vertex $v_{c_i}$ corresponds to an interpretable constituent $c_i$ by definition.
 		For structured data however, a split into individual vertices is typically not appropriate.
@@ -50,17 +51,22 @@ Such a model must satisfy three criteria:
 		For structured data however, where the decomposition $\psi(G)$ is not given as part of the input, this assumption does not necessarily hold.
 		By weighting the constituents, an \ac{lta} model can reduce the relevance or even ignore constituents that turn out to be irrelevant for the compositions target score $y_G$.
 	\item \textbf{Aggregation:}
-		Lastly a \textit{weighted aggregation function} $\mathcal{A}: {(\mathcal{Y} \times \mathbb{R})}^{*} \to \mathcal{Y}$ must be applied.
-		It combines the multiset of local constituent predictions and weights into a single global composition prediction.
+		Lastly a \textit{weighted aggregation function} $\mathcal{A}: {(\mathcal{Y} \times \mathbb{R}_{\geq 0})}^{*} \to \mathcal{Y}$ must be applied.
+		It combines the multiset of local constituent predictions and non-negative weights into a single global composition prediction.
 		\begin{defn}\label{defn:ltag:weighted-agg}
 			We call $\mathcal{A}$ a \textit{weighted aggregation function} iff.\ it satisfies
 			\begin{align*}
-				\text{idempotency: } & \forall y \in \mathcal{Y}, w \in \mathbb{R}_{> 0}^n: \mathcal{A}({\ldblbrace (y, w_i) \rdblbrace}_{i=1}^n) = y \\
-				\land\text{ zero invariance: } & \forall y_0 \in \mathcal{Y}, S = {\ldblbrace (y_i, w_i) \rdblbrace}_{i=1}^n: \mathcal{A}(S \cup \{ (y_0, 0) \}) = \mathcal{A}(S) \text{.}
+				\text{idempotency: } & \exists c \geq 0: \forall y \in \mathcal{Y}, w \in \mathbb{R}_{\geq 0}^n\text{ s.t. }{\max w} \geq c: \mathcal{A}({\ldblbrace (y, w_i) \rdblbrace}_{i=1}^n) = y \\
+				\land\text{ zero invar.: } & \forall y_0 \in \mathcal{Y}, S = {\ldblbrace (y_i, w_i) \rdblbrace}_{i=1}^n: \mathcal{A}(S \cup \{ (y_0, 0) \}) = \mathcal{A}(S) \text{.}
 			\end{align*}
 		\end{defn}
-		One such weighted aggregator is the \textit{weighted mean} $\wmean({\ldblbrace (y_i, w_i) \rdblbrace}_{i=1}^n) \coloneqq \sum_{i=1}^n w_i y_i$ which requires $\sum w_i = 1$ and $w_i \in [0, 1]$.
-		Alternatively an unweighted aggregation function like $\min$, $\max$ or \ac{owa} also trivially satisfies \cref{defn:ltag:weighted-agg} if all inputs $y_i$ with $w_i = 0$ are filtered out and the weights for all remaining inputs are ignored.
+		{\setlength{\parskip}{0pt}The idempotency constraint requires aggregation functions to agree with uniform input scores $y$ if at least one input is weighted above some threshold $c$.
+		The zero invariance constraint requires aggregation functions to ignore inputs with zero weight.}
+
+		One example for such a weighted aggregator is the \textit{weighted mean} function $\wmean({\ldblbrace (y_i, w_i) \rdblbrace}_{i=1}^n) \coloneqq \sum_{i=1}^n w_i y_i$ which requires $\sum w_i = 1$ and $w_i \in [0, 1]$.
+		Alternatively an unweighted aggregation function like $\min$, $\max$ or \ac{owa}\footnote{
+			Even though \ac{owa} uses weights, it does not get those weights as part of the input and is therefore considered to be unweighted here.
+		} also trivially satisfies \cref{defn:ltag:weighted-agg} if all inputs $y_i$ with $w_i = 0$ are filtered out and the weights for all remaining inputs are ignored.
 \end{enumerate}
 Based on the notion of decomposition, disaggregation and aggregation we can now define the concept of \textit{\ac{lta} formulations}.
 \begin{defn}
@@ -91,7 +97,7 @@ This idea is captured by the so-called \textit{\ac{lta} assumption}.
 	A problem domain $\mathcal{D}$ satisfies the \textit{\ac{lta} assumption} iff.\ there is an \ac{lta} method which produces models with an equal or lower out-of-sample error than the models produced by non-\acs{lta} methods for most training samples from $\mathcal{D}$.
 \end{defn}
 Due to the fuzziness of the class of \ac{lta} methods, the \ac{lta} assumption is naturally also a fuzzy concept.
-Nonetheless evidence for its truthiness in a given domain $\mathcal{D}$ can be empirically obtained by comparing candidate \ac{lta} methods with the best known non-\ac{lta} method for $\mathcal{D}$, assuming that some cut-off condition for the required ``\ac{lta}-likeness'' of an \ac{lta} method is agreed upon.
+Nonetheless evidence for its truthiness in a given domain $\mathcal{D}$ can be empirically obtained by comparing candidate \ac{lta} methods with the best known non-\ac{lta} method for $\mathcal{D}$, assuming that some cut-off condition for the required ``\ac{lta}-ness'' of an \ac{lta} method is agreed upon.
 
 \section{\acs*{lta} Formulations of Existing \acs*{gcr} Methods}%
 \label{sec:ltag:formulation}
@@ -103,12 +109,48 @@ Then we will provide an \ac{lta} perspective on \acp{gcnn}.
 \subsection{\acsp*{svm} on Graph Embeddings as \acs*{lta} Models}%
 \label{sec:ltag:formulation:svm}
 
-In \cref{sec:related:gcr:embed,sec:related:gcr:kernel} three different ways to map a given graph $G$ to a vector representation $\varphi(G) \in \mathbb{R}^d$ were described:
+In \cref{sec:related:gcr:embed,sec:related:gcr:kernel} three different ways to map a given graph $G$ to a vector $\varphi(G) \in \mathbb{R}^d$ were described:
 \begin{enumerate*}
 	\item Fingerprint embeddings,
 	\item skip-gram inspired embeddings and
 	\item kernel embeddings
 \end{enumerate*}.
+One common way to solve the \ac{gcr} problem via those embedding vectors is to train an \ac{svm} on them.
+We will now see that \acp{svm} can be interpreted as \ac{lta} models if they are trained on so-called \textit{substructure component embeddings}.
+\begin{defn}\label{defn:ltag:substruct-embedding}
+	A graph embedding $\varphi: \mathcal{G} \to \mathbb{N}^{d}$ is called a \textit{substructure component embedding} iff.\ %
+	$\forall i \in [d]: \exists S_i \in \mathcal{G}_{\mathit{ord}}, \gamma_i \in \mathbb{R}: \forall G \in \mathcal{G}: {{\varphi(G)}[i] = \mathit{contains}_{S_i}(G)} \lor {{\varphi(G)}[i] = \gamma_i \mathit{count}_{S_i}(G)}$,
+	with $\mathit{contains}$ and $\mathit{count}$ as in \cfullref[ on ]{defn:related:wl-count-detect}.
+\end{defn}
+Intuitively \cref{defn:ltag:substruct-embedding} states that every embedding dimension must represent the count or presence of some ordered subgraph $S_i$ in the embedded graph $G$.
+Based on this requirement we now proof the main theorem which shows the relation between \acp{svm} and \ac{lta}.
+\begin{thm}
+	A binary \ac{svm} classifier that takes substructure component embeddings $\varphi(G)$ as its input has an \ac{lta} formulation with a nontrivial decomposition function $\psi$.
+\end{thm}
+\begin{proof}
+	Let $h: \mathcal{G} \to {\{ -1, +1 \}}$ be a binary graph classifier expressed as $h = h_{\text{\acs*{svm}}} \circ \varphi$ where $\varphi: \mathcal{G} \to \mathbb{N}_0^{d}$ is a substructure component embedding and $h_{\text{\acs*{svm}}}: \mathbb{R}^{d} \to {\{ -1, +1 \}}$ an \ac{svm} classifier.
+	If $h$ is trained on a dataset $\mathcal{D}_{\text{train}} = {\{ (G_1, y_1), \dots, (G_N, y_N) \}}$, via the kernel trick it can be expressed as
+	{\allowdisplaybreaks\begin{align*}
+		h(G) &= \sgn\left( \sum_{j = 1}^{N} \alpha_j y_j {\langle \varphi(G), \varphi(G_j) \rangle} + b \right)
+		\quad\text{for some $\alpha \in \mathbb{R}^N$ and $b \in \mathbb{R}$} \\
+		&= \sgn\left( {\sum_{i=1}^{d} {\varphi(G)}[i] \underbrace{\left( \sum_{j = 1}^{N} \alpha_j y_j {\varphi(G_j)}[i] \right)}_{{} \eqqcolon z_i}} + b \right)
+		\text{.}
+	\end{align*}}
+
+	By \cref{defn:ltag:substruct-embedding} each $\varphi(G)[i] > 0$ counts or indicates the presence of some ordered subgraph $S_i$ in $G$;
+	more precisely:
+	\begin{itemize}
+		\item If $\varphi(G)[i] = \gamma_i \mathit{count}_{S_i}(G) > 0$, let $C_i \coloneqq {\{ G[s]\, |\, s \in \mathcal{P}(\mathcal{V}_G) \land G[s] \simeq S_i \}}$ be the $\mathit{count}_{S_i}(G)$ subgraphs counted by the $i$-th dimension.
+		\item If $\varphi(G)[i] = \mathit{contains}_{S_i}(G) = 1$, let $C_i \coloneqq {\{  \}}$.
+	\end{itemize}
+	A substructure component embedding vector can therefore be interpreted as an encoding of the graph decomposition \[
+		\psi(G) \coloneqq \bigcup_{i=1}^{d}
+		\text{.}
+	\]
+	\begin{align*}
+		h(G) &= \sgn\left( {\sum_{i=1}^{d} {\varphi(G)}[i] \underbrace{|z_i|}_{{} \eqqcolon \nu_i} \underbrace{\sgn(z_i)}_{{} \eqqcolon y_i}} + b \right)
+	\end{align*}
+\end{proof}
 
 \subsection{\acsp*{gcnn} as \acs*{lta} Models}%
 \label{sec:ltag:formulation:gcnn}
