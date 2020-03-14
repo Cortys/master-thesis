@@ -56,17 +56,21 @@ Such a model must satisfy three criteria:
 		\begin{defn}\label{defn:ltag:weighted-agg}
 			We call $\mathcal{A}$ a \textit{weighted aggregation function} iff.\ it satisfies
 			\begin{align*}
-				\text{idempotency: } & \exists c \geq 0: \forall y \in \mathcal{Y}, w \in \mathbb{R}_{\geq 0}^n\text{ s.t. }{\max w} \geq c: \mathcal{A}({\ldblbrace (y, w_i) \rdblbrace}_{i=1}^n) = y \\
+				\text{idempotency: } & \exists c > 0: \forall y \in \mathcal{Y}, w \in \mathbb{R}_{\geq 0}^n\text{ s.t. }{\max w} \geq c: \mathcal{A}({\ldblbrace (y, w_i) \rdblbrace}_{i=1}^n) = y \\
 				\land\text{ zero invar.: } & \forall y_0 \in \mathcal{Y}, S = {\ldblbrace (y_i, w_i) \rdblbrace}_{i=1}^n: \mathcal{A}(S \cup \{ (y_0, 0) \}) = \mathcal{A}(S) \text{.}
 			\end{align*}
 		\end{defn}
 		{\setlength{\parskip}{0pt}The idempotency constraint requires aggregation functions to agree with uniform input scores $y$ if at least one input is weighted above some threshold $c$.
-		The zero invariance constraint requires aggregation functions to ignore inputs with zero weight.}
-
-		One example for such a weighted aggregator is the \textit{weighted mean} function $\wmean({\ldblbrace (y_i, w_i) \rdblbrace}_{i=1}^n) \coloneqq \sum_{i=1}^n w_i y_i$ which requires $\sum w_i = 1$ and $w_i \in [0, 1]$.
-		Alternatively an unweighted aggregation function like $\min$, $\max$ or \ac{owa}\footnote{
-			Even though \ac{owa} uses weights, it does not get those weights as part of the input and is therefore considered to be unweighted here.
-		} also trivially satisfies \cref{defn:ltag:weighted-agg} if all inputs $y_i$ with $w_i = 0$ are filtered out and the weights for all remaining inputs are ignored.
+		The zero invariance constraint requires aggregation functions to ignore inputs with zero weight.
+		Exemplary weighted aggregation function are:}
+		\begin{itemize}
+			\item The \textit{weighted mean} function $\wmean({\ldblbrace (y_i, w_i) \rdblbrace}_{i=1}^n) \coloneqq \sum_{i=1}^n w_i y_i$ which requires $\sum w_i = 1$, $w_i \in [0, 1]$ and the existence of some scalar multiplication operator $\cdot: \mathbb{R} \times \mathcal{Y} \to \mathcal{Y}$, typically from some subfield $\mathcal{Y} \subseteq \mathbb{R}$ or possibly also some vector subspace $\mathcal{Y} \subseteq \mathbb{R}^d$.
+			\item Another basic weighted aggregator is the \textit{weighted majority vote} function $\wmaj({\ldblbrace (y_i, w_i) \rdblbrace}_{i=1}^n) \coloneqq {\arg\max}_{y \in \mathcal{Y}} \sum_{y_i = y} w_i$ which returns the input with the highest total weight.
+				Unlike $\wmean$ it can also be applied to score domains $\mathcal{Y}$ without a multiplication operator, e.g.\ sets of discrete classes.
+			\item Alternatively an unweighted aggregation function like $\min$, $\max$, $\mean$ or \ac{owa}\footnote{
+				Even though \ac{owa} uses weights, it does not get those weights as part of the input and is therefore considered to be unweighted in this context.
+			} also trivially satisfies \cref{defn:ltag:weighted-agg} if all inputs $y_i$ with $w_i = 0$ are filtered out and the weights for all remaining inputs are ignored.
+		\end{itemize}
 \end{enumerate}
 Based on the notion of decomposition, disaggregation and aggregation we can now define the concept of \textit{\ac{lta} formulations}.
 \begin{defn}
@@ -119,37 +123,38 @@ One common way to solve the \ac{gcr} problem via those embedding vectors is to t
 We will now see that \acp{svm} can be interpreted as \ac{lta} models if they are trained on so-called \textit{substructure component embeddings}.
 \begin{defn}\label{defn:ltag:substruct-embedding}
 	A graph embedding $\varphi: \mathcal{G} \to \mathbb{N}^{d}$ is called a \textit{substructure component embedding} iff.\ %
-	$\forall i \in [d]: \exists S_i \in \mathcal{G}_{\mathit{ord}}, \gamma_i \in \mathbb{R}: \forall G \in \mathcal{G}: {{\varphi(G)}[i] = \mathit{contains}_{S_i}(G)} \lor {{\varphi(G)}[i] = \gamma_i \mathit{count}_{S_i}(G)}$,
+	$\forall i \in [d]: \exists S_i \in \mathcal{G}_{\mathit{ord}}, \gamma_i > 0: \forall G \in \mathcal{G}: {{\varphi(G)}[i] = \gamma_i \mathit{contains}_{S_i}(G)} \lor {{\varphi(G)}[i] = \gamma_i \mathit{count}_{S_i}(G)}$,
 	with $\mathit{contains}$ and $\mathit{count}$ as in \cfullref[ on ]{defn:related:wl-count-detect}.
 \end{defn}
 Intuitively \cref{defn:ltag:substruct-embedding} states that every embedding dimension must represent the count or presence of some ordered subgraph $S_i$ in the embedded graph $G$.
 Based on this requirement we now proof the main theorem which shows the relation between \acp{svm} and \ac{lta}.
-\begin{thm}
+\begin{thm}\label{thm:ltag:svm-ltag-formulation}
 	A binary \ac{svm} classifier that takes substructure component embeddings $\varphi(G)$ as its input has an \ac{lta} formulation with a nontrivial decomposition function $\psi$.
 \end{thm}
 \begin{proof}
 	Let $h: \mathcal{G} \to {\{ -1, +1 \}}$ be a binary graph classifier expressed as $h = h_{\text{\acs*{svm}}} \circ \varphi$ where $\varphi: \mathcal{G} \to \mathbb{N}_0^{d}$ is a substructure component embedding and $h_{\text{\acs*{svm}}}: \mathbb{R}^{d} \to {\{ -1, +1 \}}$ an \ac{svm} classifier.
+	By \cref{defn:ltag:substruct-embedding} each $\varphi(G)[i] > 0$ counts or indicates the presence of some ordered subgraph $S_i$ in $G$;
+	more precisely:
+	\begin{itemize}
+		\item If $\varphi(G)[i] = \gamma_i \mathit{count}_{S_i}(G) > 0$, let $C_i \coloneqq {\{ G[s]\, |\, s \in \mathcal{P}(\mathcal{V}_G) \land G[s] \simeq S_i \}}$ be the subgraphs counted by the $i$-th dimension.
+		\item If $\varphi(G)[i] = \gamma_i \mathit{contains}_{S_i}(G) > 0$, let $C_i \coloneqq {\left\{ G\left[ \bigcup \{ s \in \mathcal{P}(\mathcal{V}_G)\, |\, G[s] \simeq S_i \} \right] \right\}}$ be the union graph of all subgraphs of $G$ that are isomorphic to $S_i$.
+	\end{itemize}
+	By interpreting each $C_i$ as a set of isomorphic constituents, we can define the graph decomposition function $\psi_{\varphi}(G) \coloneqq \bigcup_{i=1}^{d} C_i$.
+
+	Based on this decomposition we now bring the \ac{svm} graph classifier $h$ into an \ac{lta} formulation.
 	If $h$ is trained on a dataset $\mathcal{D}_{\text{train}} = {\{ (G_1, y_1), \dots, (G_N, y_N) \}}$, via the kernel trick it can be expressed as
 	{\allowdisplaybreaks\begin{align*}
 		h(G) &= \sgn\left( \sum_{j = 1}^{N} \alpha_j y_j {\langle \varphi(G), \varphi(G_j) \rangle} + b \right)
 		\quad\text{for some $\alpha \in \mathbb{R}^N$ and $b \in \mathbb{R}$} \\
-		&= \sgn\left( {\sum_{i=1}^{d} {\varphi(G)}[i] \underbrace{\left( \sum_{j = 1}^{N} \alpha_j y_j {\varphi(G_j)}[i] \right)}_{{} \eqqcolon z_i}} + b \right)
+		&= \sgn\left( {\sum_{i=1}^{d} {
+				\underbrace{\varphi(G)[i]}_{{|C_i|} \gamma_i^{-1}}
+				\underbrace{\left( \sum_{j = 1}^{N} \alpha_j y_j {\varphi(G_j)}[i] \right)}_{{} \eqqcolon \beta_i}}
+			} + b \right)
+		 = \sgn\left( {\sum_{i=1}^{d} {{|C_i|} \gamma_i^{-1} \beta_i}} + b \right) \\
+		&= \sgn\left( {\sum_{c \in \psi_{\varphi}(G)} \underbrace{\sum_{i = 1}^d \mathbbm{1}[c \in C_i] \gamma_i^{-1} \beta_i}_{{} \eqqcolon z_i}} + b \right)
+		 = \sgn\left( {\sum_{c \in \psi_{\varphi}(G)}} \underbrace{|z_i|}_{{} \eqqcolon w_i} \underbrace{\sgn{z_i}}_{\eqqcolon y_i} + b \right)
 		\text{.}
 	\end{align*}}
-
-	By \cref{defn:ltag:substruct-embedding} each $\varphi(G)[i] > 0$ counts or indicates the presence of some ordered subgraph $S_i$ in $G$;
-	more precisely:
-	\begin{itemize}
-		\item If $\varphi(G)[i] = \gamma_i \mathit{count}_{S_i}(G) > 0$, let $C_i \coloneqq {\{ G[s]\, |\, s \in \mathcal{P}(\mathcal{V}_G) \land G[s] \simeq S_i \}}$ be the $\mathit{count}_{S_i}(G)$ subgraphs counted by the $i$-th dimension.
-		\item If $\varphi(G)[i] = \mathit{contains}_{S_i}(G) = 1$, let $C_i \coloneqq {\{  \}}$.
-	\end{itemize}
-	A substructure component embedding vector can therefore be interpreted as an encoding of the graph decomposition \[
-		\psi(G) \coloneqq \bigcup_{i=1}^{d}
-		\text{.}
-	\]
-	\begin{align*}
-		h(G) &= \sgn\left( {\sum_{i=1}^{d} {\varphi(G)}[i] \underbrace{|z_i|}_{{} \eqqcolon \nu_i} \underbrace{\sgn(z_i)}_{{} \eqqcolon y_i}} + b \right)
-	\end{align*}
 \end{proof}
 
 \subsection{\acsp*{gcnn} as \acs*{lta} Models}%

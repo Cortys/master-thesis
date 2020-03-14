@@ -156,7 +156,7 @@
 \usepackage{booktabs}
 \usepackage{csvsimple}
 \usepackage{siunitx}
-\usepackage{cleveref}
+\usepackage[nameinlink]{cleveref}
 
 \hypersetup{% setup the hyperref-package options
     pdftitle={\thesisTitle},    %   - title (PDF meta)
@@ -167,12 +167,13 @@
     pdfborder={0 0 0},          %   -
     breaklinks=true,            %   - allow line break inside links
     bookmarksnumbered=true,     %
-    bookmarksopen=true          %
+    bookmarksopen=true,         %
+	hypertexnames=false,        %   - fix wrong page links across chapters
 }
 
 % Custom commands:
 \newcommand{\tikzmark}[1]{\tikz[overlay,remember picture] \node (#1) {};} % chktex 1
-\newcommand{\dac}[3]{\DeclareAcronym{#1}{short = #2, long = #3, foreign-plural={}}}
+\newcommand{\dac}[3]{\DeclareAcronym{#1}{short = #2, long = #3}}
 \newcommand*\circled[2][1pt]{\tikz[baseline=(char.base)]{ % chktex 36
     \node[shape=circle,draw,inner sep=#1] (char) {#2};}}
 
@@ -183,6 +184,7 @@
 \DeclareMathOperator{\Tr}{Tr}
 \DeclareMathOperator{\mean}{mean}
 \DeclareMathOperator{\wmean}{wmean}
+\DeclareMathOperator{\wmaj}{wmaj}
 \DeclareMathOperator{\sgn}{sgn}
 
 \theoremstyle{plain}
