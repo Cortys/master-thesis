@@ -10,6 +10,7 @@ from tensorflow import keras
 import numpy as np
 import sklearn as sk
 import grakel as gk
+import funcy as fy
 
 import ltag.models.gnn as gnn_models
 import ltag.models.kernel as kernel_models
@@ -17,6 +18,7 @@ import ltag.datasets.synthetic.datasets as synthetic
 import ltag.evaluation.datasets as eval_ds
 import ltag.evaluation.evaluate as evaluate
 import ltag.evaluate_datasets as eval_main
+from ltag.utils import cart, cart_merge, entry_duplicator
 
 # -%% codecell
 
@@ -149,6 +151,32 @@ def reddit_experient():
     label=f"{dsm.name}_{model.name}")
   print(model.evaluate(test))
 
+def imdb_experient():
+  model_class = gnn_models.SagCWL2GCN
+  dsm = eval_ds.IMDB_8()
+
+  model = model_class(
+    act="sigmoid", local_act="sigmoid", squeeze_output=True,
+    conv_layer_dims=[dsm.dim_wl2_features(), 40, 40, 40, 1],
+    att_conv_layer_dims=[dsm.dim_wl2_features(), 1],
+    conv_stack_tf="keep_input",
+    bias=True)
+
+  opt = keras.optimizers.Adam(0.0007)
+
+  model.compile(
+    optimizer=opt,
+    loss="binary_crossentropy",
+    metrics=["accuracy"])
+
+  train, val = dsm.get_train_fold(0, output_type=model_class.input_type)
+  test = dsm.get_test_fold(0, output_type=model_class.input_type)
+
+  evaluate.train(
+    model, train, test, verbose=2, epochs=1000,
+    label=f"{dsm.name}_{model.name}")
+  print(model.evaluate(test))
+
 def wl2_power_experiment():
   model_class = gnn_models.AvgCWL2GCN
   # model_class = gnn_models.with_fc(model_class)
@@ -247,8 +275,8 @@ def kernel_experiment():
     print(evaluate.train(model, ds, ds_test, label=f"{dsm.name}_{model.name}").history)
 
 
-synthetic_experiment2()
-# kernel_experiment()
+# synthetic_experiment2()
+# imdb_experient()
 
 #
 # list(dsm.get_all(output_type="grakel")[0])

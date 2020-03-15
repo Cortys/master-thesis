@@ -15,14 +15,31 @@ Mutag_8_mini = fy.partial(
     "batch_graph_count": 1
   })
 
+Mutag_1 = fy.partial(
+  tu.Mutag,
+  name_suffix="_n1",
+  wl2_neighborhood=1)
 Mutag_8 = fy.partial(
   tu.Mutag,
   wl2_neighborhood=8)
 
+NCI1_1 = fy.partial(
+  tu.NCI1,
+  name_suffix="_n1",
+  wl2_neighborhood=1)
 NCI1_8 = fy.partial(
   tu.NCI1,
   wl2_neighborhood=8)
 
+Proteins_1 = fy.partial(
+  tu.Proteins,
+  name_suffix="_n1",
+  wl2_neighborhood=1,
+  wl2_batch_size={
+    "fuzzy_batch_edge_count": 20000,
+    "upper_batch_edge_count": 50000,
+    "batch_graph_count": 20
+  })
 Proteins_5 = fy.partial(
   tu.Proteins,
   wl2_neighborhood=5,
@@ -31,16 +48,25 @@ Proteins_5 = fy.partial(
     "upper_batch_edge_count": 50000,
     "batch_graph_count": 20
   })
-
 Proteins_6 = fy.partial(
   tu.Proteins,
   wl2_neighborhood=6,
+  name_suffix="_n6",
   wl2_batch_size={
     "fuzzy_batch_edge_count": 20000,
     "upper_batch_edge_count": 50000,
     "batch_graph_count": 20
   })
 
+DD_1 = fy.partial(
+  tu.DD,
+  name_suffix="_n1",
+  wl2_neighborhood=1,
+  wl2_batch_size={
+    "fuzzy_batch_edge_count": 30000,
+    "upper_batch_edge_count": 60000,
+    "batch_graph_count": 10
+  })
 DD_2 = fy.partial(
   tu.DD,
   wl2_neighborhood=2,
@@ -50,10 +76,31 @@ DD_2 = fy.partial(
     "batch_graph_count": 10
   })
 
+IMDB_1 = fy.partial(
+  tu.IMDBBinary,
+  name_suffix="_n1",
+  wl2_neighborhood=1)
+IMDB_2 = fy.partial(
+  tu.IMDBBinary,
+  name_suffix="_n2",
+  wl2_neighborhood=2)
+IMDB_4 = fy.partial(
+  tu.IMDBBinary,
+  name_suffix="_n4",
+  wl2_neighborhood=4)
+IMDB_6 = fy.partial(
+  tu.IMDBBinary,
+  name_suffix="_n6",
+  wl2_neighborhood=6)
+IMDB_8 = fy.partial(
+  tu.IMDBBinary,
+  wl2_neighborhood=8)
+
 chemical_binary = [
   "NCI1_8",
   "Proteins_5",
-  "DD_2"
+  "DD_2",
+  "IMDB_8"
 ]
 chemical = chemical_binary
 

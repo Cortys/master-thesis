@@ -113,7 +113,7 @@ def evaluation_step(
 def find_eval_dir(model_factory, ds_manager, label=None):
   label = "_" + label if label is not None else ""
   mf_name = model_factory.name
-  ds_name = ds_manager.name
+  ds_name = ds_manager.full_name
   return eval_dir_base / f"{ds_name}_{mf_name}{label}"
 
 def evaluate(
@@ -127,7 +127,7 @@ def evaluate(
 
   mf_name = model_factory.name
   ds_type = model_factory.input_type
-  ds_name = ds_manager.name
+  ds_name = ds_manager.full_name
   t = time_str()
   if eval_dir is None:
     eval_dir = find_eval_dir(model_factory, ds_manager, label)

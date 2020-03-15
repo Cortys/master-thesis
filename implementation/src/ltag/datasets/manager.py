@@ -25,6 +25,7 @@ class GraphDatasetManager:
     edge_one_labels=False,
     with_holdout=True,
     evaluation_args=None,
+    name_suffix="",
     **kwargs):
 
     self.kfold_class = kfold_class
@@ -38,6 +39,7 @@ class GraphDatasetManager:
     self.edge_one_labels = edge_one_labels
     self.with_holdout = with_holdout
     self.evaluation_args = evaluation_args
+    self.name_suffix = name_suffix
 
     self.outer_k = outer_k
     assert (outer_k is not None and outer_k > 0) or outer_k is None
@@ -92,6 +94,10 @@ class GraphDatasetManager:
     print(f"Encoded WL2c graphs.")
 
     return wl2_graphs, targets
+
+  @property
+  def full_name(self):
+    return self.name + self.name_suffix
 
   @property
   def dataset(self):
