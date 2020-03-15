@@ -41,7 +41,7 @@ Such a model must satisfy three criteria:
 		In the existing unstructured \ac{lta} approaches the decomposition function is implicitly defined as $\psi(G) \coloneqq {\{ G[v_{c_i}] \}}_{v_{c_i} \in \mathcal{V}_G}$ since each vertex $v_{c_i}$ corresponds to an interpretable constituent $c_i$ by definition.
 		For structured data however, a split into individual vertices is typically not appropriate.
 		Molecular graphs from chemical datasets for example are meaningfully characterized by the presence of so-called \textit{functional groups} consisting of multiple bonded atoms while a characterization on the level of individual atoms is generally less meaningful~\cite{McNaught1997}.
-	\item \textbf{Disaggregation:}
+	\item \textbf{Local evaluation:}
 		The constituents $c_{G, i} \in \psi(G)$ must be evaluated via some function $f: \mathcal{G} \to \mathcal{Y} \times \mathbb{R}$.
 		This \textit{evaluation function} assigns a prediction $\hat{y}_{G, i} \in \mathcal{Y}$ and a weight $w_{G, i} \in \mathbb{R}$ to each constituent.
 		A constituent's weight $w_{G, i}$ can intuitively be interpreted as a measure of the confidence that the local prediction $\hat{y}_{G, i}$ is indicative of the composition's global target score $y_G$.
@@ -56,11 +56,11 @@ Such a model must satisfy three criteria:
 		\begin{defn}\label{defn:ltag:weighted-agg}
 			We call $\mathcal{A}$ a \textit{weighted aggregation function} iff.\ it satisfies
 			\begin{align*}
-				\text{idempotency: } & \exists c > 0: \forall y \in \mathcal{Y}, w \in \mathbb{R}_{\geq 0}^n\text{ s.t. }{\max w} \geq c: \mathcal{A}({\ldblbrace (y, w_i) \rdblbrace}_{i=1}^n) = y \\
+				\text{idempotency: } & \exists \eta > 0: \forall y \in \mathcal{Y}, w \in \mathbb{R}_{\geq 0}^n\text{ s.t. }{\max w} \geq \eta: \mathcal{A}({\ldblbrace (y, w_i) \rdblbrace}_{i=1}^n) = y \\
 				\land\text{ zero invar.: } & \forall y_0 \in \mathcal{Y}, S = {\ldblbrace (y_i, w_i) \rdblbrace}_{i=1}^n: \mathcal{A}(S \cup \{ (y_0, 0) \}) = \mathcal{A}(S) \text{.}
 			\end{align*}
 		\end{defn}
-		{\setlength{\parskip}{0pt}The idempotency constraint requires aggregation functions to agree with uniform input scores $y$ if at least one input is weighted above some threshold $c$.
+		{\setlength{\parskip}{0pt}The idempotency constraint requires aggregation functions to agree with uniform input scores $y$ if at least one input is weighted above some threshold $\eta$.
 		The zero invariance constraint requires aggregation functions to ignore inputs with zero weight.
 		Exemplary weighted aggregation function are:}
 		\begin{itemize}
@@ -72,7 +72,14 @@ Such a model must satisfy three criteria:
 			} also trivially satisfies \cref{defn:ltag:weighted-agg} if all inputs $y_i$ with $w_i = 0$ are filtered out and the weights for all remaining inputs are ignored.
 		\end{itemize}
 \end{enumerate}
-Based on the notion of decomposition, disaggregation and aggregation we can now define the concept of \textit{\ac{lta} formulations}.
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=\linewidth]{gfx/graph-lta/ltag-overview.pdf}
+	\caption{
+		Overview of the generalized \ac{lta} architecture for structured data.
+	}\label{fig:ltag:ltag-overview}
+\end{figure}
+Based on the notion of decomposition, local evaluation and aggregation we can now define the concept of \textit{\ac{lta} formulations}.
 \begin{defn}
 	A model $h: \mathcal{G} \to \mathcal{Y}$ is in an \textit{\ac{lta} formulation} iff.\ it is expressed as
 	\begin{align*}
@@ -122,40 +129,44 @@ In \cref{sec:related:gcr:embed,sec:related:gcr:kernel} three different ways to m
 One common way to solve the \ac{gcr} problem via those embedding vectors is to train an \ac{svm} on them.
 We will now see that \acp{svm} can be interpreted as \ac{lta} models if they are trained on so-called \textit{substructure component embeddings}.
 \begin{defn}\label{defn:ltag:substruct-embedding}
-	A graph embedding $\varphi: \mathcal{G} \to \mathbb{N}^{d}$ is called a \textit{substructure component embedding} iff.\ %
-	$\forall i \in [d]: \exists S_i \in \mathcal{G}_{\mathit{ord}}, \gamma_i > 0: \forall G \in \mathcal{G}: {{\varphi(G)}[i] = \gamma_i \mathit{contains}_{S_i}(G)} \lor {{\varphi(G)}[i] = \gamma_i \mathit{count}_{S_i}(G)}$,
-	with $\mathit{contains}$ and $\mathit{count}$ as in \cfullref[ on ]{defn:related:wl-count-detect}.
+	A graph embedding $\varphi: \mathcal{G} \to \mathbb{N}_0^{d}$ is called a \textit{substructure component embedding} iff.\ there are decomposition functions $\psi_{\varphi, i}: \mathcal{G} \to \mathcal{P}(\mathcal{G})$ and normalization constants $\gamma_i \in \mathbb{R}$ for all embedding components $i \in [d]$ s.t.\ $\forall G \in \mathcal{G}, i \in [d]: \varphi(G)[i] = \gamma_i {| \psi_{\varphi, i}(G) |}$.
+	The joint decomposition $\psi_{\varphi}(G) \coloneqq \bigcup_{i=1}^d \psi_{\varphi,i}(G)$ is a so-called \textit{underlying decomposition} of the embedding $\varphi$.
 \end{defn}
-Intuitively \cref{defn:ltag:substruct-embedding} states that every embedding dimension must represent the count or presence of some ordered subgraph $S_i$ in the embedded graph $G$.
+Intuitively \cref{defn:ltag:substruct-embedding} states that every embedding dimension must represent the number of constituents produced by some decomposition function.
 Based on this requirement we now proof the main theorem which shows the relation between \acp{svm} and \ac{lta}.
+
 \begin{thm}\label{thm:ltag:svm-ltag-formulation}
-	A binary \ac{svm} classifier that takes substructure component embeddings $\varphi(G)$ as its input has an \ac{lta} formulation with a nontrivial decomposition function $\psi$.
+	A binary \ac{svm} graph classifier $h$ that applies a substructure component embedding $\varphi$ to its inputs has an \ac{lta} formulation with the decomposition function $\psi_{\varphi}$.
 \end{thm}
 \begin{proof}
-	Let $h: \mathcal{G} \to {\{ -1, +1 \}}$ be a binary graph classifier expressed as $h = h_{\text{\acs*{svm}}} \circ \varphi$ where $\varphi: \mathcal{G} \to \mathbb{N}_0^{d}$ is a substructure component embedding and $h_{\text{\acs*{svm}}}: \mathbb{R}^{d} \to {\{ -1, +1 \}}$ an \ac{svm} classifier.
-	By \cref{defn:ltag:substruct-embedding} each $\varphi(G)[i] > 0$ counts or indicates the presence of some ordered subgraph $S_i$ in $G$;
-	more precisely:
-	\begin{itemize}
-		\item If $\varphi(G)[i] = \gamma_i \mathit{count}_{S_i}(G) > 0$, let $C_i \coloneqq {\{ G[s]\, |\, s \in \mathcal{P}(\mathcal{V}_G) \land G[s] \simeq S_i \}}$ be the subgraphs counted by the $i$-th dimension.
-		\item If $\varphi(G)[i] = \gamma_i \mathit{contains}_{S_i}(G) > 0$, let $C_i \coloneqq {\left\{ G\left[ \bigcup \{ s \in \mathcal{P}(\mathcal{V}_G)\, |\, G[s] \simeq S_i \} \right] \right\}}$ be the union graph of all subgraphs of $G$ that are isomorphic to $S_i$.
-	\end{itemize}
-	By interpreting each $C_i$ as a set of isomorphic constituents, we can define the graph decomposition function $\psi_{\varphi}(G) \coloneqq \bigcup_{i=1}^{d} C_i$.
+	Let $h: \mathcal{G} \to {\{ -1, +1 \}}$ be a binary graph classifier expressed as $h = h_{\text{\acs*{svm}}} \circ \varphi$ where $\varphi: \mathcal{G} \to \mathbb{N}_0^{d}$ is a substructure component embedding and $h_{\text{\acs*{svm}}}: \mathbb{R}^{d} \to {\{ -1, +1 \}}$ a standard \ac{svm} classifier.
+	Additionally, let $\psi_{\varphi}$ be some underlying decomposition of $\varphi$.
 
 	Based on this decomposition we now bring the \ac{svm} graph classifier $h$ into an \ac{lta} formulation.
 	If $h$ is trained on a dataset $\mathcal{D}_{\text{train}} = {\{ (G_1, y_1), \dots, (G_N, y_N) \}}$, via the kernel trick it can be expressed as
-	{\allowdisplaybreaks\begin{align*}
+	\begin{align*}
 		h(G) &= \sgn\left( \sum_{j = 1}^{N} \alpha_j y_j {\langle \varphi(G), \varphi(G_j) \rangle} + b \right)
 		\quad\text{for some $\alpha \in \mathbb{R}^N$ and $b \in \mathbb{R}$} \\
 		&= \sgn\left( {\sum_{i=1}^{d} {
-				\underbrace{\varphi(G)[i]}_{{|C_i|} \gamma_i^{-1}}
-				\underbrace{\left( \sum_{j = 1}^{N} \alpha_j y_j {\varphi(G_j)}[i] \right)}_{{} \eqqcolon \beta_i}}
+				\underbrace{\varphi(G)[i]}_{{|\psi_{\varphi, i}(G)|} \gamma_i^{-1}}
+				\underbrace{\left( \sum_{j = 1}^{N} \alpha_j y_j {\varphi(G_j)}[i] \right)}_{\beta_i}}
 			} + b \right)
-		 = \sgn\left( {\sum_{i=1}^{d} {{|C_i|} \gamma_i^{-1} \beta_i}} + b \right) \\
-		&= \sgn\left( {\sum_{c \in \psi_{\varphi}(G)} \underbrace{\sum_{i = 1}^d \mathbbm{1}[c \in C_i] \gamma_i^{-1} \beta_i}_{{} \eqqcolon z_i}} + b \right)
-		 = \sgn\left( {\sum_{c \in \psi_{\varphi}(G)}} \underbrace{|z_i|}_{{} \eqqcolon w_i} \underbrace{\sgn{z_i}}_{\eqqcolon y_i} + b \right)
+		 = \sgn\left( {\sum_{i=1}^{d} {{|\psi_{\varphi, i}(G)|} \gamma_i^{-1} \beta_i}} + b \right) \\
+		&= \sgn\left( {\sum_{c_t \in \psi_{\varphi}(G)} \underbrace{\sum_{i = 1}^d \mathbbm{1}[c_t \in \psi_{\varphi, i}(G)] \gamma_i^{-1} \beta_i}_{z_t}} + b \right)
+		 = \sgn\left( {\sum_{c_t \in \psi_{\varphi}(G)}} \underbrace{|z_t|}_{w_t} \underbrace{\sgn{z_t}}_{y_t} + {\underbrace{|b|}_{w_b} \underbrace{\sgn{b}}_{y_b}} \right) \\
+		&= \wmaj\left( \ldblbrace (y_t, w_t)\, |\, c_t \in \psi_{\varphi}(G) \rdblbrace \cup \ldblbrace (y_b, w_b) \rdblbrace \right)
 		\text{.}
-	\end{align*}}
+	\end{align*}
+	By choosing $f_h(c_t) \coloneqq (y_t, w_t)$ and $\mathcal{A}_h(S) = \wmaj(S \cup \ldblbrace (y_b, w_b) \rdblbrace)$, the \ac{svm} model therefore has an \ac{lta} formulation with the decomposition function $\psi_{\varphi}$.
+	To see why $\mathcal{A}_h$ satisfies \cref{defn:ltag:weighted-agg}, note that it inherits the idempotency property from $\wmaj$ because $\mathcal{A}_h$ ignores the bias ``pseudo-constituent'' $(y_b, w_b)$ for all threshold weights $\max w_t \geq \eta > w_b$, similarly the zero invariance of $\wmaj$ is also directly inherited.
+	This concludes the proof.
 \end{proof}
+
+The central statement of \cref{thm:ltag:svm-ltag-formulation} is that the output of an \acs{svm}-based graph classifier can be interpreted as the weighted majority vote of constituent scores $y_t$.
+Those constituent scores are in turn also the result of a weighted majority vote as shown in the following proposition.
+\begin{prop}
+
+\end{prop}
 
 \subsection{\acsp*{gcnn} as \acs*{lta} Models}%
 \label{sec:ltag:formulation:gcnn}

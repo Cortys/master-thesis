@@ -192,7 +192,7 @@ Such an encoding introduces a vertex ordering $v_1, \dots, v_n$ that does not ca
 Consequently there are $n!$ equivalent encodings of $G$. % chktex 40
 To represent those encodings we introduce the notion of ordered induced subgraphs.
 \begin{defn}\label{defn:related:ordered-subgraph}
-	For all vertex $k$-tuples $v = (v_1, \dots, v_k) \in \mathcal{V}_G^k$ let $\hat{v} = \{ v_i\, |\, i \in [k] \}$.
+	For all vertex $k$-tuples $v = (v_1, \dots, v_k) \in \mathcal{V}_G^k$ let $\hat{v} = \set(v) \coloneqq \{ v_i\, |\, i \in [k] \}$.
 	Then $G[v] \coloneqq (\hat{v}, \mathcal{E}_G \cap \hat{v}^2, v)$ is called the \textit{ordered subgraph} of $G$ induced by $v$.
 	We denote the set of all ordered subgraphs with $\mathcal{G}_{\mathit{ord}}$.
 	If $\hat{v} = \mathcal{V}_G$ and $k = |\mathcal{V}_G|$, we call $v$ an \textit{ordering} of $G$ and $G[v]$ an \textit{encoding} of $G$.
@@ -378,7 +378,7 @@ A more relevant restriction of 1-\acs{wl} is the fact that it is unable to detec
 	$k$-\acs{wl} \textit{computes} a function $f: \mathcal{G} \to Y$ iff.\ that function can be expressed as $f(G) = g(\mathit{dist}_{\chi_{G, k}^{*}})$ via some function $g: (\mathcal{C} \to \mathbb{N}) \to Y$.
 \end{defn}
 \begin{defn}\label{defn:related:wl-count-detect}
-	$k$-\acs{wl} \textit{counts} a certain ordered subgraph $S \in \mathcal{G}_{\mathit{ord}}$ iff.\ it computes $\mathit{count}_S(G) \coloneqq \left|\{ \hat{v}\, |\, v \in \mathcal{V}_G^{*} \land G[v] \equiv S \}\right|$ (see~\cref{defn:related:ordered-subgraph}).
+	$k$-\acs{wl} \textit{counts} a certain ordered subgraph $S \in \mathcal{G}_{\mathit{ord}}$ iff.\ it computes $\mathit{count}_S(G) \coloneqq \left|\{ \set(v)\, |\, v \in \mathcal{V}_G^{*} \land G[v] \equiv S \}\right|$ (see~\cref{defn:related:ordered-subgraph}).
 	Similarly $k$-\acs{wl} \textit{detects} an ordered subgraph $S$ iff.\ it computes $\mathit{contain}_S(G) \coloneqq \mathbbm{1}[\mathit{count}_S(G) > 0]$, with $\mathbbm{1}$ denoting the indicator function.
 \end{defn}
 To see why 1-\acs{wl} is unable to detect $m$-cycles in graphs, note that \cref{fig:related:wl1-problem} already contradicts the positive statement for $m = 3$;
