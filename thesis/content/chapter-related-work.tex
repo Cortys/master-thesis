@@ -524,13 +524,14 @@ Besides $L^{\text{sym}}_G$ there are also other ways to normalize the spectrum, 
 \section{Graph Classification and Regression}%
 \label{sec:related:gcr}
 
+Now that we have looked at the \acs{wl}- and spectrum-based graph characterization approaches, we will see how those can be used to learn models that solve the \acf{gcr} problem.
 The existing approaches to tackle the \ac{gcr} problem can be categorized into three main families:
 \begin{enumerate*}
 	\item Explicit graph embeddings,
 	\item graph kernels and
 	\item graph neural networks
 \end{enumerate*}.
-We will now look at the characteristics of those families and give a brief overview of specific methods.
+In the following sections the characteristics of those families are described and a brief overview of specific methods is given.
 
 \subsection{Explicit Graph Embeddings}%
 \label{sec:related:gcr:embed}
@@ -550,7 +551,9 @@ We will now look at two main families of explicit graph and vertex embedding app
 The first works on graph embeddings were motivated by the study of chemical structures~\cite{Adamson1973}\cite{Willett1986}.
 There a molecule can be interpreted as a labeled graph for which the \ac{gcr} problem corresponds to the prediction of some chemical property, e.g.\ toxicity or solubility.
 So-called \textit{fingerprint embeddings} try to match a fixed set of subgraphs $S_1, \dots, S_d$ to the input graph.
-The embedding of a graph $G$ is a binary vector $\varphi(G) = x \in {\{0, 1\}}^d$ with $x_i \coloneqq \mathit{contain}_{S_i}(G)$ (see~\cref{defn:related:wl-count-detect}).
+The embedding of a graph $G$ is a binary vector ${\varphi}_{\text{FP}}(G) \in {\{0, 1\}}^d$ with ${\varphi}_{\text{FP}}(G)[i] \coloneqq \mathit{contain}_{S_i}(G)$ (see~\cref{defn:related:wl-count-detect}).
+Alternatively a fingerprint embedding can additionally encode multiplicities via ${\varphi}_{\text{FP}}(G)[i] \coloneqq \mathit{count}_{S_i}(G) \in \mathbb{N}_0$.
+
 This simple approach usually requires a careful choice of subgraphs but can still be competitive with the other more recent approaches we will look at in the following sections.
 Fingerprint embeddings are for example used in multiple state-of-the-art toxicity prediction tools like RASAR~\cite{Luechtefeld2018}\cite{ToxTrack}, ProTox~\cite{Drwal2014}\cite{ProTox}\cite{Banerjee2018} or the \ac{toxTest}~\cite{TEST}.
 
@@ -635,7 +638,7 @@ Consequently the dimensionality $d$ of $\varphi_{\text{ST}}(G) \in \mathbb{N}^d$
 Extending the idea of the \ac{wl} subtree kernel, the \textit{\ac{wl} shortest path kernel}~\cite{Shervashidze2011}\cite{Borgwardt2005} adds global structural information to the local subtree comparisons.
 The $i$-th component of a graph's shortest path vector $\varphi_{\text{SP}}(G)$ corresponds to the 4-tuple $(t_i, a_i, b_i, d_i) \in {\{ 0, \dots, T \}} \times \mathcal{C} \times \mathcal{C} \times \mathbb{N}_0$ and its value is described by
 \begin{align}
-	{\varphi_{\text{SP}}(G)}_i \coloneqq \left| \left\{ (v, u) \in \mathcal{V}_G^2 \,|\, {\chi_{G,1}^{(t_i)}(v) = a_i} \land {\chi_{G,1}^{(t_i)}(u) = b_i} \land {d_{\text{SP}}(v, u) = d_i} \right\} \right| \text{,} % chktex 21
+	{\varphi_{\text{SP}}(G)}[i] \coloneqq \left| \left\{ (v, u) \in \mathcal{V}_G^2 \,|\, {\chi_{G,1}^{(t_i)}(v) = a_i} \land {\chi_{G,1}^{(t_i)}(u) = b_i} \land {d_{\text{SP}}(v, u) = d_i} \right\} \right| \text{,} % chktex 21
 \end{align}
 with $d_{\text{SP}}(v, u)$ denoting the length of the shortest path from $v$ to $u$ in $G$.
 Analogous to $k_{\text{ST}}$, the shortest path kernel function is defined as $k_{\text{SP}}(G, H) \coloneqq \langle \varphi_{\text{SP}}(G), \varphi_{\text{SP}}(H) \rangle$.

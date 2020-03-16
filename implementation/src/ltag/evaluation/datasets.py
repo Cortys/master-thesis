@@ -76,6 +76,15 @@ DD_2 = fy.partial(
     "batch_graph_count": 10
   })
 
+chemical_binary = [
+  "NCI1_8",
+  "Proteins_5",
+  "DD_2"
+]
+chemical = chemical_binary
+
+# Social:
+
 IMDB_1 = fy.partial(
   tu.IMDBBinary,
   name_suffix="_n1",
@@ -96,16 +105,6 @@ IMDB_8 = fy.partial(
   tu.IMDBBinary,
   wl2_neighborhood=8)
 
-chemical_binary = [
-  "NCI1_8",
-  "Proteins_5",
-  "DD_2",
-  "IMDB_8"
-]
-chemical = chemical_binary
-
-# Social:
-
 RedditBinary_1 = fy.partial(
   tu.RedditBinary,
   wl2_neighborhood=1,
@@ -117,6 +116,7 @@ RedditBinary_1 = fy.partial(
 )
 
 social_binary = [
+  "IMDB_8",
   "RedditBinary_1"
 ]
 social = social_binary

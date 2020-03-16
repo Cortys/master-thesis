@@ -124,6 +124,7 @@
 \def\th@remark{\thm@headfont{\itshape}\normalfont\thm@preskip\parskip\thm@postskip0pt} % chktex 6
 \makeatother
 
+\usepackage{pifont}
 \usepackage{graphicx}
 \usepackage{tikz}
 \usetikzlibrary{arrows,positioning}
@@ -176,6 +177,9 @@
 \newcommand{\dac}[3]{\DeclareAcronym{#1}{short = #2, long = #3}}
 \newcommand*\circled[2][1pt]{\tikz[baseline=(char.base)]{ % chktex 36
     \node[shape=circle,draw,inner sep=#1] (char) {#2};}}
+\newcommand*{\badgebox}[2][black]{\null\hfill\fcolorbox{#1}{white}{\textsf{\small\textcolor{#1}{\,#2\,}}}}
+\newcommand{\cmark}{\ding{51}}
+\newcommand{\xmark}{\ding{55}}
 
 \newcommand{\sourceinline}[2][source]{{\scriptsize\textsc{#1:~\cite{#2}}}}
 \newcommand{\source}[2][source]{\null\hfill\sourceinline[#1]{#2}}

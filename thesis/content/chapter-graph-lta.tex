@@ -95,17 +95,17 @@ Instead the notion of \ac{lta} formulations should be seen as way to identify ho
 		If a model $h$ only has trivial \ac{lta} formulations with the decomposition function $\psi(G) = \{ G \}$, it is not considered to be an \ac{lta} model.
 	\item \textbf{Positive extreme:}
 		If a model has an \ac{lta} formulation with a decomposition function that returns interpretable constituents, it is considered to be an \ac{lta} model.
-		By definition this is true for the constituents $\psi(G) \coloneqq {\{ G[v_{c_i}] \}}_{v_{c_i} \in \mathcal{V}_G}$ of \ac{lta} methods for unstructured data.
+		By definition this is true for the single-vertex constituents $\psi(G) \coloneqq {\{ G[v_{c_i}] \}}_{v_{c_i} \in \mathcal{V}_G}$ of \ac{lta} methods for unstructured data.
 	\item \textbf{In-between cases:}
 		An \ac{lta} method for structured data must produce models that lie somewhere in-between the two extremes.
 \end{itemize}
 
 The more ``\acs{lta}-like'' a given model is, the stronger its bias towards locally explainable predictions, which in turn reduces the potential expressive power of the model.
 \citet{Gilpin2018} describe this trade-off between explainability and expressive power in more detail.
-When considering problem domains in which the true composition scores $y_G$ are accurately described by an \acs{lta}-like generative process, a less expressive \ac{lta}-like model could however generalize better than a more expressive non-\ac{lta} model.
+However, when considering problem domains in which the true composition scores $y_G$ are accurately described by an \acs{lta}-like generative process, a less expressive \ac{lta}-like model could generalize better than a more expressive non-\ac{lta} model.
 This idea is captured by the so-called \textit{\ac{lta} assumption}.
 \begin{defn}
-	A problem domain $\mathcal{D}$ satisfies the \textit{\ac{lta} assumption} iff.\ there is an \ac{lta} method which produces models with an equal or lower out-of-sample error than the models produced by non-\acs{lta} methods for most training samples from $\mathcal{D}$.
+	A problem domain $\mathcal{D}$ satisfies the \textit{\ac{lta} assumption} iff.\ there is an \ac{lta} method which produces models with an equal or lower out-of-sample error than the models produced by non-\acs{lta} methods for most training samples $\mathcal{D}_{\text{train}} \subseteq \mathcal{D}$.
 \end{defn}
 Due to the fuzziness of the class of \ac{lta} methods, the \ac{lta} assumption is naturally also a fuzzy concept.
 Nonetheless evidence for its truthiness in a given domain $\mathcal{D}$ can be empirically obtained by comparing candidate \ac{lta} methods with the best known non-\ac{lta} method for $\mathcal{D}$, assuming that some cut-off condition for the required ``\ac{lta}-ness'' of an \ac{lta} method is agreed upon.
@@ -127,32 +127,38 @@ In \cref{sec:related:gcr:embed,sec:related:gcr:kernel} three different ways to m
 	\item kernel embeddings
 \end{enumerate*}.
 One common way to solve the \ac{gcr} problem via those embedding vectors is to train an \ac{svm} on them.
-We will now see that \acp{svm} can be interpreted as \ac{lta} models if they are trained on so-called \textit{substructure component embeddings}.
-\begin{defn}\label{defn:ltag:substruct-embedding}
-	A graph embedding $\varphi: \mathcal{G} \to \mathbb{N}_0^{d}$ is called a \textit{substructure component embedding} iff.\ there are decomposition functions $\psi_{\varphi, i}: \mathcal{G} \to \mathcal{P}(\mathcal{G})$ and normalization constants $\gamma_i \in \mathbb{R}$ for all embedding components $i \in [d]$ s.t.\ $\forall G \in \mathcal{G}, i \in [d]: \varphi(G)[i] = \gamma_i {| \psi_{\varphi, i}(G) |}$.
-	The joint decomposition $\psi_{\varphi}(G) \coloneqq \bigcup_{i=1}^d \psi_{\varphi,i}(G)$ is a so-called \textit{underlying decomposition} of the embedding $\varphi$.
+We will now see that \acp{svm} can be interpreted as \ac{lta} models if they are trained on so-called \acp*{sce}.
+\begin{defn}
+	Given a a multiset $A = \ldblbrace \underbrace{a_1, \dots, a_1}_{\gamma_A(a_1)\text{ times}},\allowbreak \dots, \underbrace{a_n, \dots, a_n}_{\gamma_A(a_n)\text{ times}} \rdblbrace \subseteq D$, the so-called \textit{multiplicity function} $\gamma_A: D \to \mathbb{N}_0$ maps each element of the domain $D$ to its multiplicity in $A$ with $\gamma_A(x) = 0 \Leftrightarrow x \notin A$.
 \end{defn}
-Intuitively \cref{defn:ltag:substruct-embedding} states that every embedding dimension must represent the number of constituents produced by some decomposition function.
+\begin{defn}\label{defn:ltag:substruct-embedding}
+	A graph embedding $\varphi: \mathcal{G} \to \mathbb{N}_0^{d}$ is called a \ac{sce} iff.\ %
+	there are decomposition functions $\psi_{\varphi, i}: \mathcal{G} \to \mathcal{P}(\mathcal{G})$ and functions $\gamma_{\varphi, i}: \mathcal{G} \to (\mathcal{G} \to \mathbb{N}_0)$ for all embedding components $i \in [d]$ s.t.\ %
+	$\forall G \in \mathcal{G}, i \in [d]: \varphi(G)[i] = \sum_{c \in \psi_{\varphi, i}(G)} \gamma_{\varphi, i}(G)(c)$ where $\gamma_{\varphi, i}(G): \mathcal{G} \to \mathbb{N}_0$ is the multiplicity function of a multiset of the constituents $\psi_{\varphi, i}(G)$.
+	We call $\psi_{\varphi, i}$ an \textit{underlying decomposition} of the $i$-th component of the embedding $\varphi$.
+	Similarly the joint decomposition $\psi_{\varphi}(G) \coloneqq \bigcup_{i=1}^d \psi_{\varphi,i}(G)$ is an \textit{underlying decomposition} of $\varphi$.
+\end{defn}
+Intuitively \cref{defn:ltag:substruct-embedding} states that the value of each \ac{sce} component must be derived from the number of constituents produced by some decomposition function where each constituent might be counted multiple times.
 Based on this requirement we now proof the main theorem which shows the relation between \acp{svm} and \ac{lta}.
 
 \begin{thm}\label{thm:ltag:svm-ltag-formulation}
-	A binary \ac{svm} graph classifier $h$ that applies a substructure component embedding $\varphi$ to its inputs has an \ac{lta} formulation with the decomposition function $\psi_{\varphi}$.
+	A binary \ac{svm} graph classifier $h$ that applies a \ac{sce} $\varphi$ to its inputs has an \ac{lta} formulation that uses the underlying decomposition function $\psi_{\varphi}$.
 \end{thm}
 \begin{proof}
-	Let $h: \mathcal{G} \to {\{ -1, +1 \}}$ be a binary graph classifier expressed as $h = h_{\text{\acs*{svm}}} \circ \varphi$ where $\varphi: \mathcal{G} \to \mathbb{N}_0^{d}$ is a substructure component embedding and $h_{\text{\acs*{svm}}}: \mathbb{R}^{d} \to {\{ -1, +1 \}}$ a standard \ac{svm} classifier.
-	Additionally, let $\psi_{\varphi}$ be some underlying decomposition of $\varphi$.
+	Let $h: \mathcal{G} \to {\{ -1, +1 \}}$ be a binary graph classifier expressed as $h = h_{\text{\acs*{svm}}} \circ \varphi$ where $\varphi: \mathcal{G} \to \mathbb{N}_0^{d}$ is an \ac{sce} and $h_{\text{\acs*{svm}}}: \mathbb{R}^{d} \to {\{ -1, +1 \}}$ a standard \ac{svm} classifier.
+	Additionally, let $\psi_{\varphi}$ be some underlying decomposition of $\varphi$ with ${\{ \gamma_{\varphi, i} \}}_{i=1}^d$ being the corresponding multiplicity functions.
 
 	Based on this decomposition we now bring the \ac{svm} graph classifier $h$ into an \ac{lta} formulation.
 	If $h$ is trained on a dataset $\mathcal{D}_{\text{train}} = {\{ (G_1, y_1), \dots, (G_N, y_N) \}}$, via the kernel trick it can be expressed as
 	\begin{align*}
 		h(G) &= \sgn\left( \sum_{j = 1}^{N} \alpha_j y_j {\langle \varphi(G), \varphi(G_j) \rangle} + b \right)
-		\quad\text{for some $\alpha \in \mathbb{R}^N$ and $b \in \mathbb{R}$} \\
+		\quad\text{for some $\alpha \in \mathbb{R}_{\geq 0}^N$ and $b \in \mathbb{R}$} \\
 		&= \sgn\left( {\sum_{i=1}^{d} {
-				\underbrace{\varphi(G)[i]}_{{|\psi_{\varphi, i}(G)|} \gamma_i^{-1}}
+				\varphi(G)[i]
 				\underbrace{\left( \sum_{j = 1}^{N} \alpha_j y_j {\varphi(G_j)}[i] \right)}_{\beta_i}}
 			} + b \right)
-		 = \sgn\left( {\sum_{i=1}^{d} {{|\psi_{\varphi, i}(G)|} \gamma_i^{-1} \beta_i}} + b \right) \\
-		&= \sgn\left( {\sum_{c_t \in \psi_{\varphi}(G)} \underbrace{\sum_{i = 1}^d \mathbbm{1}[c_t \in \psi_{\varphi, i}(G)] \gamma_i^{-1} \beta_i}_{z_t}} + b \right)
+		 = \sgn\left( {\sum_{i=1}^{d} \varphi(G)[i] \beta_i} + b \right) \\
+		&= \sgn\left( {\sum_{c_t \in \psi_{\varphi}(G)} \underbrace{\sum_{i = 1}^d \gamma_{\varphi, i}(G)(c_t) \beta_i}_{z_t}} + b \right)
 		 = \sgn\left( {\sum_{c_t \in \psi_{\varphi}(G)}} \underbrace{|z_t|}_{w_t} \underbrace{\sgn{z_t}}_{y_t} + {\underbrace{|b|}_{w_b} \underbrace{\sgn{b}}_{y_b}} \right) \\
 		&= \wmaj\left( \ldblbrace (y_t, w_t)\, |\, c_t \in \psi_{\varphi}(G) \rdblbrace \cup \ldblbrace (y_b, w_b) \rdblbrace \right)
 		\text{.}
@@ -162,11 +168,39 @@ Based on this requirement we now proof the main theorem which shows the relation
 	This concludes the proof.
 \end{proof}
 
-The central statement of \cref{thm:ltag:svm-ltag-formulation} is that the output of an \acs{svm}-based graph classifier can be interpreted as the weighted majority vote of constituent scores $y_t$.
-Those constituent scores are in turn also the result of a weighted majority vote as shown in the following proposition.
-\begin{prop}
+The central statement of \cref{thm:ltag:svm-ltag-formulation} is that \acs{svm} graph classifiers that use an \ac{sce} $\varphi$ implicitly perform an \acs{lta}-like weighted majority vote aggregation of constituent scores $y_t$.
+Those constituent scores can in turn be expressed as a majority vote of the graph scores in the training dataset $\mathcal{D}_{\text{train}}$:
+\begin{align}
+	y_t \coloneqq \sgn z_t
+	 &= \sgn\left( \sum_{j=1}^N \underbrace{\left( \alpha_j \smashoperator[l]{\sum_{c_k \in \psi_{\varphi}(G_j)}} \sum_{i=1}^d \gamma_{\varphi,i}(G)(c_t) \gamma_{\varphi,i}(G_j)(c_k) \right)}_{w_j} y_j \right) \\
+	 &= \wmaj(\ldblbrace (y_j, w_j)\, |\, j \in [N] \rdblbrace) \nonumber
+\end{align}
+Note that, if the constituents of $G_j$ all come from different embedding components than those of $G$ ($\forall i \in [d]: {\psi_{\varphi, i}(G_j) \cap \psi_{\varphi, i}(G)} = \emptyset$), then $G_j$ has no influence on the score of $G$ ($w_j = 0$).
 
-\end{prop}
+To see what \cref{thm:ltag:svm-ltag-formulation} implies in practice, we will now apply it to the graph embedding approaches described in \cref{sec:related:gcr:embed,sec:related:gcr:kernel}:
+\begin{enumerate}[label=\textbf{\arabic*.}]
+	\item \textbf{Fingerprint embeddings:}
+		Here the $i$-th embedding component represent the number of occurrences of a substructure $S_i$, i.e.\ ${\varphi}_{\text{FP}}(G)[i] \coloneqq \mathit{count}_{S_i}(G)$ (see \cfullref{defn:related:wl-count-detect}).
+		Such a fingerprint embedding naturally is an \ac{sce} with the decomposition functions $\psi_{\text{FP}, i}(G) \coloneqq \{ G[\set(s)]\, |\, s \in \mathcal{V}_G^{*} \land G[s] \equiv S_i \}$ and the multiplicity functions $\gamma_{\text{FP}, i}(G)(c) \coloneqq \mathbbm{1}[c \in \psi_{\text{FP}, i}(G)]$. % chktex 21
+
+		Under the assumption that the substructure patterns $S_i$ are chosen s.t.\ the their instances $c \in \psi_{\text{FP}, i}(G)$ are nontrivial interpretable constituents, the underlying joint decomposition $\psi_{\text{FP}}(G) \coloneqq \bigcup_{i=1}^d \psi_{\text{FP}, i}(G)$ must also be nontrivial and interpretable.
+		Thus, by \cref{thm:ltag:svm-ltag-formulation}, \acp{svm} trained on fingerprint embeddings are \ac{lta} models that produce locally explainable predictions.
+		\badgebox[t_green]{\cmark\ LTA}
+	\item \textbf{\texttt{graph2vec}:}
+		The skip-gram inspired \texttt{graph2vec} embedding produces vectors $\text{FP}(G) \in \mathbb{R}^d$ whose individual components do not have a clear interpretation.
+		Since the component values can be arbitrary reals, this approach is not an \ac{sce} which in turn implies that it does not have an \ac{lta} formulation as in \cref{thm:ltag:svm-ltag-formulation}.
+		\badgebox[t_red]{\xmark\ non-LTA}
+	\item \textbf{\ac{wl} subtree kernel:}
+		The individual components of the \ac{wl} subtree embedding represent the number of occurrences of a color $c_i \in \mathcal{C}$, i.e.\ $\varphi_{\text{ST}}(G)[i] \coloneqq \mathit{dist}_{\chi_{G,1}^{(t)}}(c_i)$ as defined in \cfullref[ on ]{eq:related:wl-subtree-kernel}.
+		As illustrated in \cfullref[ on ]{fig:related:wl-subtree}, each occurrence of a color $c_i$ in the \ac{wl} coloring $\chi_{G,1}^{(t)}$ corresponds to the occurrence of a breadth-first subtree of depth $t$.
+		\badgebox[t_green]{\cmark\ LTA-like}
+	\item \textbf{\ac{wl} shortest path kernel:}
+		\badgebox[t_red]{\xmark\ non-LTA}
+	\item \textbf{$k$-LWL kernel:}
+		\badgebox[t_green]{\cmark\ LTA-like}
+	\item \textbf{$k$-GWL kernel:}
+		\badgebox[t_red]{\xmark\ non-LTA}
+\end{enumerate}
 
 \subsection{\acsp*{gcnn} as \acs*{lta} Models}%
 \label{sec:ltag:formulation:gcnn}
