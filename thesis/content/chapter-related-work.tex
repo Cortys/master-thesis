@@ -593,7 +593,7 @@ It is inspired by \texttt{doc2vec}~\cite{Le2014} which in turn is based on \text
 \texttt{graph2vec} gets a set of graphs $\mathcal{G}' = \{ G_1, \dots G_N \}$ as input and outputs graph embeddings $\varphi(G_1), \dots, \varphi(G_N)$.
 While in \texttt{word2vec} every word can be a context root as well as a context element, \texttt{graph2vec} uses the graphs $\mathcal{G}'$ as context roots.
 The context $\Gamma_T(G_i)$ of a graph $G_i$ is defined as
-\begin{equation}
+\begin{equation}\label{eq:related:graph2vec}
 	\Gamma_T(G_i) \coloneqq \bigcup_{\mathclap{v_j \in \mathcal{V}_{G_i}}}\, {\left\{ \chi_{G_i, 1}^{(t)}(v_j) \right\}}_{t = 0}^T % chktex 21
 	\quad\text{with $T \in \mathbb{N}$ and $\chi_{G_i, 1}^{(t)}$ as in \cref{defn:related:wl1-refine}.}
 \end{equation}
@@ -630,7 +630,7 @@ Via this mapping, the \ac{wl} subtree kernel function $k_{\text{ST}}: \mathcal{G
 \end{figure}
 
 \Cref{fig:related:wl-subtree} illustrates how this definition relates to subtrees.
-Since alls vertex colors $c \in \mathcal{C}$ correspond to a subtree isomorphism class, $k_{\text{ST}}(G, H)$ effectively computes the similarity of $G$ and $H$ by comparing their local subtree structures of depth at most $T$.
+Since all vertex colors $c \in \mathcal{C}$ correspond to a subtree isomorphism class, $k_{\text{ST}}(G, H)$ effectively computes the similarity of $G$ and $H$ by comparing their local subtree structures of depth at most $T$.
 Note that the underlying mapping $\varphi_{\text{ST}}$ cannot be computed independently for each graph $G \in \mathcal{G}_{\mathcal{D}} \subseteq \mathcal{G}$ in a given training dataset $\mathcal{D}$ since the set of colors $c \in \mathcal{C}$ introduced by the hashing function $h$ is conjointly determined by all graphs $\mathcal{G}_{\mathcal{D}}$ (see \cref{defn:related:wl1-refine}).
 Consequently the dimensionality $d$ of $\varphi_{\text{ST}}(G) \in \mathbb{N}^d$ varies, depending on the entire dataset $\mathcal{D}$.
 
@@ -751,7 +751,7 @@ To see why this is the case, we rewrite \cref{eq:related:gcn-layer} and compare 
 \end{align*}
 Here $c(v) \coloneqq {\left(\left| \Gamma_G(v) \right| + 1\right)}^{-\frac{1}{2}}$ are normalization factors introduced by $\tilde{D}_G^{-\frac{1}{2}}$.
 The comparison shows that \ac{gcn} convolutions can be understood as iterative refinements of continuous ``color vectors'' $Z^{(t)}[v] \in \mathbb{R}^{d^{(t)}}$.
-Then the continuous analogue to the injective 1-\acs{wl} hash function $h: \mathcal{C}^{*} \to \mathcal{C}$ can be defined as $h_{\text{\acs*{gcn}}}(z_0, z_1, \dots, z_m) = \sigma(\sum_{j=0}^m c(v_0) c(v_j) z_j \Theta^{(t)})$ which computes a single color vector from multiple color vectors $z_j$.
+Then the continuous analogue to the injective 1-\acs{wl} hash function $h: \mathcal{C}^{*} \to \mathcal{C}$ can be defined as $h_{\text{\acs*{gcn}}}(z_0, z_1, \dots, z_m) = \sigma(\sum_{j=0}^m c(v_0) c(v_j) z_j \Theta^{(t)})$ which computes a single color vector from multiple color vectors $z_j$ where $v_j$ are the corresponding vertices.
 
 \paragraph{A 1-\acs{wl} bound on \ac{gnn} power}
 The relation between \acp{gcnn} using neighborhood aggregation convolution and 1-\acs{wl} was formally analyzed by \citet{Xu2018}.

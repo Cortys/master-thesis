@@ -133,8 +133,8 @@ We will now see that \acp{svm} can be interpreted as \ac{lta} models if they are
 \end{defn}
 \begin{defn}\label{defn:ltag:substruct-embedding}
 	A graph embedding $\varphi: \mathcal{G} \to \mathbb{N}_0^{d}$ is called a \ac{sce} iff.\ %
-	there are decomposition functions $\psi_{\varphi, i}: \mathcal{G} \to \mathcal{P}(\mathcal{G})$ and functions $\gamma_{\varphi, i}: \mathcal{G} \to (\mathcal{G} \to \mathbb{N}_0)$ for all embedding components $i \in [d]$ s.t.\ %
-	$\forall G \in \mathcal{G}, i \in [d]: \varphi(G)[i] = \sum_{c \in \psi_{\varphi, i}(G)} \gamma_{\varphi, i}(G)(c)$ where $\gamma_{\varphi, i}(G): \mathcal{G} \to \mathbb{N}_0$ is the multiplicity function of a multiset of the constituents $\psi_{\varphi, i}(G)$.
+	there are decomposition functions $\psi_{\varphi, i}: \mathcal{G} \to \mathcal{P}(\mathcal{G})$ and multiplicity functions $\gamma_{\varphi, i}: \mathcal{G} \to \mathbb{N}_0$ for all embedding components $i \in [d]$ s.t.\ %
+	$\forall G \in \mathcal{G}, i \in [d]: \varphi(G)[i] = \sum_{c \in \psi_{\varphi, i}(G)} \gamma_{\varphi, i}(c)$ where $\gamma_{\varphi, i}$ is the multiplicity function of a multiset of the constituents $\psi_{\varphi, i}(G)$.
 	We call $\psi_{\varphi, i}$ an \textit{underlying decomposition} of the $i$-th component of the embedding $\varphi$.
 	Similarly the joint decomposition $\psi_{\varphi}(G) \coloneqq \bigcup_{i=1}^d \psi_{\varphi,i}(G)$ is an \textit{underlying decomposition} of $\varphi$.
 \end{defn}
@@ -142,7 +142,7 @@ Intuitively \cref{defn:ltag:substruct-embedding} states that the value of each \
 Based on this requirement we now proof the main theorem which shows the relation between \acp{svm} and \ac{lta}.
 
 \begin{thm}\label{thm:ltag:svm-ltag-formulation}
-	A binary \ac{svm} graph classifier $h$ that applies a \ac{sce} $\varphi$ to its inputs has an \ac{lta} formulation that uses the underlying decomposition function $\psi_{\varphi}$.
+	A binary \ac{svm} graph classifier $h$ that applies a \ac{sce} $\varphi$ to its inputs has an \ac{lta} formulation that uses an underlying decomposition $\psi_{\varphi}$ of $\varphi$.
 \end{thm}
 \begin{proof}
 	Let $h: \mathcal{G} \to {\{ -1, +1 \}}$ be a binary graph classifier expressed as $h = h_{\text{\acs*{svm}}} \circ \varphi$ where $\varphi: \mathcal{G} \to \mathbb{N}_0^{d}$ is an \ac{sce} and $h_{\text{\acs*{svm}}}: \mathbb{R}^{d} \to {\{ -1, +1 \}}$ a standard \ac{svm} classifier.
@@ -158,12 +158,16 @@ Based on this requirement we now proof the main theorem which shows the relation
 				\underbrace{\left( \sum_{j = 1}^{N} \alpha_j y_j {\varphi(G_j)}[i] \right)}_{\beta_i}}
 			} + b \right)
 		 = \sgn\left( {\sum_{i=1}^{d} \varphi(G)[i] \beta_i} + b \right) \\
-		&= \sgn\left( {\sum_{c_t \in \psi_{\varphi}(G)} \underbrace{\sum_{i = 1}^d \gamma_{\varphi, i}(G)(c_t) \beta_i}_{z_t}} + b \right)
+		&= \sgn\left( {\sum_{c_t \in \psi_{\varphi}(G)} \underbrace{\sum_{i = 1}^d \gamma_{\varphi, i}(c_t) \beta_i}_{z_t}} + b \right)
 		 = \sgn\left( {\sum_{c_t \in \psi_{\varphi}(G)}} \underbrace{|z_t|}_{w_t} \underbrace{\sgn{z_t}}_{y_t} + {\underbrace{|b|}_{w_b} \underbrace{\sgn{b}}_{y_b}} \right) \\
 		&= \wmaj\left( \ldblbrace (y_t, w_t)\, |\, c_t \in \psi_{\varphi}(G) \rdblbrace \cup \ldblbrace (y_b, w_b) \rdblbrace \right)
 		\text{.}
 	\end{align*}
 	By choosing $f_h(c_t) \coloneqq (y_t, w_t)$ and $\mathcal{A}_h(S) = \wmaj(S \cup \ldblbrace (y_b, w_b) \rdblbrace)$, the \ac{svm} model therefore has an \ac{lta} formulation with the decomposition function $\psi_{\varphi}$.
+
+	To complete the proof it now remains to show that $f_h$ and $\mathcal{A}_h$ are in fact a local evaluation function and a weighted aggregation function respectively.
+	To see that $f_h$ perform local evaluation, note that $f_h(c_t) \coloneqq (\sgn z_t, {|z_t|})$ with $z_t \coloneqq \sum_{i=1}^{d} \gamma_{\varphi,i}(c_t) \beta_i$ only depends on the shared multiplicity functions $\gamma_{\varphi,i}$, the constants $\beta_i$ and the constituent $c_t$;
+	apart from $c_t$ no other information from the input graph $G$ is required by $f_h$ which makes it a local evaluation function.
 	To see why $\mathcal{A}_h$ satisfies \cref{defn:ltag:weighted-agg}, note that it inherits the idempotency property from $\wmaj$ because $\mathcal{A}_h$ ignores the bias ``pseudo-constituent'' $(y_b, w_b)$ for all threshold weights $\max w_t \geq \eta > w_b$, similarly the zero invariance of $\wmaj$ is also directly inherited.
 	This concludes the proof.
 \end{proof}
@@ -172,7 +176,7 @@ The central statement of \cref{thm:ltag:svm-ltag-formulation} is that \acs{svm} 
 Those constituent scores can in turn be expressed as a majority vote of the graph scores in the training dataset $\mathcal{D}_{\text{train}}$:
 \begin{align}
 	y_t \coloneqq \sgn z_t
-	 &= \sgn\left( \sum_{j=1}^N \underbrace{\left( \alpha_j \smashoperator[l]{\sum_{c_k \in \psi_{\varphi}(G_j)}} \sum_{i=1}^d \gamma_{\varphi,i}(G)(c_t) \gamma_{\varphi,i}(G_j)(c_k) \right)}_{w_j} y_j \right) \\
+	 &= \sgn\left( \sum_{j=1}^N \underbrace{\left( \alpha_j \smashoperator[l]{\sum_{c_k \in \psi_{\varphi}(G_j)}} \sum_{i=1}^d \gamma_{\varphi,i}(c_t) \gamma_{\varphi,i}(c_k) \right)}_{w_j} y_j \right) \\
 	 &= \wmaj(\ldblbrace (y_j, w_j)\, |\, j \in [N] \rdblbrace) \nonumber
 \end{align}
 Note that, if the constituents of $G_j$ all come from different embedding components than those of $G$ ($\forall i \in [d]: {\psi_{\varphi, i}(G_j) \cap \psi_{\varphi, i}(G)} = \emptyset$), then $G_j$ has no influence on the score of $G$ ($w_j = 0$).
@@ -181,25 +185,61 @@ To see what \cref{thm:ltag:svm-ltag-formulation} implies in practice, we will no
 \begin{enumerate}[label=\textbf{\arabic*.}]
 	\item \textbf{Fingerprint embeddings:}
 		Here the $i$-th embedding component represent the number of occurrences of a substructure $S_i$, i.e.\ ${\varphi}_{\text{FP}}(G)[i] \coloneqq \mathit{count}_{S_i}(G)$ (see \cfullref{defn:related:wl-count-detect}).
-		Such a fingerprint embedding naturally is an \ac{sce} with the decomposition functions $\psi_{\text{FP}, i}(G) \coloneqq \{ G[\set(s)]\, |\, s \in \mathcal{V}_G^{*} \land G[s] \equiv S_i \}$ and the multiplicity functions $\gamma_{\text{FP}, i}(G)(c) \coloneqq \mathbbm{1}[c \in \psi_{\text{FP}, i}(G)]$. % chktex 21
+		Such a fingerprint embedding naturally is an \ac{sce} with the decomposition functions $\psi_{\text{FP}, i}(G) \coloneqq \{ G[\set(s)]\, |\, s \in \mathcal{V}_G^{*} \land G[s] \equiv S_i \}$ and the multiplicity functions $\gamma_{\text{FP}, i}(c) \coloneqq \mathbbm{1}[c \simeq S_i]$ since those functions produce the subgraphs that are counted by ${\varphi}_{\text{FP}}(G)[i]$ with multiplicity $1$. % chktex 21
 
 		Under the assumption that the substructure patterns $S_i$ are chosen s.t.\ the their instances $c \in \psi_{\text{FP}, i}(G)$ are nontrivial interpretable constituents, the underlying joint decomposition $\psi_{\text{FP}}(G) \coloneqq \bigcup_{i=1}^d \psi_{\text{FP}, i}(G)$ must also be nontrivial and interpretable.
 		Thus, by \cref{thm:ltag:svm-ltag-formulation}, \acp{svm} trained on fingerprint embeddings are \ac{lta} models that produce locally explainable predictions.
-		\badgebox[t_green]{\cmark\ LTA}
+		\badgebox[t_green]{LTA}
 	\item \textbf{\texttt{graph2vec}:}
-		The skip-gram inspired \texttt{graph2vec} embedding produces vectors $\text{FP}(G) \in \mathbb{R}^d$ whose individual components do not have a clear interpretation.
-		Since the component values can be arbitrary reals, this approach is not an \ac{sce} which in turn implies that it does not have an \ac{lta} formulation as in \cref{thm:ltag:svm-ltag-formulation}.
-		\badgebox[t_red]{\xmark\ non-LTA}
+		The skip-gram inspired \texttt{graph2vec} embedding produces vectors $\varphi(G) \in \mathbb{R}^d$ whose individual components do not have a clear interpretation.
+		\texttt{graph2vec} embeds graphs that have common 1-\acs{wl} colors closer to each other than graphs that do not share the same colors (see \cfullref{eq:related:graph2vec}).
+		The resulting component values can be arbitrary reals, therefore this approach is not an \ac{sce} which in turn implies that it does not have an \ac{lta} formulation as in \cref{thm:ltag:svm-ltag-formulation}.
+		\badgebox[t_red]{non-LTA}
 	\item \textbf{\ac{wl} subtree kernel:}
-		The individual components of the \ac{wl} subtree embedding represent the number of occurrences of a color $c_i \in \mathcal{C}$, i.e.\ $\varphi_{\text{ST}}(G)[i] \coloneqq \mathit{dist}_{\chi_{G,1}^{(t)}}(c_i)$ as defined in \cfullref[ on ]{eq:related:wl-subtree-kernel}.
-		As illustrated in \cfullref[ on ]{fig:related:wl-subtree}, each occurrence of a color $c_i$ in the \ac{wl} coloring $\chi_{G,1}^{(t)}$ corresponds to the occurrence of a breadth-first subtree of depth $t$.
-		\badgebox[t_green]{\cmark\ LTA-like}
+		The individual components of the \ac{wl} subtree kernel's embedding $\varphi_{\text{ST}}$ represent the number of occurrences of a color $\kappa_i \in \mathcal{C}$, i.e.\ $\varphi_{\text{ST}}(G)[i, t] \coloneqq \mathit{dist}_{\chi_{G,1}^{(t)}}(\kappa_i)$ as defined in \cfullref[ on ]{eq:related:wl-subtree-kernel}\footnote{
+			To avoid confusion $\kappa_i \in \mathcal{C}$ is used for colors and $c_j \in \mathcal{G}$ for constituents in this context.
+		}.
+		The occurrence of a color $\kappa_i$ at some vertex $v_j \in \mathcal{V}_G$ in the $t$-th refinement step (i.e.\ $\chi_{G,1}^{(t)}(v_j) = \kappa_i$) in turn implies that the \ac{bfs} tree $S_{j,t} \coloneqq \text{\acs*{bfs}}(G, v_j, t)$ of depth $t$ rooted at $v_j$ is isomorphic to some \ac{wl} color subtree $S_{\kappa_i}$ (i.e.\ $S_{j,t} \simeq S_{\kappa_i}$).
+		This relation between \ac{wl} colors $\kappa_i$ and subtrees $S_{\kappa_i}$ was illustrated in \cfullref[ on ]{fig:related:wl-subtree}.
+
+		To show that $\varphi_{\text{ST}}$ is an \ac{sce}, we have to define decomposition functions $\psi_{\varphi, i, t}$ and multiplicity functions $\gamma_{\varphi, i, t}$ s.t.\ $\varphi(G)[i, t] = \sum_{c \in \psi_{\varphi, i, t}(G)} \gamma_{\varphi, i, t}(c)$.
+		Since $\varphi(G)[i, t]$ counts the occurrences $S_{j,t}$ of a subtree $S_{\kappa_i}$ in $G$, the \ac{sce} requirement would be trivially satisfied if each $S_{j,t}$ were a constituent with multiplicity $1$.
+		This intuition is however not quite correct because the constituents of a graph $G$ must be induced subgraphs of $G$, not \ac{bfs} subtrees $S_{j, t}$ of $G$.
+		\begin{figure}[t]
+			\centering
+			\includegraphics[width=\linewidth]{gfx/graph-lta/wl1-constituents.pdf}
+			\caption[The constituents implied by the \ac{wl} subtree kernel embedding for an example graph.]{
+				The constituents $c_{j,t}$ implied by the \ac{wl} subtree embedding vector $\varphi(G) = (\underbrace{\textcolor{t_blue}{4}, \textcolor{t_red}{0}, \textcolor{t_green}{0}, \textcolor{t_darkyellow}{0}}_{t = 0}, \underbrace{\textcolor{t_blue}{0}, \textcolor{t_red}{2}, \textcolor{t_green}{1}, \textcolor{t_darkyellow}{1}}_{t = 1})$. % chktex 25
+				The subtrees $S_{j,t}$ that span each constituent $c_{j,t}$ are visualized by the colored arrows that originate from the colored root vertices.
+				Because $S_{1,1}$ and $S_{2,1}$ span the same constituent $c = c_{1,1} = c_{2,1} = G[\{ v_1, v_2, v_3 \}]$, its multiplicity is $\gamma_{\varphi, \textcolor{t_red}{\texttt{B}}, 1}(c) = 2$; % chktex 25
+				the multiplicity of all other constituents is $1$.
+			}\label{fig:ltag:wl1-constituents}
+		\end{figure}
+
+		To fix the previous intuition we ``convert'' the subtrees $S_{j, t}$ into proper subgraph constituents via $c_{j,t} \coloneqq G[\mathcal{V}_{S_{j,t}}]$, i.e.\ the subgraphs that are spanned by the subtrees.
+		The resulting decomposition functions are $\psi_{\varphi, i, t}(G) \coloneqq \{ c_{j,t}\, |\, {v_j \in \mathcal{V}_G}\,\land {S_{j,t} \simeq S_{\kappa_i}} \}$. % chktex 21
+		As illustrated in \cref{fig:ltag:wl1-constituents}, the number of distinct constituents $c_{j,t}$ might be smaller than the number of \ac{bfs} subtrees $S_{j,t}$ because two distinct subtrees might span the same set of vertices.
+		To fix this discrepancy between the subtree occurrence count (which equals $\varphi(G)[i, t]$) and the number of constituents, the multiplicities $\gamma_{\varphi, i, t}(c)$ of the constituents $c$ have to correspond to the number of \ac{bfs} subtrees they were spanned up by, i.e.\
+		\begin{align*}
+			\gamma_{\varphi, i, t}(c) &\coloneqq {|\{ S = \text{\acs*{bfs}}(c, v_{\text{root}}, t)\, |\, v_{\text{root}} \in \mathcal{V}_c \land S \simeq S_{\kappa_i} \land \mathit{complete}(S) \}|} \\
+			\text{with }\mathit{complete}(S) &\Leftrightarrow \forall\ \text{leaf nodes $v_{\text{leaf}}$ of the tree $S$}: {|\Gamma_c(v_{\text{leaf}})|} = {|\Gamma_G(v_{\text{leaf}})|}
+			\text{.}
+		\end{align*}
+		The purpose of the $\mathit{complete}(S)$ condition is to only count the \ac{bfs} subtrees of the constituent $c$ that are also \ac{bfs} subtrees of the complete graph $G$.
+		To see why this is required, note that in \cref{fig:ltag:wl1-constituents} the $c_{1,1}$/$c_{2,1}$ constituent contains the color subtree $S_{\textcolor{t_red}{\texttt{B}}}$ three times (rooted at $v_1$, $v_2$ and $v_3$) even though $G$ only contains it twice (rooted at $v_1$ and $v_2$). % chktex 25
+		Also note that, since $\gamma_{\varphi, i, t}(c)$ must only depend on a given constituent $c$ and not on the graph $G$ it was decomposed from, the degree information $|\Gamma_G(v_{\text{leaf}})|$ of the constituent vertices $v \in \mathcal{V}_c$ is assumed to be statically encoded in the labels $l_c[v]$ or feature vectors $x_c[v]$.
+
+		Via the decomposition and multiplicity functions that were just described, $\varphi_{\text{ST}}$ is in fact an \ac{sce} with a nontrivial, subtree-based decomposition function.
+		By \cref{thm:ltag:svm-ltag-formulation} \acp{svm} that use the \ac{wl} subtree kernel therefore have nontrivial \ac{lta} formulations, i.e.\ they can be considered to be ``\ac{lta}-like'' models.
+		However, unlike fingerprint embeddings, the \ac{wl} subtree constituents are not manually chosen to be interpretable.
+		This implies that the localized explainability characteristic of \ac{lta} is only partially satisfied since the \ac{svm} predictions are based on local constituent predictions that are not necessarily interpretable.
+		\badgebox[t_green]{LTA-like}
 	\item \textbf{\ac{wl} shortest path kernel:}
-		\badgebox[t_red]{\xmark\ non-LTA}
+		\badgebox[t_red]{non-LTA}
 	\item \textbf{$k$-LWL kernel:}
-		\badgebox[t_green]{\cmark\ LTA-like}
+		\badgebox[t_green]{LTA-like}
 	\item \textbf{$k$-GWL kernel:}
-		\badgebox[t_red]{\xmark\ non-LTA}
+		\badgebox[t_red]{non-LTA}
 \end{enumerate}
 
 \subsection{\acsp*{gcnn} as \acs*{lta} Models}%
