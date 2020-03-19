@@ -189,12 +189,12 @@ To see what \cref{thm:ltag:svm-ltag-formulation} implies in practice, we will no
 
 		Under the assumption that the substructure patterns $S_i$ are chosen s.t.\ the their instances $c \in \psi_{\text{FP}, i}(G)$ are nontrivial interpretable constituents, the underlying joint decomposition $\psi_{\text{FP}}(G) \coloneqq \bigcup_{i=1}^d \psi_{\text{FP}, i}(G)$ must also be nontrivial and interpretable.
 		Thus, by \cref{thm:ltag:svm-ltag-formulation}, \acp{svm} trained on fingerprint embeddings are \ac{lta} models that produce locally explainable predictions.
-		\badgebox[t_green]{LTA}
+		\badgebox[t_green]{\acs*{lta}}
 	\item \textbf{\texttt{graph2vec}:}
 		The skip-gram inspired \texttt{graph2vec} embedding produces vectors $\varphi(G) \in \mathbb{R}^d$ whose individual components do not have a clear interpretation.
 		\texttt{graph2vec} embeds graphs that have common 1-\acs{wl} colors closer to each other than graphs that do not share the same colors (see \cfullref{eq:related:graph2vec}).
 		The resulting component values can be arbitrary reals, therefore this approach is not an \ac{sce} which in turn implies that it does not have an \ac{lta} formulation as in \cref{thm:ltag:svm-ltag-formulation}.
-		\badgebox[t_red]{non-LTA}
+		\badgebox[t_red]{non-\acs*{lta}}
 	\item \textbf{\ac{wl} subtree kernel:}
 		The individual components of the \ac{wl} subtree kernel's embedding $\varphi_{\text{ST}}$ represent the number of occurrences of a color $\kappa_i \in \mathcal{C}$, i.e.\ $\varphi_{\text{ST}}(G)[i, t] \coloneqq \mathit{dist}_{\chi_{G,1}^{(t)}}(\kappa_i)$ as defined in \cfullref[ on ]{eq:related:wl-subtree-kernel}\footnote{
 			To avoid confusion $\kappa_i \in \mathcal{C}$ is used for colors and $c_j \in \mathcal{G}$ for constituents in this context.
@@ -221,7 +221,7 @@ To see what \cref{thm:ltag:svm-ltag-formulation} implies in practice, we will no
 		As illustrated in \cref{fig:ltag:wl1-constituents}, the number of distinct constituents $c_{j,t}$ might be smaller than the number of \ac{bfs} subtrees $S_{j,t}$ because two distinct subtrees might span the same set of vertices.
 		To fix this discrepancy between the subtree occurrence count (which equals $\varphi(G)[i, t]$) and the number of constituents, the multiplicities $\gamma_{\varphi, i, t}(c)$ of the constituents $c$ have to correspond to the number of \ac{bfs} subtrees they were spanned up by, i.e.\
 		\begin{align*}
-			\gamma_{\varphi, i, t}(c) &\coloneqq {|\{ S = \text{\acs*{bfs}}(c, v_{\text{root}}, t)\, |\, v_{\text{root}} \in \mathcal{V}_c \land S \simeq S_{\kappa_i} \land \mathit{complete}(S) \}|} \\
+			\gamma_{\varphi, i, t}(c) &\coloneqq {\left|\{ S = \text{\acs*{bfs}}(c, v_{\text{root}}, t)\, |\, v_{\text{root}} \in \mathcal{V}_c \land S \simeq S_{\kappa_i} \land \mathit{complete}(S) \}\right|} \\
 			\text{with }\mathit{complete}(S) &\Leftrightarrow \forall\ \text{leaf nodes $v_{\text{leaf}}$ of the tree $S$}: {|\Gamma_c(v_{\text{leaf}})|} = {|\Gamma_G(v_{\text{leaf}})|}
 			\text{.}
 		\end{align*}
@@ -230,20 +230,47 @@ To see what \cref{thm:ltag:svm-ltag-formulation} implies in practice, we will no
 		Also note that, since $\gamma_{\varphi, i, t}(c)$ must only depend on a given constituent $c$ and not on the graph $G$ it was decomposed from, the degree information $|\Gamma_G(v_{\text{leaf}})|$ of the constituent vertices $v \in \mathcal{V}_c$ is assumed to be statically encoded in the labels $l_c[v]$ or feature vectors $x_c[v]$.
 
 		Via the decomposition and multiplicity functions that were just described, $\varphi_{\text{ST}}$ is in fact an \ac{sce} with a nontrivial, subtree-based decomposition function.
-		By \cref{thm:ltag:svm-ltag-formulation} \acp{svm} that use the \ac{wl} subtree kernel therefore have nontrivial \ac{lta} formulations, i.e.\ they can be considered to be ``\ac{lta}-like'' models.
+		Additionally each constituent's diameter is upper bounded by $2T$ (with $T$ being the maximum number of \ac{wl} iterations) which guarantees that constituents are localized within a neighborhood of bounded size.
+		By \cref{thm:ltag:svm-ltag-formulation}, \acp{svm} that use the \ac{wl} subtree kernel therefore have nontrivial \ac{lta} formulations with localized constituents, i.e.\ they can be considered to be ``\ac{lta}-like'' models.
 		However, unlike fingerprint embeddings, the \ac{wl} subtree constituents are not manually chosen to be interpretable.
 		This implies that the localized explainability characteristic of \ac{lta} is only partially satisfied since the \ac{svm} predictions are based on local constituent predictions that are not necessarily interpretable.
-		\badgebox[t_green]{LTA-like}
+		\badgebox[t_green]{\acs*{lta}-like}
 	\item \textbf{\ac{wl} shortest path kernel:}
-		\badgebox[t_red]{non-LTA}
+		As defined in \cfullref[ on ]{eq:related:wl-shortest-path-kernel}, the $i$-th component of the \ac{wl} shortest path embedding $\varphi_{\text{SP}}$ represents a 4-tuple $(t_i, a_i, b_i, d_i) \in {\{ 0, \dots, T \}} \times \mathcal{C} \times \mathcal{C} \times \mathbb{N}_0$.
+		The value $\varphi_{\text{SP}}(G)[i]$ is defined as the number of vertex pairs $v_a, v_b \in \mathcal{V}_G$ that have a shortest connecting path of length $d_i$ and the \ac{wl} color combination $\chi_{G,1}^{(t_i)}(v_a) = a_i$ and $\chi_{G,1}^{(t_i)}(v_b) = b_i$.
+
+		To determine the number of such vertex pairs via an \ac{sce} multiplicity function $\gamma_{\varphi, t_i, a_i, b_i, d_i}$, each connected pair of vertices $v_a, v_b$ and the shortest path between them must occur together in at least one constituent, otherwise a multiplicity function cannot compute whether $v_a$ and $v_b$ are in fact $d_i$ hops apart.
+		One simple decomposition which guarantees that all shortest paths are part of at least one constituent simply splits a given graph into its connected components.
+		Even though such a decomposition is non-trivial since it uses at least some structural information to determine the set of constituents, the fact that any pair of connected vertices must co-occur within a single constituent means that constituents must span arbitrarily large distances within a given graph.
+		Depending on ones domain-specific interpretation of \textit{localized explainability}, this restriction can be seen to be not ``\acs{lta}-like''.
+		Since we do not attempt to clearly separate \ac{lta} from non-\acs{lta} methods, $\varphi_{\text{SP}}$ is categorized as an in-between case here.
+		\badgebox[t_yellow]{partially \acs*{lta}-like}
 	\item \textbf{$k$-LWL kernel:}
-		\badgebox[t_green]{LTA-like}
+		The \ac{lta} interpretation of the $k$-LWL kernel is identical to that of the \ac{wl} subtree kernel.
+		The \ac{wl} color of a $k$-multiset of vertices $s$ after $t$ refinement steps is described by the joint $t$-neighborhood of all vertices $v \in s$, i.e.\ $\Gamma_{G}^t(s) \coloneqq \bigcup_{v \in s} \Gamma_{G}^t(v)$.
+		Analogous to \ac{wl} subtree embeddings, those $t$-neighborhoods form the localized constituents of the $k$-LWL kernel via a \ac{bfs} over neighboring $k$-multisets.
+		Consequently \acp{svm} using the $k$-LWL kernel can be interpreted as ``\acs{lta}-like'' methods with nontrivial localized decompositions.\\
+		\badgebox[t_green]{\acs*{lta}-like}
 	\item \textbf{$k$-GWL kernel:}
-		\badgebox[t_red]{non-LTA}
+		The only difference between the $k$-LWL and the $k$-GWL kernel is their definition of the $k$-multiset neighborhood.
+		Namely the refined color of a multiset $s \subseteq \mathcal{V}_G$ in $k$-GWL depends on the the colors of all vertices $\mathcal{V}_G$ since all multisets $s' = s \setminus \{ v \} \cup \{ u \}$ with $v \in s$ and $u \in \mathcal{V}_G$ are neighbors of $s$.
+		Because of those global multiset neighborhoods, all the color subtrees of a graph span the entire graph.
+		Therefore the $k$-GWL embedding is an \ac{sce} with only the trivial decomposition function $\psi_{\varphi}(G) = \{ G \}$.
+		Thus the \ac{lta} formulation of $k$-GWL \acp{svm} described in \cref{thm:ltag:svm-ltag-formulation} is also trivial which means that they are not \ac{lta} models.
+		\badgebox[t_red]{non-\acs*{lta}}
 \end{enumerate}
+
+This concludes our overview of \ac{lta} interpretations of \acp{svm} that use graph embeddings/kernels.
+Among the described approaches, fingerprint embeddings, the \ac{wl} subtree kernel and the $k$-LWL kernel were shown to have \ac{lta} formulations with nontrivial local decomposition functions.
+Approaches like \texttt{graph2vec}, the \ac{wl} shortest path kernel or $k$-GWL on the other hand, were shown to be less compatible with \ac{lta}.
 
 \subsection{\acsp*{gcnn} as \acs*{lta} Models}%
 \label{sec:ltag:formulation:gcnn}
+
+Now we will look at the \ac{gcnn} approaches described in \cref{sec:related:gcr:nn} from an \ac{lta} perspective.
+While the \ac{svm} \ac{lta} formulation from \cref{thm:ltag:svm-ltag-formulation} uses a single fixed aggregation function, namely $\wmaj$, \ac{gcnn} architectures can use many other aggregation functions.
+As illustrated in x, this is due to the fact that the structure of \acp{gcnn} aligns more closely to that of \ac{lta}:
+The decomposition and local evaluation functions are implicitly defined by the convolutional layers, the aggregation function directly corresponds to the pooling layer in existing architectures.
 
 \section{A Novel \acs*{lta}-Inspired \acs*{gcnn} Architecture}%
 \label{sec:ltag:wl2gnn}

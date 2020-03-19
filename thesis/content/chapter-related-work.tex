@@ -638,7 +638,7 @@ Consequently the dimensionality $d$ of $\varphi_{\text{ST}}(G) \in \mathbb{N}^d$
 Extending the idea of the \ac{wl} subtree kernel, the \textit{\ac{wl} shortest path kernel}~\cite{Shervashidze2011}\cite{Borgwardt2005} adds global structural information to the local subtree comparisons.
 The $i$-th component of a graph's shortest path vector $\varphi_{\text{SP}}(G)$ corresponds to the 4-tuple $(t_i, a_i, b_i, d_i) \in {\{ 0, \dots, T \}} \times \mathcal{C} \times \mathcal{C} \times \mathbb{N}_0$ and its value is described by
 \begin{align}
-	{\varphi_{\text{SP}}(G)}[i] \coloneqq \left| \left\{ (v, u) \in \mathcal{V}_G^2 \,|\, {\chi_{G,1}^{(t_i)}(v) = a_i} \land {\chi_{G,1}^{(t_i)}(u) = b_i} \land {d_{\text{SP}}(v, u) = d_i} \right\} \right| \text{,} % chktex 21
+	{\varphi_{\text{SP}}(G)}[i] \coloneqq \left| \left\{ (v, u) \in \mathcal{V}_G^2 \,|\, {\chi_{G,1}^{(t_i)}(v) = a_i} \land {\chi_{G,1}^{(t_i)}(u) = b_i} \land {d_{\text{SP}}(v, u) = d_i} \right\} \right| \text{,} \label{eq:related:wl-shortest-path-kernel} % chktex 21
 \end{align}
 with $d_{\text{SP}}(v, u)$ denoting the length of the shortest path from $v$ to $u$ in $G$.
 Analogous to $k_{\text{ST}}$, the shortest path kernel function is defined as $k_{\text{SP}}(G, H) \coloneqq \langle \varphi_{\text{SP}}(G), \varphi_{\text{SP}}(H) \rangle$.
