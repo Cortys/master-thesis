@@ -169,7 +169,7 @@
     breaklinks=true,            %   - allow line break inside links
     bookmarksnumbered=true,     %
     bookmarksopen=true,         %
-	hypertexnames=true,        %   - fix wrong page links across chapters
+	hypertexnames=true,         %
 }
 
 % Custom commands:
@@ -196,17 +196,12 @@
 \DeclareMathOperator{\set}{set}
 
 \theoremstyle{plain}
-\newtheorem{thm}{Theorem}
-\numberwithin{thm}{chapter}
+\newtheorem{thm}{Theorem}[chapter]
 \newtheorem{prop}[thm]{Proposition}
-\numberwithin{prop}{chapter}
 \newtheorem{lem}[thm]{Lemma}
-\numberwithin{lem}{chapter}
 \newtheorem{fact}[thm]{Fact}
-\numberwithin{fact}{chapter}
 \newtheorem{cor}[thm]{Corollary}
-\numberwithin{cor}{chapter}
 
 \theoremstyle{definition}
 \newtheorem{defn}[thm]{Definition}
-\numberwithin{defn}{chapter}
+% \numberwithin{defn}{chapter}
