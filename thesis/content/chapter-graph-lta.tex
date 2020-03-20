@@ -268,9 +268,27 @@ Approaches like \texttt{graph2vec}, the \ac{wl} shortest path kernel or $k$-GWL 
 \label{sec:ltag:formulation:gcnn}
 
 Now we will look at the \ac{gcnn} approaches described in \cref{sec:related:gcr:nn} from an \ac{lta} perspective.
-While the \ac{svm} \ac{lta} formulation from \cref{thm:ltag:svm-ltag-formulation} uses a single fixed aggregation function, namely $\wmaj$, \ac{gcnn} architectures can use many other aggregation functions.
-As illustrated in x, this is due to the fact that the structure of \acp{gcnn} aligns more closely to that of \ac{lta}:
-The decomposition and local evaluation functions are implicitly defined by the convolutional layers, the aggregation function directly corresponds to the pooling layer in existing architectures.
+As described in the last section, \acp{svm} can be interpreted as \ac{lta} methods if they use an \ac{sce} embedding;
+similarly \acp{gcnn} also have \ac{lta} formulations under certain conditions that are described in this section.
+
+While the \ac{svm} \ac{lta} formulation from \cref{thm:ltag:svm-ltag-formulation} uses a single fixed aggregation function, namely $\wmaj$, the aggregation function in \ac{gcnn} architectures can be chosen more freely.
+This is due to the fact that \acp{gcnn} have an \ac{lta} formulation in which the convolutional layers implicitly define the decomposition and local evaluation functions while the pooling layer directly corresponds to the \ac{lta} aggregation function.
+This correspondence is illustrated in \cref{fig:ltag:gcnn-structure}.
+\begin{figure}[t]
+	\centering
+	\includegraphics[width=0.8\linewidth]{gfx/graph-lta/gcnn-structure.pdf}
+	\caption{
+		An \ac{lta} perspective on \acp{gcnn} that use vertex neighborhood convolutions.
+	}\label{fig:ltag:gcnn-structure}
+\end{figure}
+As described in \cref{sec:related:gcr:nn}, a stack of $T$ vertex convolution layers computes a feature vector $z_i \in \mathbb{R}^{(T)}$ for all vertices $v_i \in \mathcal{V}_G$ of an input graph $G$.
+Depending on the specific type of convolutional layer, each of those feature vectors $z_i$ is the result of some subset of the input feature vectors ${\{ x_i \}}_{v_i \in \mathcal{V}_G}$:
+\begin{enumerate}[label=\textbf{\arabic*.}]
+	\item \textbf{Spectral convolutions with arbitrary filters:}
+	\item \textbf{Spatial vertex convolutions:}
+		If the convolutional layers use a neighborhood aggregation scheme, the receptive field of vertices that have an influence on $z_i$ is equal to the 1-\acs{wl} subtree of $v_i$ after $T$ refinement steps as described by \citet{Xu2018}.
+		Similar to the \ac{wl} subtree kernel, each $z_i \in \mathbb{R}^{(T)}$ can therefore be interpreted as the evaluation of a localized subtree.
+\end{enumerate}
 
 \section{A Novel \acs*{lta}-Inspired \acs*{gcnn} Architecture}%
 \label{sec:ltag:wl2gnn}
