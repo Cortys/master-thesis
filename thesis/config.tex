@@ -180,12 +180,12 @@
 \newcommand*{\badgeboxinline}[2][black]{\fcolorbox{#1}{white}{\textsf{%
 	\small\,% chktex 21
 	\ifthenelse{\equal{\detokenize{#1}}{\detokenize{t_yellow}}}{\textcolor{t_darkyellow}{#2}}{\textcolor{#1}{#2}}\,}}} % chktex 21
-\newcommand*{\badgebox}[2][black]{\null\hfill\badgeboxinline[#1]{#2}}
+\newcommand*{\badgebox}[2][black]{\hspace*{\fill}\badgeboxinline[#1]{#2}}
 \newcommand{\cmark}{\ding{51}}
 \newcommand{\xmark}{\ding{55}}
 
 \newcommand{\sourceinline}[2][source]{{\scriptsize\textsc{#1:~\cite{#2}}}}
-\newcommand{\source}[2][source]{\null\hfill\sourceinline[#1]{#2}}
+\newcommand{\source}[2][source]{\hspace*{\fill}\sourceinline[#1]{#2}}
 \newcommand{\cfullref}[2][, ]{\cref{#2}#1\cpageref{#2}}
 
 \DeclareMathOperator{\Tr}{Tr}

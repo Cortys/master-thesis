@@ -176,7 +176,7 @@ The central statement of \cref{thm:ltag:svm-ltag-formulation} is that \acs{svm} 
 Those constituent scores can in turn be expressed as a majority vote of the graph scores in the training dataset $\mathcal{D}_{\text{train}}$:
 \begin{align}
 	y_t \coloneqq \sgn z_t
-	 &= \sgn\left( \sum_{j=1}^N \underbrace{\left( \alpha_j \smashoperator[l]{\sum_{c_k \in \psi_{\varphi}(G_j)}} \sum_{i=1}^d \gamma_{\varphi,i}(c_t) \gamma_{\varphi,i}(c_k) \right)}_{w_j} y_j \right) \\
+	 &= \sgn\left( \sum_{j=1}^N \underbrace{\left( \alpha_j \smashoperator[l]{\sum_{c_k \in \psi_{\varphi}(G_j)}} \sum_{i=1}^d \gamma_{\varphi,i}(c_t) \gamma_{\varphi,i}(c_k) \right)}_{w_j \geq 0} y_j \right) \\
 	 &= \wmaj(\ldblbrace (y_j, w_j)\, |\, j \in [N] \rdblbrace) \nonumber
 \end{align}
 Note that, if the constituents of $G_j$ all come from different embedding components than those of $G$ ($\forall i \in [d]: {\psi_{\varphi, i}(G_j) \cap \psi_{\varphi, i}(G)} = \emptyset$), then $G_j$ has no influence on the score of $G$ ($w_j = 0$).
@@ -267,28 +267,63 @@ Approaches like \texttt{graph2vec}, the \ac{wl} shortest path kernel or $k$-GWL 
 \subsection{\acsp*{gcnn} as \acs*{lta} Models}%
 \label{sec:ltag:formulation:gcnn}
 
-Now we will look at the \ac{gcnn} approaches described in \cref{sec:related:gcr:nn} from an \ac{lta} perspective.
-As described in the last section, \acp{svm} can be interpreted as \ac{lta} methods if they use an \ac{sce} embedding;
-similarly \acp{gcnn} also have \ac{lta} formulations under certain conditions that are described in this section.
+Now we will look at \ac{gcnn} methods from an \ac{lta} perspective.
+As shown in the last section, \acp{svm} can be interpreted as \ac{lta} methods if they use an \ac{sce} embedding;
+similarly \acp{gcnn} also have \ac{lta} formulations under certain conditions.
+In this section we will describe those conditions and the \ac{lta} formulations of the \acp{gcnn} that satisfy them.
 
-While the \ac{svm} \ac{lta} formulation from \cref{thm:ltag:svm-ltag-formulation} uses a single fixed aggregation function, namely $\wmaj$, the aggregation function in \ac{gcnn} architectures can be chosen more freely.
-This is due to the fact that \acp{gcnn} have an \ac{lta} formulation in which the convolutional layers implicitly define the decomposition and local evaluation functions while the pooling layer directly corresponds to the \ac{lta} aggregation function.
-This correspondence is illustrated in \cref{fig:ltag:gcnn-structure}.
-\begin{figure}[t]
+In \cref{sec:related:gcr:nn} an overview of graph convolution and graph pooling layers was given.
+While there are many ways to combine those layers, we focus on global pooling \ac{gcnn} architectures that use the following three steps:
+\begin{enumerate}[label=\textbf{\arabic*.}]
+	\item \textbf{Convolution:}
+		First a stack of $T$ convolutional layers is applied to the input feature matrix $X \in \mathbb{R}^{n \times d^{(0)}}$ where each row is a feature vector $x_i \in \mathbb{R}^d$ for the vertex $v_i \in \mathcal{V}_G$ or the vertex $k$-multiset $s_i \subseteq \mathcal{V}_G$ in case of $k$-\acsp{gnn}.
+		The convolutional layers produce a convolved feature matrix $Z \in \mathbb{R}^{n \times d^{(T)}}$.
+	\item \textbf{Pooling:}
+		Then the convolved feature matrix $Z$ is reduced to a single graph feature vector $z_G \in \mathbb{R}^{d^{(T)}}$ via a pooling layer.
+	\item \textbf{\ac{mlp}:}
+		Lastly the final output $y_G \in \mathcal{Y}$ is computed by applying a standard \ac{mlp} to the graph feature vector $z_G$.
+\end{enumerate}
+\Cref{fig:ltag:gcnn-structure} illustrates this three step architecture for vertex neighborhood convolutions like those used by \acp{gcn}~\cite{Kipf2017} or \acp{gin}~\cite{Xu2018}.
+Intuitively the convolutional layers implicitly define the decomposition and local evaluation functions while the pooling layer corresponds to the \ac{lta} aggregation function.
+This intuition is now formalized.
+\begin{figure}[ht]
 	\centering
-	\includegraphics[width=0.8\linewidth]{gfx/graph-lta/gcnn-structure.pdf}
+	\includegraphics[width=\linewidth]{gfx/graph-lta/gcnn-structure.pdf}
 	\caption{
-		An \ac{lta} perspective on \acp{gcnn} that use vertex neighborhood convolutions.
+		Computational steps of \acp{gcnn} that use vertex neighborhood convolutions.
 	}\label{fig:ltag:gcnn-structure}
 \end{figure}
-As described in \cref{sec:related:gcr:nn}, a stack of $T$ vertex convolution layers computes a feature vector $z_i \in \mathbb{R}^{(T)}$ for all vertices $v_i \in \mathcal{V}_G$ of an input graph $G$.
-Depending on the specific type of convolutional layer, each of those feature vectors $z_i$ is the result of some subset of the input feature vectors ${\{ x_i \}}_{v_i \in \mathcal{V}_G}$:
-\begin{enumerate}[label=\textbf{\arabic*.}]
-	\item \textbf{Spectral convolutions with arbitrary filters:}
-	\item \textbf{Spatial vertex convolutions:}
-		If the convolutional layers use a neighborhood aggregation scheme, the receptive field of vertices that have an influence on $z_i$ is equal to the 1-\acs{wl} subtree of $v_i$ after $T$ refinement steps as described by \citet{Xu2018}.
-		Similar to the \ac{wl} subtree kernel, each $z_i \in \mathbb{R}^{(T)}$ can therefore be interpreted as the evaluation of a localized subtree.
-\end{enumerate}
+
+\subsubsection{Graph Convolutions as \ac*{lta} Decomposition and Evaluation Functions}
+
+In order to interpret a stack of convolutional layers as a representation of an \ac{lta} decomposition function $\psi: \mathcal{G} \to \mathcal{P}(\mathcal{G})$ and evaluation function $f: \mathcal{G} \to \mathcal{Y} \times \mathbb{R}_{\geq 0}$, there must be a mapping $\tau: \mathbb{R}^{* \times d^{(T)}} \to {(\mathcal{Y} \times \mathbb{R}_{\geq 0})}^{*}$ s.t.\ $\tau(Z) = {\ldblbrace f(c_i) \rdblbrace}_{c_i \in \psi(G)}$.
+Whether such a translation map $\tau$ from convolved feature matrices to constituent evaluations exists, depends on the specific type of convolutional layer that is used.
+
+\paragraph{Spectral convolutions with arbitrary filters}
+Let us begin with general spectral graph convolutions~\cite{Bruna2013}\cite{Henaff2015}.
+Following \cfullref[ on ]{eq:related:graph-conv-general}, after a single convolution the convolved feature vector $z_i$ of a vertex $v_i$ is defined as
+\begin{align}\label{eq:ltag:general-spectral-conv}
+	z_i = {\left( U^{\top} \hat{g}(\Lambda) U X \right)}_i = \sum_{k=1}^n \underbrace{\left( \sum_{l=1}^n \hat{g}(\lambda_l) u_{l,k} u_{l,i} \right)}_{\alpha_k} x_k
+\end{align}
+where $L = U^{\top} \Lambda U$ is the eigendecomposition of the input graph's Laplacian and $\hat{g}$ is some eigenvalue filter.
+\begin{lem}\label{lem:ltag:general-spectral-conv-nonlocality}
+	$\exists \eta \in \mathbb{R}$ s.t.\ if $\hat{g}(0) = \eta$, every $z_i$ depends on all input vertex features $x_k$.
+\end{lem}
+\begin{proof}
+	Note that by \cfullref[ on ]{defn:related:laplacian-comb} it follows that $u_1 = \frac{1}{\sqrt{n}}{(1, \dots, 1)}^{\top}$ is an eigenvector with eigenvalue $\lambda_1 = 0$ of the combinatorial Laplacian as well as the symmetrically normalized Laplacian.
+	Consequently in \cref{eq:ltag:general-spectral-conv} the first summand of each $\alpha_k$ equals $\hat{g}(0) u_{1,k} u_{1,i} = \frac{\eta}{n}$ for all $i \in [n]$.
+	The lemma then follows by choosing $\eta$ s.t.\ all $\alpha_k \neq 0$.
+\end{proof}
+Consequently because a \ac{gcnn} with an arbitrary spectral filter $\hat{g}$ can use $\hat{g}(0) = \eta$, the convolved vertex feature vectors ${\{ z_i \}}_{v_i \in \mathcal{V}_G}$ all depend on the entire set of input features ${\{ x_i \}}_{v_i \in \mathcal{V}_G}$.
+This in turn implies that no entry in the convolved vertex feature matrix $Z$ is based on a proper subset of the input vertices.
+If we want to interpret any entry of $Z$ as the score or weight of a constituent, this constituent has to span the entire input graph since all vertex features potentially had an influence on them.
+In other words, spectral \acp{gcnn} with arbitrary filters only have trivial \ac{lta} formulations which makes them non-\acs{lta} methods.
+
+\paragraph{Vertex neighborhood convolutions}
+
+\paragraph{Vertex $k$-multiset neighborhood convolutions}
+
+\subsubsection{Graph Pooling as \ac*{lta} Aggregation Functions}
 
 \section{A Novel \acs*{lta}-Inspired \acs*{gcnn} Architecture}%
 \label{sec:ltag:wl2gnn}

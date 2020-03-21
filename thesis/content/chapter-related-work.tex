@@ -268,7 +268,7 @@ In each iteration of the 1-\acs{wl} color refinement algorithm, the following ne
 	}\label{fig:related:wl1-refine}
 \end{figure}
 In practice the hash function $h$ is usually defined lazily by using $\mathcal{C} \subseteq \mathbb{N}$ and enumerating color combinations in whichever order they are hashed s.t.\ a new color is introduced every time a previously unseen color combination appears at runtime\footnote{
-	Though $\mathcal{C}$ is countably infinite, we assume it only contains the finite no.\ of colors in a dataset.
+	$\mathcal{C}$ is countably infinite but we assume it only contains the finite no.\ of colors occurring in a dataset.
 }.
 
 \subsubsection{The $k$-dimensional \acs{wl} algorithm}
@@ -472,7 +472,7 @@ Similarly the inverse \ac{ft} can be expressed as $\mathcal{F}^{-1} = U_G^{-1} =
 To see why this is the case, note that $L_G$ is guaranteed to only have real eigenvectors $u_G$ and eigenvalues $\lambda_G$ due to the fact that we only consider undirected graphs with symmetric adjacency matrices $A_G$.
 
 \paragraph{Interpretation of the spectrum}
-By convention we assume that the eigenvalues are ordered ascendingly: $\lambda_{G,0} \leq \cdots \leq \lambda_{G,n}$.
+By convention we assume that the eigenvalues are ordered ascendingly: $\lambda_{G,1} \leq \cdots \leq \lambda_{G,n}$.
 Those eigenvalues are called the \textit{spectrum of $G$} and they are a vertex-permutation-invariant graph characterization.
 Intuitively those eigenvalues describe the connectivity between different parts of the graph.
 The first eigenvalues represent connectivity at a general, coarse level while the last eigenvalues represent the connectivity of finer substructures.
@@ -747,12 +747,12 @@ Instead of interpreting convolutions as applications of linear spectral filters,
 From this perspective a \ac{gcn} can be seen as a so-called spatial \ac{gcnn} because it operates directly in the vertex domain.
 To see why this is the case, we rewrite \cref{eq:related:gcn-layer} and compare it with the 1-\acs{wl} color refinement strategy (see \cfullref{defn:related:wl1-refine}):
 \begin{align*}
-	\text{\ac*{gcn}:}\quad&& Z^{(t)}[v] &= \sigma\left(\left( {c(v)}^2 Z^{(t-1)}[v] + \smashoperator[lr]{\sum_{u \in \Gamma_G(v)}} c(v) c(u) Z^{(t-1)}[u] \right) \Theta^{(t)} \right) \\
+	\text{\ac*{gcn}:}\quad&& Z^{(t)}[v] &= \sigma\left(\left( {\mu(v)}^2 Z^{(t-1)}[v] + \smashoperator[lr]{\sum_{u \in \Gamma_G(v)}} \mu(v) \mu(u) Z^{(t-1)}[u] \right) \Theta^{(t)} \right) \\
 	\text{1-\acs{wl}:}\quad&& \chi_{G,1}^{(t)}(v) &= h\left( \chi_{G,1}^{(t-1)}(v), \ldblbrace \chi_{G,1}^{(t-1)}(u)\, |\, u \in \Gamma_{G}(v) \rdblbrace\right)
 \end{align*}
-Here $c(v) \coloneqq {\left(\left| \Gamma_G(v) \right| + 1\right)}^{-\frac{1}{2}}$ are normalization factors introduced by $\tilde{D}_G^{-\frac{1}{2}}$.
+Here $\mu(v) \coloneqq {\left(\left| \Gamma_G(v) \right| + 1\right)}^{-\frac{1}{2}}$ are normalization factors introduced by $\tilde{D}_G^{-\frac{1}{2}}$.
 The comparison shows that \ac{gcn} convolutions can be understood as iterative refinements of continuous ``color vectors'' $Z^{(t)}[v] \in \mathbb{R}^{d^{(t)}}$.
-Then the continuous analogue to the injective 1-\acs{wl} hash function $h: \mathcal{C}^{*} \to \mathcal{C}$ can be defined as $h_{\text{\acs*{gcn}}}(z_0, z_1, \dots, z_m) = \sigma(\sum_{j=0}^m c(v_0) c(v_j) z_j \Theta^{(t)})$ which computes a single color vector from multiple color vectors $z_j$ where $v_j$ are the corresponding vertices.
+Then the continuous analogue to the injective 1-\acs{wl} hash function $h: \mathcal{C}^{*} \to \mathcal{C}$ can be defined as $h_{\text{\acs*{gcn}}}(z_0, z_1, \dots, z_m) = \sigma(\sum_{j=0}^m \mu(v_0) \mu(v_j) z_j \Theta^{(t)})$ which computes a single color vector from multiple color vectors $z_j$ where $v_j$ are the corresponding vertices.
 
 \paragraph{A 1-\acs{wl} bound on \ac{gnn} power}
 The relation between \acp{gcnn} using neighborhood aggregation convolution and 1-\acs{wl} was formally analyzed by \citet{Xu2018}.
@@ -762,7 +762,7 @@ To overcome this limitation an alternative neighborhood aggregation architecture
 \begin{align}
 	Z^{(t)}[v] \coloneqq \text{\acs*{mlp}}^{(t)}\left( Z^{(t-1)}[v] + \smashoperator[lr]{\sum_{u \in \Gamma_G(v)}} Z^{(t-1)}[u] \right)
 \end{align}
-By leaving out the normalization factors $c(v)$ and by using a \ac{mlp} instead of the single fully-connected layer $\sigma \circ \Theta^{(t)}$ the resulting hashing function $h_{\text{\acs*{gin}}}(z_1, \dots, z_m) = \text{\acs*{mlp}}^{(t)}(\sum_{j=1}^{m} z_j)$ becomes injective\footnote{
+By leaving out the normalization factors $\mu(v)$ and by using a \ac{mlp} instead of the single fully-connected layer $\sigma \circ \Theta^{(t)}$ the resulting hashing function $h_{\text{\acs*{gin}}}(z_1, \dots, z_m) = \text{\acs*{mlp}}^{(t)}(\sum_{j=1}^{m} z_j)$ becomes injective\footnote{
 	Under the assumption that the set of possible input feature matrices $X \in \mathbb{R}^{n \times d^{(0)}}$ is countable.
 	This is reasonable since real-world \ac{gcr} domains typically only have a finite set of possible vertex feature vectors, e.g\ one-hot label encodings.
 }, i.e.\ it assigns a unique color vector to each multiset of color vectors.
