@@ -182,8 +182,8 @@ Those constituent scores can in turn be expressed as a majority vote of the grap
 Note that, if the constituents of $G_j$ all come from different embedding components than those of $G$ ($\forall i \in [d]: {\psi_{\varphi, i}(G_j) \cap \psi_{\varphi, i}(G)} = \emptyset$), then $G_j$ has no influence on the score of $G$ ($w_j = 0$).
 
 To see what \cref{thm:ltag:svm-ltag-formulation} implies in practice, we will now apply it to the graph embedding approaches described in \cref{sec:related:gcr:embed,sec:related:gcr:kernel}:
-\begin{enumerate}[label=\textbf{\arabic*.}]
-	\item \textbf{Fingerprint embeddings:}
+\begin{enumerate}[label=\textbf{\arabic*.},ref={\arabic*}]
+	\item \textbf{Fingerprint embeddings:}\label{itm:ltag:fingerprint-lta-formulation}
 		Here the $i$-th embedding component represent the number of occurrences of a substructure $S_i$, i.e.\ ${\varphi}_{\text{FP}}(G)[i] \coloneqq \mathit{count}_{S_i}(G)$ (see \cfullref{defn:related:wl-count-detect}).
 		Such a fingerprint embedding naturally is an \ac{sce} with the decomposition functions $\psi_{\text{FP}, i}(G) \coloneqq \{ G[\set(s)]\, |\, s \in \mathcal{V}_G^{*} \land G[s] \equiv S_i \}$ and the multiplicity functions $\gamma_{\text{FP}, i}(c) \coloneqq \mathbbm{1}[c \simeq S_i]$ since those functions produce the subgraphs that are counted by ${\varphi}_{\text{FP}}(G)[i]$ with multiplicity $1$. % chktex 21
 
@@ -195,7 +195,7 @@ To see what \cref{thm:ltag:svm-ltag-formulation} implies in practice, we will no
 		\texttt{graph2vec} embeds graphs that have common 1-\acs{wl} colors closer to each other than graphs that do not share the same colors (see \cfullref{eq:related:graph2vec}).
 		The resulting component values can be arbitrary reals, therefore this approach is not an \ac{sce} which in turn implies that it does not have an \ac{lta} formulation as in \cref{thm:ltag:svm-ltag-formulation}.
 		\badgebox[t_red]{non-\acs*{lta}}
-	\item \textbf{\ac{wl} subtree kernel:}
+	\item \textbf{\ac{wl} subtree kernel:}\label{itm:ltag:wlst-lta-formulation}
 		The individual components of the \ac{wl} subtree kernel's embedding $\varphi_{\text{ST}}$ represent the number of occurrences of a color $\kappa_i \in \mathcal{C}$, i.e.\ $\varphi_{\text{ST}}(G)[i, t] \coloneqq \mathit{dist}_{\chi_{G,1}^{(t)}}(\kappa_i)$ as defined in \cfullref[ on ]{eq:related:wl-subtree-kernel}\footnote{
 			To avoid confusion $\kappa_i \in \mathcal{C}$ is used for colors and $c_j \in \mathcal{G}$ for constituents in this context.
 		}.
@@ -235,7 +235,7 @@ To see what \cref{thm:ltag:svm-ltag-formulation} implies in practice, we will no
 		However, unlike fingerprint embeddings, the \ac{wl} subtree constituents are not manually chosen to be interpretable.
 		This implies that the localized explainability characteristic of \ac{lta} is only partially satisfied since the \ac{svm} predictions are based on local constituent predictions that are not necessarily interpretable.
 		\badgebox[t_green]{\acs*{lta}-like}
-	\item \textbf{\ac{wl} shortest path kernel:}
+	\item \textbf{\ac{wl} shortest path kernel:}\label{itm:ltag:wlsp-lta-formulation}
 		As defined in \cfullref[ on ]{eq:related:wl-shortest-path-kernel}, the $i$-th component of the \ac{wl} shortest path embedding $\varphi_{\text{SP}}$ represents a 4-tuple $(t_i, a_i, b_i, d_i) \in {\{ 0, \dots, T \}} \times \mathcal{C} \times \mathcal{C} \times \mathbb{N}_0$.
 		The value $\varphi_{\text{SP}}(G)[i]$ is defined as the number of vertex pairs $v_a, v_b \in \mathcal{V}_G$ that have a shortest connecting path of length $d_i$ and the \ac{wl} color combination $\chi_{G,1}^{(t_i)}(v_a) = a_i$ and $\chi_{G,1}^{(t_i)}(v_b) = b_i$.
 
@@ -245,13 +245,13 @@ To see what \cref{thm:ltag:svm-ltag-formulation} implies in practice, we will no
 		Depending on ones domain-specific interpretation of \textit{localized explainability}, this restriction can be seen to be not ``\acs{lta}-like''.
 		Since we do not attempt to clearly separate \ac{lta} from non-\acs{lta} methods, $\varphi_{\text{SP}}$ is categorized as an in-between case here.
 		\badgebox[t_yellow]{partially \acs*{lta}-like}
-	\item \textbf{$k$-LWL kernel:}
+	\item \textbf{$k$-LWL kernel:}\label{itm:ltag:klwl-lta-formulation}
 		The \ac{lta} interpretation of the $k$-LWL kernel is identical to that of the \ac{wl} subtree kernel.
-		The \ac{wl} color of a $k$-multiset of vertices $s$ after $t$ refinement steps is described by the joint $t$-neighborhood of all vertices $v \in s$, i.e.\ $\Gamma_{G}^t(s) \coloneqq \bigcup_{v \in s} \Gamma_{G}^t(v)$.
+		The \ac{wl} color of a $k$-multiset of vertices $s$ after $t$ refinement steps is described by the joint $t$-neighborhood of all vertices $v \in s$, i.e.\ by $\Gamma_{G}^t(s) \coloneqq \bigcup_{v \in s} \Gamma_{G}^t(v)$ where $\Gamma_{G}^t(v) \coloneqq \Gamma_{G}^{t-1}(v) \cup \bigcup_{u \in \Gamma_{G}(v)} \Gamma_{G}^{t-1}(u)$ and $\Gamma_{G}^0(v) \coloneqq \{ v \}$.
 		Analogous to \ac{wl} subtree embeddings, those $t$-neighborhoods form the localized constituents of the $k$-LWL kernel via a \ac{bfs} over neighboring $k$-multisets.
-		Consequently \acp{svm} using the $k$-LWL kernel can be interpreted as ``\acs{lta}-like'' methods with nontrivial localized decompositions.\\
+		Consequently \acp{svm} using the $k$-LWL kernel can be interpreted as ``\acs{lta}-like'' methods with nontrivial localized decompositions.
 		\badgebox[t_green]{\acs*{lta}-like}
-	\item \textbf{$k$-GWL kernel:}
+	\item \textbf{$k$-GWL kernel:}\label{itm:ltag:kgwl-lta-formulation}
 		The only difference between the $k$-LWL and the $k$-GWL kernel is their definition of the $k$-multiset neighborhood.
 		Namely the refined color of a multiset $s \subseteq \mathcal{V}_G$ in $k$-GWL depends on the the colors of all vertices $\mathcal{V}_G$ since all multisets $s' = s \setminus \{ v \} \cup \{ u \}$ with $v \in s$ and $u \in \mathcal{V}_G$ are neighbors of $s$.
 		Because of those global multiset neighborhoods, all the color subtrees of a graph span the entire graph.
@@ -283,45 +283,62 @@ While there are many ways to combine those layers, we focus on global pooling \a
 	\item \textbf{\ac{mlp}:}
 		Lastly the final output $y_G \in \mathcal{Y}$ is computed by applying a standard \ac{mlp} to the graph feature vector $z_G$.
 \end{enumerate}
+\[
+	\text{\acs*{gcnn}}(G) \coloneqq \text{\acs*{mlp}}(\text{Pooling}(\text{Convolution}(G)))
+\]
 \Cref{fig:ltag:gcnn-structure} illustrates this three step architecture for vertex neighborhood convolutions like those used by \acp{gcn}~\cite{Kipf2017} or \acp{gin}~\cite{Xu2018}.
-Intuitively the convolutional layers implicitly define the decomposition and local evaluation functions while the pooling layer corresponds to the \ac{lta} aggregation function.
+Intuitively the convolutional layers implicitly define an \ac{lta} decomposition function $\psi$ and a local evaluation function $f$ while the pooling layer corresponds to an \ac{lta} aggregation function $\mathcal{A}$.
 This intuition is now formalized.
 \begin{figure}[ht]
 	\centering
 	\includegraphics[width=\linewidth]{gfx/graph-lta/gcnn-structure.pdf}
-	\caption{
-		Computational steps of \acp{gcnn} that use vertex neighborhood convolutions.
+	\caption[Computational steps of a \ac{gcnn} that uses a single vertex neighborhood convolution layer.]{
+		Computational steps of a \ac{gcnn} that uses a single vertex neighborhood convolution layer.
+		The colored \ac{bfs} trees next to each convolved feature vector $z_i$ show the vertices $v_j$ whose input feature vectors $x_j$ were used to compute $z_i$.
 	}\label{fig:ltag:gcnn-structure}
 \end{figure}
 
 \subsubsection{Graph Convolutions as \ac*{lta} Decomposition and Evaluation Functions}
 
 In order to interpret a stack of convolutional layers as a representation of an \ac{lta} decomposition function $\psi: \mathcal{G} \to \mathcal{P}(\mathcal{G})$ and evaluation function $f: \mathcal{G} \to \mathcal{Y} \times \mathbb{R}_{\geq 0}$, there must be a mapping $\tau: \mathbb{R}^{* \times d^{(T)}} \to {(\mathcal{Y} \times \mathbb{R}_{\geq 0})}^{*}$ s.t.\ $\tau(Z) = {\ldblbrace f(c_i) \rdblbrace}_{c_i \in \psi(G)}$.
-Whether such a translation map $\tau$ from convolved feature matrices to constituent evaluations exists, depends on the specific type of convolutional layer that is used.
+Whether such a translation map $\tau$ from convolved feature matrices $Z$ to constituent evaluations exists, depends on the specific type of convolutional layer that is used.
 
 \paragraph{Spectral convolutions with arbitrary filters}
 Let us begin with general spectral graph convolutions~\cite{Bruna2013}\cite{Henaff2015}.
 Following \cfullref[ on ]{eq:related:graph-conv-general}, after a single convolution the convolved feature vector $z_i$ of a vertex $v_i$ is defined as
 \begin{align}\label{eq:ltag:general-spectral-conv}
-	z_i = {\left( U^{\top} \hat{g}(\Lambda) U X \right)}_i = \sum_{k=1}^n \underbrace{\left( \sum_{l=1}^n \hat{g}(\lambda_l) u_{l,k} u_{l,i} \right)}_{\alpha_k} x_k
+	z_i = {\left( U^{\top} \hat{g}(\Lambda) U X \right)}_i
+	= \sum_{j=1}^n \underbrace{\left( \sum_{l=1}^n \hat{g}(\lambda_l) u_{l,i} u_{l,j} \right)}_{\alpha_j} x_j
 \end{align}
 where $L = U^{\top} \Lambda U$ is the eigendecomposition of the input graph's Laplacian and $\hat{g}$ is some eigenvalue filter.
 \begin{lem}\label{lem:ltag:general-spectral-conv-nonlocality}
-	$\exists \eta \in \mathbb{R}$ s.t.\ if $\hat{g}(0) = \eta$, every $z_i$ depends on all input vertex features $x_k$.
+	$\exists \eta \in \mathbb{R}$ s.t.\ if $\hat{g}(0) = \eta$, every $z_i$ depends on all input vertex features $x_j$.
 \end{lem}
 \begin{proof}
-	Note that by \cfullref[ on ]{defn:related:laplacian-comb} it follows that $u_1 = \frac{1}{\sqrt{n}}{(1, \dots, 1)}^{\top}$ is an eigenvector with eigenvalue $\lambda_1 = 0$ of the combinatorial Laplacian as well as the symmetrically normalized Laplacian.
-	Consequently in \cref{eq:ltag:general-spectral-conv} the first summand of each $\alpha_k$ equals $\hat{g}(0) u_{1,k} u_{1,i} = \frac{\eta}{n}$ for all $i \in [n]$.
-	The lemma then follows by choosing $\eta$ s.t.\ all $\alpha_k \neq 0$.
+	Note that by \cfullref[ on ]{defn:related:laplacian-comb} it follows that $u_1 = \frac{1}{\sqrt{n}}{(1, \dots, 1)}^{\top}$ is an eigenvector with eigenvalue $\lambda_1 = 0$ of the combinatorial Laplacian as well as the symmetric normalized Laplacian\footnote{
+		This is illustrated in \cfullref[ on ]{fig:related:graph-fourier}. We refer to \citet[section II.C.]{Shuman2013} for a more in-depth discussion of this fact.
+	}.
+	Consequently in \cref{eq:ltag:general-spectral-conv} the first summand of each $\alpha_j$ equals $\hat{g}(0) u_{1,j} u_{1,i} = \frac{\eta}{n}$ for all $i \in [n]$.
+	The lemma then follows by choosing $\eta$ s.t.\ all $\alpha_j \neq 0$.
 \end{proof}
-Consequently because a \ac{gcnn} with an arbitrary spectral filter $\hat{g}$ can use $\hat{g}(0) = \eta$, the convolved vertex feature vectors ${\{ z_i \}}_{v_i \in \mathcal{V}_G}$ all depend on the entire set of input features ${\{ x_i \}}_{v_i \in \mathcal{V}_G}$.
-This in turn implies that no entry in the convolved vertex feature matrix $Z$ is based on a proper subset of the input vertices.
-If we want to interpret any entry of $Z$ as the score or weight of a constituent, this constituent has to span the entire input graph since all vertex features potentially had an influence on them.
-In other words, spectral \acp{gcnn} with arbitrary filters only have trivial \ac{lta} formulations which makes them non-\acs{lta} methods.
+Consequently because a \ac{gcnn} with an arbitrary learned spectral filter $\hat{g}$ can learn $\hat{g}(0) = \eta$, the convolved vertex feature vectors ${\{ z_i \}}_{v_i \in \mathcal{V}_G}$ potentially all depend on the complete set of input feature vectors ${\{ x_i \}}_{v_i \in \mathcal{V}_G}$.
+Therefore all constituent scores and weights computed by a mapping $\tau(Z)$ can also depend on all input feature vectors, i.e.\ the corresponding constituents must span the entire input graph.
+In other words, spectral \acp{gcnn} with arbitrary filters do not generally have nontrivial \ac{lta} formulations which makes them non-\acs{lta} methods.
 
 \paragraph{Vertex neighborhood convolutions}
+Unlike spectral convolutions, spatial approaches like \acp{gcn} or \acp{gin} compute convolved feature vectors $z_i$ which only depend on the $T$-neighborhood of each vertex $v_i \in \mathcal{V}_G$.
+Just like the \ac{bfs} subtree evaluations of \ac{wl} subtree kernel \acp{svm} (see \cfullref{itm:ltag:wlst-lta-formulation}), each $z_i$ can therefore be interpreted as an evaluation of a local constituent $c_i$.
+As previously described, this means that two evaluations $z_i, z_j$ with $i \neq j$ are computed for a single subgraph constituent $c_i = c_j$ iff.\ the \ac{bfs} trees of $v_i$ and $v_j$ span the same vertices.
+This is illustrated in \cref{fig:ltag:gcnn-structure} by \textcolor{t_red}{$z_1$} and \textcolor{t_red}{$z_2$} which are both evaluations of the constituent
+$\textcolor{t_red}{c_1} = \textcolor{t_red}{c_2} = G[\{ v_1, v_2, v_3 \}]$. % chktex 25
 
 \paragraph{Vertex $k$-multiset neighborhood convolutions}
+Analogously to single vertex convolutions, the $k$-multiset convolutions of $k$-\acp{gnn} produce local evaluation vectors $z_i$ for the $T$-neighborhood of each $k$-multiset $s_i \subseteq \mathcal{V}_G$.
+By \cfullref[ on ]{eq:related:kgnn-layer} the constituent $c_i$ spanned by the vertices that have an influence on $z_i$ can thus be written as $c_i = G\left[ \bigcup_{v \in s_i} \Gamma_G^T(v) \right]$.
+This constituent definition is identical to that used in the \ac{lta} formulation of $k$-LWL \acp{svm} (see \cfullref{itm:ltag:klwl-lta-formulation}).
+
+Both, the single vertex neighborhood convolution as well as the vertex $k$-multiset neighborhood convolution produce vectors $z_i \in \mathbb{R}^{d^{(T)}}$, each of which is based on a local constituent $c_i$ that might not be unique, i.e.\ depending on the input graph there can be $j \neq i$ with $c_j = c_i$.
+
 
 \subsubsection{Graph Pooling as \ac*{lta} Aggregation Functions}
 

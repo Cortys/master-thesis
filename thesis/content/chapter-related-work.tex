@@ -339,22 +339,22 @@ We begin by showing that the power of \ac{wl} grows with $k$.
 \begin{lem}\label{lem:related:wl-lower}
 	$G \mathrel{\not\simeq_k} H \implies G \mathrel{\not\simeq_{k+1}} H$ ($(k+1)$-\acs{wl} is at least as powerful as $k$-\acs{wl}).
 \end{lem}
-\begin{hproof}
+\begin{proof}
 	All $k$-tuples can be mapped to $(k+1)$-tuples via $\varphi(v_1, \dots, v_k) \coloneqq (v_1, \dots,\allowbreak v_k, v_k)$.
 	For each neighbor $(s[u/1], \dots,\allowbreak s[u/k])$ of $s \in \mathcal{V}_G^k$, there is a corresponding neighbor $(\varphi(s[u/1]), \dots \varphi(s[u/k]), \varphi(s[u/k]))$ of $\varphi(s)$.
 	Using \cref{eq:related:wlk-init} (for $i = 0$) and \cref{defn:related:wlk-refine} (for $i > 0$) it follows that $\forall s, t \in \mathcal{V}_G^k: \chi_{G, k}^{(i)}(s) \neq \chi_{G, k}^{(i)}(t) \rightarrow \chi_{G, k+1}^{(i)}(\varphi(s)) \neq \chi_{G, k+1}^{(i)}(\varphi(t))$.
 	The lemma then follows by \cref{defn:related:wl-distinguishable}.
-\end{hproof}
+\end{proof}
 \begin{prop}[see~\citet{Immerman1990} for the proof]\label{prop:related:wl-upper}
 	For all $k \in \mathbb{N}$ there are non-isomorphic graphs $G \not\simeq H$ of size $\mathcal{O}(k)$ with $G \mathrel{\simeq_k} H$.
 \end{prop}
 \begin{cor}\label{cor:related:wl-monotonous}
 	The discriminative power of $k$-\acs{wl} grows monotonously with $k$ and never converges, i.e.\ for all $k \in \mathbb{N}$ there is an $l \in \mathbb{N}$ s.t.\ the set of $k$-\ac{wl} distinguishable graphs is a proper subset of the $(k+l)$-\ac{wl} distinguishable graphs.
 \end{cor}
-\begin{hproof}
+\begin{proof}
 	Note that $k$-\acs{wl} trivially solves the \ac{gi} problem for all graphs of size $\leq k$ via the initial coloring (see~\cref{eq:related:wlk-init}).
 	Using \cref{lem:related:wl-lower} and \cref{prop:related:wl-upper} the corollary directly follows.
-\end{hproof}
+\end{proof}
 \begin{figure}[ht]
 	\centering
 	\includegraphics[width=\linewidth]{gfx/related-work/wl2-problem-solution.pdf}
