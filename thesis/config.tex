@@ -188,6 +188,14 @@
 \newcommand{\source}[2][source]{\hspace*{\fill}\sourceinline[#1]{#2}}
 \newcommand{\cfullref}[2][, ]{\cref{#2}#1\cpageref{#2}}
 
+\newcounter{daggerfootnote}
+\newcommand*{\daggerfootnote}[1]{%
+\setcounter{daggerfootnote}{\value{footnote}}%
+\renewcommand*{\thefootnote}{\fnsymbol{footnote}}%
+\footnote[2]{#1}%
+\setcounter{footnote}{\value{daggerfootnote}}%
+\renewcommand*{\thefootnote}{\arabic{footnote}}}
+
 \DeclareMathOperator{\Tr}{Tr}
 \DeclareMathOperator{\mean}{mean}
 \DeclareMathOperator{\wmean}{wmean}

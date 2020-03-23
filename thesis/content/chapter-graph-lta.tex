@@ -220,11 +220,11 @@ To see what \cref{thm:ltag:svm-ltag-formulation} implies in practice, we will no
 		The resulting decomposition functions are $\psi_{\varphi, i, t}(G) \coloneqq \{ c_{j,t}\, |\, {v_j \in \mathcal{V}_G}\,\land {S_{j,t} \simeq S_{\kappa_i}} \}$. % chktex 21
 		As illustrated in \cref{fig:ltag:wl1-constituents}, the number of distinct constituents $c_{j,t}$ might be smaller than the number of \ac{bfs} subtrees $S_{j,t}$ because two distinct subtrees might span the same set of vertices.
 		To fix this discrepancy between the subtree occurrence count (which equals $\varphi(G)[i, t]$) and the number of constituents, the multiplicities $\gamma_{\varphi, i, t}(c)$ of the constituents $c$ have to correspond to the number of \ac{bfs} subtrees they were spanned up by, i.e.\
-		\begin{align*}
-			\gamma_{\varphi, i, t}(c) &\coloneqq {\left|\{ S = \text{\acs*{bfs}}(c, v_{\text{root}}, t)\, |\, v_{\text{root}} \in \mathcal{V}_c \land S \simeq S_{\kappa_i} \land \mathit{complete}(S) \}\right|} \\
-			\text{with }\mathit{complete}(S) &\Leftrightarrow \forall\ \text{leaf nodes $v_{\text{leaf}}$ of the tree $S$}: {|\Gamma_c(v_{\text{leaf}})|} = {|\Gamma_G(v_{\text{leaf}})|}
-			\text{.}
-		\end{align*}
+		\begin{align}
+			&\gamma_{\varphi, i, t}(c) \coloneqq {\left|\{ S = \text{\acs*{bfs}}(c, v_{\text{root}}, t)\, |\, v_{\text{root}} \in \mathcal{V}_c \land S \simeq S_{\kappa_i} \land \mathit{complete}(S) \}\right|}\label{eq:ltag:wlst-constituent-subtree-count} \\
+			&\text{with }\mathit{complete}(S) \Leftrightarrow \forall\ \text{leaf nodes $v_{\text{leaf}}$ of the tree $S$}: {|\Gamma_c(v_{\text{leaf}})|} = {|\Gamma_G(v_{\text{leaf}})|}
+			\text{.} \nonumber
+		\end{align}
 		The purpose of the $\mathit{complete}(S)$ condition is to only count the \ac{bfs} subtrees of the constituent $c$ that are also \ac{bfs} subtrees of the complete graph $G$.
 		To see why this is required, note that in \cref{fig:ltag:wl1-constituents} the $c_{1,1}$/$c_{2,1}$ constituent contains the color subtree $S_{\textcolor{t_red}{\texttt{B}}}$ three times (rooted at $v_1$, $v_2$ and $v_3$) even though $G$ only contains it twice (rooted at $v_1$ and $v_2$). % chktex 25
 		Also note that, since $\gamma_{\varphi, i, t}(c)$ must only depend on a given constituent $c$ and not on the graph $G$ it was decomposed from, the degree information $|\Gamma_G(v_{\text{leaf}})|$ of the constituent vertices $v \in \mathcal{V}_c$ is assumed to be statically encoded in the labels $l_c[v]$ or feature vectors $x_c[v]$.
@@ -300,30 +300,37 @@ This intuition is now formalized.
 
 \subsubsection{Graph Convolutions as \ac*{lta} Decomposition and Evaluation Functions}
 
-In order to interpret a stack of convolutional layers as a representation of an \ac{lta} decomposition function $\psi: \mathcal{G} \to \mathcal{P}(\mathcal{G})$ and evaluation function $f: \mathcal{G} \to \mathcal{Y} \times \mathbb{R}_{\geq 0}$, there must be a mapping $\tau: \mathbb{R}^{* \times d^{(T)}} \to {(\mathcal{Y} \times \mathbb{R}_{\geq 0})}^{*}$ s.t.\ $\tau(Z) = {\ldblbrace f(c_i) \rdblbrace}_{c_i \in \psi(G)}$.
-Whether such a translation map $\tau$ from convolved feature matrices $Z$ to constituent evaluations exists, depends on the specific type of convolutional layer that is used.
+To define an \ac{lta} formulation for \acp{gcnn}, we define two functions that are entirely based on the stack of convolutional layers:
+\begin{enumerate*}
+	\item The decomposition function $\psi: \mathcal{G} \to \mathcal{P}(\mathcal{G})$.
+	\item The so-called \textit{multi-score evaluation function} $f^{*}: \mathcal{G} \to {(\mathcal{Y} \times \mathbb{R}_{\geq 0})}^{*}$ which is similar to a regular \ac{lta} evaluation function $f$ but assigns a multiset of weighted scores to each constituent instead of just a single one.
+\end{enumerate*}
+Those two functions make up the first half of a \ac{gcnn} graph formulation.
+How exactly they are defined depends on the type convolutional layer that is used.
 
 \paragraph{Spectral convolutions with arbitrary filters}
 Let us begin with general spectral graph convolutions~\cite{Bruna2013}\cite{Henaff2015}.
 Following \cfullref[ on ]{eq:related:graph-conv-general}, after a single convolution the convolved feature vector $z_i$ of a vertex $v_i$ is defined as
 \begin{align}\label{eq:ltag:general-spectral-conv}
-	z_i = {\left( U^{\top} \hat{g}(\Lambda) U X \right)}_i
-	= \sum_{j=1}^n \underbrace{\left( \sum_{l=1}^n \hat{g}(\lambda_l) u_{l,i} u_{l,j} \right)}_{\alpha_j} x_j
+	z_{\textcolor{t_red}{i}} = {\left( U^{\top} \hat{g}(\Lambda) U X \right)}_{\textcolor{t_red}{i}} % chktex 25
+	= \sum_{l=1}^n u_{l,\textcolor{t_red}{i}} \hat{g}(\lambda_l) \underbrace{\sum_{j=1}^n u_{l,j} x_j}_{\mathclap{\text{$d^{(T)}$-dim.\ vector of inner products}}} % chktex 25
+	= \sum_{j=1}^n \underbrace{\left( \sum_{l=1}^n \hat{g}(\lambda_l) u_{l,\textcolor{t_red}{i}} u_{l,j} \right)}_{\alpha_j} x_j % chktex 25
 \end{align}
-where $L = U^{\top} \Lambda U$ is the eigendecomposition of the input graph's Laplacian and $\hat{g}$ is some eigenvalue filter.
+where $L = U^{\top} \Lambda U = \sum_{l=1}^n u_l \lambda_l u_l^{\top}$ is the eigendecomposition of the input graph's Laplacian and $\hat{g}$ is some (learned) eigenvalue filter.
 \begin{lem}\label{lem:ltag:general-spectral-conv-nonlocality}
-	$\exists \eta \in \mathbb{R}$ s.t.\ if $\hat{g}(0) = \eta$, every $z_i$ depends on all input vertex features $x_j$.
+	For all graphs $G$ consisting of the connected components $C_1, \dots, C_m$ there is an $\eta \in \mathbb{R}$ s.t.\ if $\hat{g}(0) = \eta$, the convolved feature vector $z_i$ of each $v_i \in \mathcal{V}_{C_l}$ with $l \in [m]$ depends on all input features $x_j$ of the vertices $v_j \in \mathcal{V}_{C_l}$ from the same component.
 \end{lem}
-\begin{proof}
-	Note that by \cfullref[ on ]{defn:related:laplacian-comb} it follows that $u_1 = \frac{1}{\sqrt{n}}{(1, \dots, 1)}^{\top}$ is an eigenvector with eigenvalue $\lambda_1 = 0$ of the combinatorial Laplacian as well as the symmetric normalized Laplacian\footnote{
-		This is illustrated in \cfullref[ on ]{fig:related:graph-fourier}. We refer to \citet[section II.C.]{Shuman2013} for a more in-depth discussion of this fact.
+\begin{hproof}
+	Note that by \cfullref[ on ]{defn:related:laplacian-comb} it follows that the first $m$ eigenvalues of a graph with the connected components $C_1, \dots, C_m$ are $\lambda_1 = \cdots = \lambda_m = 0$ with the corresponding nullspace-spanning unnormalized eigenvectors $u_l[v_j] = \mathbbm{1}[v_j \in \mathcal{V}_{C_l}]$\daggerfootnote{
+		We refer to \citet{Das2004} for a more in-depth discussion of graph Laplacian eigenvectors.
 	}.
-	Consequently in \cref{eq:ltag:general-spectral-conv} the first summand of each $\alpha_j$ equals $\hat{g}(0) u_{1,j} u_{1,i} = \frac{\eta}{n}$ for all $i \in [n]$.
-	The lemma then follows by choosing $\eta$ s.t.\ all $\alpha_j \neq 0$.
-\end{proof}
-Consequently because a \ac{gcnn} with an arbitrary learned spectral filter $\hat{g}$ can learn $\hat{g}(0) = \eta$, the convolved vertex feature vectors ${\{ z_i \}}_{v_i \in \mathcal{V}_G}$ potentially all depend on the complete set of input feature vectors ${\{ x_i \}}_{v_i \in \mathcal{V}_G}$.
-Therefore all constituent scores and weights computed by a mapping $\tau(Z)$ can also depend on all input feature vectors, i.e.\ the corresponding constituents must span the entire input graph.
-In other words, spectral \acp{gcnn} with arbitrary filters do not generally have nontrivial \ac{lta} formulations which makes them non-\acs{lta} methods.
+	Consequently in \cref{eq:ltag:general-spectral-conv} the first $m$ summands of each $\alpha_j$ sum up to $\hat{g}(0) u_{l,j} u_{l,i} = \eta$ for all $v_i \in C_l$ with $l \in [m]$.
+	The lemma then follows by choosing $\eta$ s.t.\ the last $n - m$ summands of every $\alpha_j$ do not sum up to $\eta$.
+\end{hproof}
+Because a \ac{gcnn} with an arbitrary learned spectral filter $\hat{g}$ can learn $\hat{g}(0) = \eta$, each convolved vertex feature vector $z_i$ potentially depends on the entire connected component $C_l$ with $v_i \in \mathcal{V}_{C_l}$.
+This means that any constituent scores computed based on $z_i$ can only be computed for constituents that span entire connected components.
+In other words, spectral \acp{gcnn} with arbitrary filters generally only have \ac{lta} formulations with the decomposition function $\psi(G) = \{ C_1, \dots, C_m \}$.
+This restriction makes them an in-between case which is only partially \acs{lta}-like.
 
 \paragraph{Vertex neighborhood convolutions}
 Unlike spectral convolutions, spatial approaches like \acp{gcn} or \acp{gin} compute convolved feature vectors $z_i$ which only depend on the $T$-neighborhood of each vertex $v_i \in \mathcal{V}_G$.
@@ -337,10 +344,21 @@ Analogously to single vertex convolutions, the $k$-multiset convolutions of $k$-
 By \cfullref[ on ]{eq:related:kgnn-layer} the constituent $c_i$ spanned by the vertices that have an influence on $z_i$ can thus be written as $c_i = G\left[ \bigcup_{v \in s_i} \Gamma_G^T(v) \right]$.
 This constituent definition is identical to that used in the \ac{lta} formulation of $k$-LWL \acp{svm} (see \cfullref{itm:ltag:klwl-lta-formulation}).
 
-Both, the single vertex neighborhood convolution as well as the vertex $k$-multiset neighborhood convolution produce vectors $z_i \in \mathbb{R}^{d^{(T)}}$, each of which is based on a local constituent $c_i$ that might not be unique, i.e.\ depending on the input graph there can be $j \neq i$ with $c_j = c_i$.
+\paragraph{\ac{gcnn} \ac{lta} decomposition}
+Both, the single vertex neighborhood convolution as well as the vertex $k$-multiset neighborhood convolution produce vectors $z_i \in \mathbb{R}^{d^{(T)}}$, which are each based on the constituent $c_i$ spanned by the $T$-neighborhood of some vertex $v_i$ or vertex $k$-multiset $s_i$.
+Consequently we define the \ac{lta} decomposition function of such neighborhood convolution \acp{gcnn} as $\psi(G) \coloneqq {\{ c_i \}}_{i=1}^n$.
 
+\paragraph{\ac{gcnn} \ac{lta} multi-score evaluation}
+In addition to this decomposition function, the convolved vectors $z_i \in \mathbb{R}^{d^{(T)}}$ can be interpreted as local evaluations if there is a translation function $\tau: \mathbb{R}^{d^{(T)}} \to \mathcal{Y} \times \mathbb{R}_{\geq 0}$.
+One trivial example for such a translation function would be the identity $\tau(z) = z$ for a graph regression problem with the score domain $\mathcal{Y} = [0, 1]$ and where the last convolutional layer uses a sigmoid activation function with two output dimensions s.t.\ $z \in {[0,1]}^2$.
+Assuming that there is a translation function $\tau$ we can define a multi-score evaluation function $f^{*}(c) \coloneqq {\ldblbrace \tau(z_i)\, |\, {i \in [n]} \land {c = c_i} \rdblbrace} = {\ldblbrace \tau(\text{Convolution}(X_c)[v_i])\, |\, v_i \in \mathit{root}(c) \rdblbrace}$ with $X_c$ being the input feature matrix of the subgraph/constituent $c$.
+The function $\mathit{root}(c) = \{ v_i\, |\, {i \in [n]} \land {c = c_i} \}$ returns the set of root vertices $v_i$ (or root vertex $k$-multisets in case of $k$-\acs{gnn}) whose \ac{bfs} subtree of depth $T$ in $G$ spans exactly the vertices in $c$.
+To compute $\mathit{root}(c)$ given only a single constituent $c$ and not the entire graph $G$, it has to be determined which \ac{bfs} subtrees of $c$ are also \ac{bfs} subtrees of $G$.
+We already saw how to do this in the \ac{lta} formulation of \ac{wl} subtree kernel \acp{svm} (see $\mathit{complete}$ in \cfullref{eq:ltag:wlst-constituent-subtree-count}).
 
 \subsubsection{Graph Pooling as \ac*{lta} Aggregation Functions}
+
+Based on the decomposition function $\psi: \mathcal{G} \to \mathcal{P}(\mathcal{G})$ and the multi-score evaluation function $f^{*}: \mathcal{G} \to {(\mathcal{Y} \times \mathbb{R}_{\geq 0})}^{*}$ which are implicitly defined by the stack of convolutional layers of a \ac{gcnn}, we will now define a proper \ac{lta} constituent evaluation function $f: \mathcal{G} \to \mathcal{Y} \times \mathbb{R}_{\geq 0}$ as well as an aggregation function $\mathcal{A}: {(\mathcal{Y} \times \mathbb{R}_{\geq 0})}^{*} \to \mathcal{Y}$.
 
 \section{A Novel \acs*{lta}-Inspired \acs*{gcnn} Architecture}%
 \label{sec:ltag:wl2gnn}

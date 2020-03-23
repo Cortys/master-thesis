@@ -87,7 +87,7 @@ def AvgCWL2GCN_Binary(
     squeeze_output=[True]
   )
 
-@binary_classifier(gnn_models.with_fc(gnn_models.AvgWL2GCN))
+@binary_classifier(gnn_models.with_fc(gnn_models.AvgCWL2GCN))
 def AvgCWL2GCN_FC_Binary(
   dsm,
   cwl2_local_act="sigmoid",
