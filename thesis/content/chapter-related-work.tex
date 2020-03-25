@@ -746,10 +746,10 @@ This allows for a very different perspective on \acp{gcn}:
 Instead of interpreting convolutions as applications of linear spectral filters, we can interpret them as vertex neighborhood aggregations, similar to 1-\acs{wl}.
 From this perspective a \ac{gcn} can be seen as a so-called spatial \ac{gcnn} because it operates directly in the vertex domain.
 To see why this is the case, we rewrite \cref{eq:related:gcn-layer} and compare it with the 1-\acs{wl} color refinement strategy (see \cfullref{defn:related:wl1-refine}):
-\begin{align*}
+\begin{alignat*}{2}
 	\text{\ac*{gcn}:}\quad&& Z^{(t)}[v] &= \sigma\left(\left( {\mu(v)}^2 Z^{(t-1)}[v] + \smashoperator[lr]{\sum_{u \in \Gamma_G(v)}} \mu(v) \mu(u) Z^{(t-1)}[u] \right) \Theta^{(t)} \right) \\
 	\text{1-\acs{wl}:}\quad&& \chi_{G,1}^{(t)}(v) &= h\left( \chi_{G,1}^{(t-1)}(v), \ldblbrace \chi_{G,1}^{(t-1)}(u)\, |\, u \in \Gamma_{G}(v) \rdblbrace\right)
-\end{align*}
+\end{alignat*}
 Here $\mu(v) \coloneqq {\left(\left| \Gamma_G(v) \right| + 1\right)}^{-\frac{1}{2}}$ are normalization factors introduced by $\tilde{D}_G^{-\frac{1}{2}}$.
 The comparison shows that \ac{gcn} convolutions can be understood as iterative refinements of continuous ``color vectors'' $Z^{(t)}[v] \in \mathbb{R}^{d^{(t)}}$.
 Then the continuous analogue to the injective 1-\acs{wl} hash function $h: \mathcal{C}^{*} \to \mathcal{C}$ can be defined as $h_{\text{\acs*{gcn}}}(z_0, z_1, \dots, z_m) = \sigma(\sum_{j=0}^m \mu(v_0) \mu(v_j) z_j \Theta^{(t)})$ which computes a single color vector from multiple color vectors $z_j$ where $v_j$ are the corresponding vertices.
@@ -806,7 +806,7 @@ Generally speaking there are two types of pooling approaches:
 		This type of pooling takes all $m$ feature vectors and directly maps them to a single graph feature vector.
 \end{enumerate}
 In this thesis we will focus on global pooling.
-The most simple global pooling approaches use static aggregation functions like component-wise $\min$, $\max$ or $\mean$ to produce a single graph feature vector $z_G \in \mathbb{R}^{d^{(L)}}$.
+The most simple global pooling approaches use static aggregation functions like component-wise $\min$, $\max$ or $\mean$ to produce a single graph feature vector $z_G \in \mathbb{R}^{d^{(T)}}$.
 This vector is then fed into a standard \ac{mlp} to produce the final prediction.
 The state-of-the-art graph pooling approaches go beyond static aggregation and try to incorporate structural information.
 We will now briefly look at two such approaches.
@@ -815,7 +815,7 @@ We will now briefly look at two such approaches.
 One way to combine feature vectors is called \textit{SortPooling}~\cite{Zhang2018}.
 It interprets the convolved vectors as continuous \ac{wl} colors that encode different structural roles of vertices (or vertex sets in case of $k$-\acp{gnn}).
 By imposing a component-wise lexicographic ordering on the set of color vectors, it can be reduced to a vertex permutation invariant top-$p$ list of vectors $(z_1, \dots, z_p)$ for some fixed $p \in \mathbb{N}$.
-The final graph feature vector then is the concatenation $z_G = \left( \bigoplus_{i=1}^{p} z_i \right) \in \mathbb{R}^{d^{(L)} p}$.
+The final graph feature vector then is the concatenation $z_G = \left( \bigoplus_{i=1}^{p} z_i \right) \in \mathbb{R}^{d^{(T)} p}$.
 SortPooling is based on the idea that the convolutional layers will learn to use the most-significant lexicographic vector components to represent that vector's importance.
 
 \paragraph{\acs*{sagpool}}

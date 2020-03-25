@@ -270,14 +270,14 @@ Approaches like \texttt{graph2vec}, the \ac{wl} shortest path kernel or $k$-GWL 
 Now we will look at \ac{gcnn} methods from an \ac{lta} perspective.
 As shown in the last section, \acp{svm} can be interpreted as \ac{lta} methods if they use an \ac{sce} embedding;
 similarly \acp{gcnn} also have \ac{lta} formulations under certain conditions.
-In this section we will describe those conditions and the \ac{lta} formulations of the \acp{gcnn} that satisfy them.
+In this section those conditions and the \ac{lta} formulations of the \acp{gcnn} that satisfy them are described.
 
-In \cref{sec:related:gcr:nn} an overview of graph convolution and graph pooling layers was given.
-While there are many ways to combine those layers, we focus on global pooling \ac{gcnn} architectures that use the following three steps:
+Looking back, an overview of graph convolution and graph pooling layers was given in \cref{sec:related:gcr:nn}.
+There are many ways to combine those layers in a concrete \ac{gnn} but we focus on \textit{global pooling \ac{gcnn} architectures} that use the following three steps:
 \begin{enumerate}[label=\textbf{\arabic*.}]
 	\item \textbf{Convolution:}
-		First a stack of $T$ convolutional layers is applied to the input feature matrix $X \in \mathbb{R}^{n \times d^{(0)}}$ where each row is a feature vector $x_i \in \mathbb{R}^{d^{(0)}}$ for the vertex $v_i \in \mathcal{V}_G$ or the vertex $k$-multiset $s_i \subseteq \mathcal{V}_G$ in case of $k$-\acsp{gnn}.
-		The convolutional layers produce a convolved feature matrix $Z \in \mathbb{R}^{n \times d^{(T)}}$ where each row is a convolved feature vector $z_i \in \mathbb{R}^{d^{(\text{pool})}}$.
+		First a stack of $T$ convolution layers is applied to the input feature matrix $X \in \mathbb{R}^{n \times d^{(0)}}$ where each row is a feature vector $x_i \in \mathbb{R}^{d^{(0)}}$ for the vertex $v_i \in \mathcal{V}_G$ or the vertex $k$-multiset $s_i \subseteq \mathcal{V}_G$ in case of $k$-\acsp{gnn}.
+		The convolution layers produce a convolved feature matrix $Z \in \mathbb{R}^{n \times d^{(T)}}$ where each row is a convolved feature vector $z_i \in \mathbb{R}^{d^{(\text{pool})}}$.
 	\item \textbf{Pooling:}
 		Then the convolved feature matrix $Z$ is reduced to a single graph feature vector $z_G \in \mathbb{R}^{d^{(\text{pool})}}$ via a pooling layer.
 	\item \textbf{\ac{mlp}:}
@@ -287,7 +287,7 @@ While there are many ways to combine those layers, we focus on global pooling \a
 	\text{\acs*{gcnn}}(G) \coloneqq \mathit{\acs*{mlp}}(\mathit{Pool}(\mathit{Conv}(G)))
 \]
 \Cref{fig:ltag:gcnn-structure} illustrates this three step architecture for vertex neighborhood convolutions like those used by \acp{gcn}~\cite{Kipf2017} or \acp{gin}~\cite{Xu2018}.
-Intuitively the convolutional layers implicitly define an \ac{lta} decomposition function $\psi$ and a local evaluation function $f$ while the pooling layer corresponds to an \ac{lta} aggregation function $\mathcal{A}$.
+Intuitively the convolution layers implicitly define an \ac{lta} decomposition function $\psi$ and a local evaluation function $f$ while the pooling layer roughly corresponds to an \ac{lta} aggregation function $\mathcal{A}$.
 This intuition is now formalized.
 \begin{figure}[ht]
 	\centering
@@ -300,16 +300,16 @@ This intuition is now formalized.
 
 \subsubsection{Graph Convolutions as \ac*{lta} Decomposition and Evaluation Functions}
 
-To define an \ac{lta} formulation for \acp{gcnn}, we define two functions that are entirely based on the stack of convolutional layers:
+To define an \ac{lta} formulation for \acp{gcnn}, we define two functions that are entirely based on the stack of convolution layers ($\mathit{Conv}$):
 \begin{enumerate*}
 	\item The decomposition function $\psi: \mathcal{G} \to \mathcal{P}(\mathcal{G})$.
 	\item The so-called \textit{multi-score evaluation function} $f^{*}: \mathcal{G} \to {(\mathcal{Y} \times \mathbb{R}_{\geq 0})}^{*}$ which is similar to a regular \ac{lta} evaluation function $f$ but assigns a multiset of weighted scores to each constituent instead of just a single one.
 \end{enumerate*}
 Those two functions make up the first half of a \ac{gcnn} graph formulation.
-How exactly they are defined depends on the type convolutional layer that is used.
+How exactly they are defined depends on the type convolution layer that is used.
 
 \paragraph{Spectral convolutions with arbitrary filters}
-Let us begin with general spectral graph convolutions~\cite{Bruna2013}\cite{Henaff2015}.
+Let us begin with general spectral graph convolution layers~\cite{Bruna2013}\cite{Henaff2015}.
 Following \cfullref[ on ]{eq:related:graph-conv-general}, after a single convolution the convolved feature vector $z_i$ of a vertex $v_i$ is defined as
 \begin{align}\label{eq:ltag:general-spectral-conv}
 	z_{\textcolor{t_red}{i}} = {\left( U^{\top} \hat{g}(\Lambda) U X \right)}_{\textcolor{t_red}{i}} % chktex 25
@@ -349,19 +349,22 @@ Both, the single vertex neighborhood convolution as well as the vertex $k$-multi
 Consequently we define the \ac{lta} decomposition function of such neighborhood convolution \acp{gcnn} as $\psi(G) \coloneqq {\{ c_i \}}_{i=1}^n$.
 
 \paragraph{\ac{gcnn} \ac{lta} multi-score evaluation}
-In addition to this decomposition function, the convolved vectors $z_i \in \mathbb{R}^{d^{(T)}}$ can be interpreted as local evaluations if there is a translation function $\tau_{1}: \mathbb{R}^{d^{(T)}} \to \mathcal{Y} \times \mathbb{R}_{\geq 0}$.
-One trivial example for such a translation function would be the identity $\tau_{1}(z) = z$ for a graph regression problem with the score domain $\mathcal{Y} = [0, 1]$ and where the last convolutional layer uses a sigmoid activation function with two output dimensions s.t.\ $z \in {[0,1]}^2$.
-Assuming that there is a translation function $\tau_{1}$ we can define a multi-score evaluation function $f^{*}(c) \coloneqq {\ldblbrace \tau_{1}(z_i)\, |\, {i \in [n]} \land {c = c_i} \rdblbrace} = {\ldblbrace \tau_{1}(\mathit{Conv}(X_c)[v_i])\, |\, v_i \in \mathit{root}(c) \rdblbrace}$ with $X_c$ being the input feature matrix of the subgraph/constituent $c$.
+In addition to this decomposition function, $\mathit{Conv}$ also implicitly computes local constituent evaluations.
+If there is a translation function $\tau_{1}: \mathbb{R}^{d^{(T)}} \to \mathcal{Y} \times \mathbb{R}_{\geq 0}$, the convolved vectors $z_i \in \mathbb{R}^{d^{(T)}}$ can be interpreted as constituent evaluations.
+One trivial example for such a translation function would be the identity $\tau_{1}(z) = z$ for a graph regression problem with the score domain $\mathcal{Y} = [0, 1]$ and where the last convolution layer uses a sigmoid activation function with two output dimensions s.t.\ $z \in {[0,1]}^2$.
+Assuming that there is a translation function $\tau_{1}$ we can define a multi-score evaluation function $f^{*}(c) \coloneqq {\ldblbrace \tau_{1}(z_i)\, |\, {i \in [n]} \land {c = c_i} \rdblbrace} = {\ldblbrace \tau_{1}(\mathit{Conv}(c)[v_i])\, |\, v_i \in \mathit{root}(c) \rdblbrace}$.
 The function $\mathit{root}(c) = \{ v_i\, |\, {i \in [n]} \land {c = c_i} \}$ returns the set of root vertices $v_i$ (or root vertex $k$-multisets in case of $k$-\acs{gnn}) whose \ac{bfs} subtree of depth $T$ in $G$ spans exactly the vertices in $c$.
 To compute $\mathit{root}(c)$ given only a single constituent $c$ and not the entire graph $G$, it has to be determined which \ac{bfs} subtrees of $c$ are also \ac{bfs} subtrees of $G$.
 We already saw how to do this in the \ac{lta} formulation of \ac{wl} subtree kernel \acp{svm} (see $\mathit{complete}$ in \cfullref{eq:ltag:wlst-constituent-subtree-count}).
 
 \subsubsection{Graph Pooling as \ac*{lta} Aggregation Functions}
 
-Based on the decomposition function $\psi: \mathcal{G} \to \mathcal{P}(\mathcal{G})$ and the multi-score evaluation function $f^{*}: \mathcal{G} \to {(\mathcal{Y} \times \mathbb{R}_{\geq 0})}^{*}$ which are implicitly defined by the stack of convolutional layers $\mathit{Conv}$ of a given \ac{gcnn}, we now complete our \ac{gcnn} \ac{lta} formulation by defining an evaluation function $f: \mathcal{G} \to \mathcal{Y} \times \mathbb{R}_{\geq 0}$ as well as an aggregation function $\mathcal{A}: {(\mathcal{Y} \times \mathbb{R}_{\geq 0})}^{*} \to \mathcal{Y}$ based on the pooling layer $\mathit{Pool}: \mathbb{R}^{n \times d^{(T)}} \to \mathbb{R}^{d^{(\text{pool})}}$.
+Based on the decomposition function $\psi: \mathcal{G} \to \mathcal{P}(\mathcal{G})$ and the multi-score evaluation function $f^{*}: \mathcal{G} \to {(\mathcal{Y} \times \mathbb{R}_{\geq 0})}^{*}$ which are implicitly defined by the stack of convolution layers $\mathit{Conv}$ of a given \ac{gcnn}, we now complete our \ac{gcnn} \ac{lta} formulation by defining an evaluation function $f: \mathcal{G} \to \mathcal{Y} \times \mathbb{R}_{\geq 0}$ as well as an aggregation function $\mathcal{A}: {(\mathcal{Y} \times \mathbb{R}_{\geq 0})}^{*} \to \mathcal{Y}$ based on the pooling layer $\mathit{Pool}: \mathbb{R}^{n \times d^{(T)}} \to \mathbb{R}^{d^{(\text{pool})}}$.
 \begin{defn}\label{defn:ltag:assoc-algebra}
-	A variadic function $\xi: A^{*} \to B$ is called \textit{variadic associative} iff.\ there is an operator $\rho: A^{*} \to A$ s.t.\ $\forall n \in \mathbb{N}: \forall (a_1, \dots, a_n) \in A^n: \forall {1 \leq i \leq j \leq n}: \xi(a_1, \dots, a_n) = \xi(a_1, \dots, a_{i-1}, \rho(a_i, \dots, a_j), a_{j+1}, \dots, a_n)$.
-	The heterogeneous algebra $((A, B), (\xi, \rho))$ is called an \textit{associative algebra} of $\xi$~\cite{Birkhoff1970}.
+	A variadic function $\xi: A^{*} \to B$ is called \textit{associative} iff.\ there is an operator $\rho: A^{*} \to A$ s.t.\ $\forall n \in \mathbb{N}: \forall (a_1, \dots, a_n) \in A^n: \forall {1 \leq i \leq j \leq n}: \xi(a_1, \dots, a_n) = \xi(a_1, \dots, a_{i-1}, \rho(a_i, \dots, a_j), a_{j+1}, \dots, a_n)$.
+	The heterogeneous algebra\footnote{
+		See \citet{Birkhoff1970} for a more detailed description of heterogeneous algebras.
+	} $((A, B), (\xi, \rho))$ is called an \textit{associative algebra} of $\xi$.
 \end{defn}
 \begin{defn}[see \citet{Novotny2002}]\label{defn:ltag:assoc-algebra-homomorphism}
 	A function tuple $(\tau_1: A \to C, \tau_2: B \to D)$ is a \textit{homomorphism} between two associative algebras $((A, B), (\xi, \rho))$ and $((C, D), (\xi', \rho'))$
@@ -374,41 +377,80 @@ Based on the decomposition function $\psi: \mathcal{G} \to \mathcal{P}(\mathcal{
 	\end{align*}
 \end{defn}
 \begin{defn}\label{defn:ltag:assoc-aggregation-pooling}
-	A pooling layer $\mathit{Pool}: \mathbb{R}^{n \times d^{(T)}} \to \mathbb{R}^{d^{(\text{pool})}}$ is called a \textit{weighted associative aggregation layer} iff.
+	A pooling layer $\mathit{Pool}: \mathbb{R}^{n \times d^{(T)}} \to \mathbb{R}^{d^{(\text{pool})}}$ is called an \textit{associative weighted aggregation layer} iff.
 	\begin{enumerate*}
 		\item there is an associative algebra of $\mathit{Pool}$,
-		\item there is a weighted aggregation function $\mathcal{A}$ with an associative algebra and
+		\item there is a weighted aggregation function $\mathcal{A}: {(\mathcal{Y} \times \mathbb{R}_{\geq 0})}^{*} \to \mathcal{Y}$ with an associative algebra and
 		\item there is a homomorphism $(\tau_{1}: \mathbb{R}^{d^{(T)}} \to (\mathcal{Y} \times \mathbb{R}_{\geq 0}), \tau_{2}: \mathbb{R}^{d^{(\text{pool})}} \to \mathcal{Y})$ from the associative algebra of $\mathit{Pool}$ to that of $\mathcal{A}$
 	\end{enumerate*}.
 \end{defn}
 Using those definitions we can complete the connection between \acp{gcnn} and \ac{lta}:
 \begin{thm}\label{thm:ltag:gcnn-ltag-formulation}
-	A \ac{gcnn} of the form $\mathit{Pool}(\mathit{Conv}(X_G))$ has a nontrivial \ac{lta} formulation if $\mathit{Conv}$ is a stack of neighborhood convolutions and $\mathit{Pool}$ is a weighted associative aggregation layer.
+	A \ac{gcnn} of the form $\mathit{Pool}(\mathit{Conv}(G))$ has a nontrivial \ac{lta} formulation if $\mathit{Conv}$ is a stack of neighborhood convolution layers and $\mathit{Pool}$ is an associative weighted aggregation layer.
 \end{thm}
 \begin{proof}
-	We already saw that the stack of neighborhood convolutions computes the values of a multi-score evaluation function $f^{*}$ for the subtree constituents returned by a decomposition function $\psi$.
-	Since $\mathit{Pool}$ is assumed to be a weighted associative aggregation layer, there must be an operator $\rho_{\mathit{Pool}}: \mathbb{R}^{n \times d^{(T)}} \to \mathbb{R}^{n \times d^{(T)}}$ and a homomorphism $(\tau_{1}, \tau_{2})$ to an associative algebra with the operators $\mathcal{A}: {(\mathcal{Y} \times \mathbb{R}_{\geq 0})}^{*} \to \mathcal{Y}$ and $\rho_{\mathcal{A}}: {(\mathcal{Y} \times \mathbb{R}_{\geq 0})}^{*} \to {(\mathcal{Y} \times \mathbb{R}_{\geq 0})}$.
+	We already saw that a stack of neighborhood convolutions computes the values of a multi-score evaluation function $f^{*}$ for the subtree constituents returned by a decomposition function $\psi$.
+	Since $\mathit{Pool}$ is assumed to be an associative weighted aggregation layer, there must be an operator $\rho_{\mathit{Pool}}: \mathbb{R}^{n \times d^{(T)}} \to \mathbb{R}^{n \times d^{(T)}}$ and a homomorphism $(\tau_{1}, \tau_{2})$ to an associative algebra with the operators $\mathcal{A}: {(\mathcal{Y} \times \mathbb{R}_{\geq 0})}^{*} \to \mathcal{Y}$ and $\rho_{\mathcal{A}}: {(\mathcal{Y} \times \mathbb{R}_{\geq 0})}^{*} \to {(\mathcal{Y} \times \mathbb{R}_{\geq 0})}$.
 	This allows us to rewrite the \ac{gcnn} as
 	\begin{align*}
-		\tau_2(\mathit{Pool}(\mathit{Conv}(X_G)))
-		&= \tau_2(\mathit{Pool}(\ldblbrace z_i\, |\, z_i = \mathit{Conv}(X_G)[v_i] \land v_i \in \mathcal{V}_G \rdblbrace)) \\
-		&= \tau_2(\mathit{Pool}(\ldblbrace \mathit{Conv}(X_c)[v_i]\, |\, c \in \psi(G) \land v_i \in \mathit{root}(c) \rdblbrace)) \\
-		&= \tau_2(\mathit{Pool}(\ldblbrace \rho_{\mathit{Pool}}(\ldblbrace \mathit{Conv}(X_c)[v_i]\, |\, v_i \in \mathit{root}(c) \rdblbrace)\, |\, c \in \psi(G) \rdblbrace)) \\
-		&= \mathcal{A}(\ldblbrace \rho_{\mathcal{A}}(\ldblbrace \tau_1(\mathit{Conv}(X_c)[v_i])\, |\, v_i \in \mathit{root}(c) \rdblbrace)\, |\, c \in \psi(G) \rdblbrace) \\
+		\tau_2(\mathit{Pool}(\mathit{Conv}(G)))
+		&= \tau_2(\mathit{Pool}(\ldblbrace z_i\, |\, z_i = \mathit{Conv}(G)[v_i] \land v_i \in \mathcal{V}_G \rdblbrace)) \\
+		&= \tau_2(\mathit{Pool}(\ldblbrace \mathit{Conv}(c)[v_i]\, |\, c \in \psi(G) \land v_i \in \mathit{root}(c) \rdblbrace)) \\
+		&= \tau_2(\mathit{Pool}(\ldblbrace \rho_{\mathit{Pool}}(\ldblbrace \mathit{Conv}(c)[v_i]\, |\, v_i \in \mathit{root}(c) \rdblbrace)\, |\, c \in \psi(G) \rdblbrace)) \\
+		&= \mathcal{A}(\ldblbrace \rho_{\mathcal{A}}(\ldblbrace \tau_1(\mathit{Conv}(c)[v_i])\, |\, v_i \in \mathit{root}(c) \rdblbrace)\, |\, c \in \psi(G) \rdblbrace) \\
 		&= \mathcal{A}(\ldblbrace \underbrace{\rho_{\mathcal{A}}(f^{*}(c))}_{f(c)}\, |\, c \in \psi(G) \rdblbrace)
 		= \mathcal{A}(\ldblbrace f(c)\, |\, c \in \psi(G) \rdblbrace)
 		\text{.}
 	\end{align*}
 	The \ac{lta} formulation above is for vertex neighborhood convolutions;
 	a formulation for vertex $k$-multiset neighborhood convolutions can be obtained analogously which concludes the proof\footnote{
-		Note that the \ac{lta} formulation in this proof assumes that the \ac{gcnn}'s output is translated into the target score space via $\tau_{2}: \mathbb{R}^{d} \to \mathcal{Y}$, e.g.\ if the \ac{gcnn} returns one-hot vector encodings of discrete classes $y \in \mathcal{Y}$ those must be decoded.
+		The \ac{lta} formulation in this proof assumes that the \ac{gcnn}'s output is translated into the target score space via $\tau_{2}: \mathbb{R}^{d} \to \mathcal{Y}$.
+		All this means is that an \acs{lta}-like \ac{gcnn} must produce outputs $y \in \mathcal{Y}$;
+		for example if a \ac{gcnn} returns one-hot vector encodings of discrete classes those must be decoded.
 	}.
 \end{proof}
-Note that \cref{thm:ltag:gcnn-ltag-formulation} requires \acp{gcnn} without the final \ac{mlp} proposed in the \ac{gcn}~\cite{Kipf2017} and \gc{gin}~\cite{Xu2018} papers (see \cref{fig:ltag:gcnn-structure}).
+Note that \cref{thm:ltag:gcnn-ltag-formulation} requires \acp{gcnn} without a final \ac{mlp} which is unlike the architecture proposed in the \ac{gcn}~\cite{Kipf2017} and \ac{gin}~\cite{Xu2018} papers.
 The reason for this is that the composition $\mathit{\acs*{mlp}} \circ \mathit{Pool}$ cannot be guaranteed to be homomorphic to a weighted aggregation function $\mathcal{A}$ due to the universal approximation theorem.
 
-Lastly we will see which graph pooling layers satisfy \cref{defn:ltag:assoc-aggregation-pooling} and are therefore allowed in \ac{lta} \acp{gcnn}.
+To conclude our analysis of the relation between \ac{lta} and \acp{gcnn}, we check which of the graph pooling layers described in \cref{sec:related:gcr:nn} satisfy \cref{defn:ltag:assoc-aggregation-pooling} are therefore allowed in \acs{lta}-like \acp{gcnn} by \cref{thm:ltag:gcnn-ltag-formulation}.
+For simplicity we assume that the target score domain is $\mathcal{Y} = [0, 1]$.
+\begin{enumerate}[label={\textbf{\arabic*.}}]
+	\item \textbf{Unweighted mean, minimum and maximum pooling:}
+		If the last convolution layer has a single output dimension and an activation function with the signature $\sigma: \mathbb{R} \to [0,1]$ (e.g.\ the logistic function), the simple unweighted pooling layers $\mean$, $\min$ and $\max$ trivially satisfy \cref{defn:ltag:assoc-aggregation-pooling} due to their associativity.
+	\item \textbf{SortPooling \& \ac{sagpool}:}
+		Apart from such unweighted pooling layers we also looked at two state-of-the-art graph pooling layers:
+		\begin{enumerate*}[label={\arabic*.}]
+			\item SortPooling~\cite{Zhang2018} works by aggregating the top-$p$ convolved vectors $z_i \in \mathbb{R}^{d^{(T)}}$ based on a lexicographic ordering,
+			\item \ac{sagpool}~\cite{Lee2019} also aggregates the top-$p$ vectors $z_i$ but determines their order based on attention weights which are encoded as one component of each $z_i$
+		\end{enumerate*}.
+		Both of those pooling approaches are not compatible with the \ac{lta} formulation from \cref{thm:ltag:gcnn-ltag-formulation} because top-$p$ aggregation is generally not associative.
+		This is shown by the fact that there is no $\rho: \mathbb{R}^{* \times d^{(T)}} \to \mathbb{R}^{ d^{(T)}}$ s.t.\ for all vectors $z_1 < z_2$ and and aggregation functions $\mathcal{A}$ it holds that%
+		\begin{alignat*}{2}
+			&& \mathcal{A}(\mathit{top}_{2}(\ldblbrace z_1, z_2, z_2 \rdblbrace)) &= \mathcal{A}(\mathit{top}_{2}(\ldblbrace z_1, \rho(\ldblbrace z_2, z_2 \rdblbrace) \rdblbrace)) \\
+			\Leftrightarrow&& \mathcal{A}(\ldblbrace z_2, z_2 \rdblbrace) &= \mathcal{A}(\ldblbrace z_1, \rho(\ldblbrace z_2, z_2 \rdblbrace) \rdblbrace)\quad\lightning
+		\end{alignat*}
+		From the \ac{lta} perspective the non-associativity of SortPooling and \ac{sagpool} implies that, if they were used in a \ac{gcnn}, it could happen that some subtree evaluations $(y_i, w_i) \in f^{*}(c)$ of a single constituent $c$ are considered by the aggregation function $\mathcal{A}$ while some are ignored depending on the subtree evaluations of other constituents, i.e.\ the constituent evaluation $f(c)$ could then depend on other constituents.
+		This is forbidden in our definition of \ac{lta}.
+\end{enumerate}
 
+Since neither SortPooling nor \ac{sagpool} are compatible with \ac{lta}, we propose an associative weighted aggregation layer based on \ac{sagpool} which uses a softmax-based attention filter instead of a top-$p$ filter.
+\begin{defn}
+	We define \ac{sampool} as
+	\[\mathit{SAM}({\ldblbrace (y_i, w_i) \rdblbrace}_{i=1}^n) \coloneqq\frac{1}{\sum_{i=1}^n e^{w_i}} \sum_{i=1}^n e^{w_i} y_i \text{.}\]
+\end{defn}
+If the stack of convolution layers of a \ac{gcnn} produces vectors $z_i = (y_i, w_i) \in [0, 1] \times \mathbb{R}$, \ac{sampool} satisfies \cref{defn:ltag:assoc-aggregation-pooling} and is therefore compatible with \acs{lta}.
+To see why this is the case, the associativity and homomorphicity to a weighted aggregation function $\mathcal{A}_{\text{SAM}}$ must be shown.
+The associativity of $\mathit{SAM}$ follows directly from its commutativity and the fact that
+\begin{gather*}
+	\mathit{SAM}({\ldblbrace (y_i, w_i) \rdblbrace}_{i=1}^n) = \frac{1}{e^{w'} + \sum_{i=j+1}^n e^{w_i}} \left( e^{w'} \underbrace{\mathit{SAM}({\ldblbrace (y_i, w_i) \rdblbrace}_{i=1}^j)}_{y'} + \smashoperator{\sum_{i=j+1}^n} e^{w_i} y_i \right) \\
+	\text{for all } j \in [n] \text{ with } w' \coloneqq \ln\sum_{i=1}^{j} e^{w_i} \text{, i.e.\ } \rho_{\mathit{SAM}}({\ldblbrace (y_i, w_i) \rdblbrace}_{i=1}^j) = (y', w')\text{.}
+\end{gather*}
+The homomorphicity of $\mathit{SAM}$ to a weighted aggregation function $\mathcal{A}_{\text{SAM}}$ follows by choosing $\mathcal{A}_{\text{SAM}}({\ldblbrace (y_i, w_i) \rdblbrace}_{i=1}^n) \coloneqq {\left(\sum_{i=1}^n w_i\right)}^{-1} \sum_{i=1}^n w_i y_i$ and the trivial homomorphism $\tau_1(y, w) \coloneqq (y, e^w)$, $\tau_2(y) \coloneqq y$ between the algebras of $\mathit{SAM}$ and $\mathcal{A}_{\text{SAM}}$.
+
+This concludes our analysis of the relation between \ac{lta} and \acp{gcnn}.
+We saw that spectral convolutions with arbitrary filters are only partially \acs{lta}-like since their constituents generally span entire connected components.
+\Acp{gcnn} using vertex neighborhood convolutions on the other hand were shown in \cref{thm:ltag:gcnn-ltag-formulation} to have an \ac{lta} formulation with localized subtree constituents.
+The only requirement for this formulation to exist is that an associative pooling layer like $\mean$, $\min$, $\max$ or $\mathit{SAM}$ is used to combine the convolved feature vectors into the final output.
 
 \section{A Novel \acs*{lta}-Inspired \acs*{gcnn} Architecture}%
 \label{sec:ltag:wl2gnn}
