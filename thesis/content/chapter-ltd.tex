@@ -1,0 +1,43 @@
+%!TEX root = ../main.tex
+% chktex-file 46
+\chapter{Learning to Decompose Graphs}%
+\label{sec:ltd}
+
+In the last chapter we saw how existing \ac{gcr} approaches relate to \ac{lta}.
+Despite their differences, all described \ac{lta} formulations have one thing in common:
+Their decomposition functions $\psi$ all split a given graph $G$ into constituents spanned by \ac{bfs} subtrees of $G$ or simply into connected components of $G$.
+The only exception to this is the \ac{lta} formulation of \acp{svm} that use fingerprint embeddings; there the constituents are all isomorphic to handpicked substructures.
+
+Apart from the fingerprint embedding approach, which requires domain knowledge in order to pick meaningful substructure patterns, current \ac{gcr} approaches use constituents that are at-best \textit{localized} but not necessarily \textit{interpretable}.
+The defining characteristic of \ac{lta} proposed in \cref{sec:ltag:definition}, \textit{localized explainability}, is therefore only partially satisfied by existing approaches.
+This shortcoming of the existing \ac{lta} formulations for structured input data gives rise to a new problem:
+\begin{defn}
+	The \ac{ltd} problem is solved by finding a graph decomposition function $\psi: \mathcal{G}_{\mathcal{D}} \to \mathcal{P}(\mathcal{G}_{\mathcal{D}})$ which splits all graphs $G \in \mathcal{G}_{\mathcal{D}}$ from a given domain $\mathcal{D}$ into constituent subgraphs which are individually ``meaningful'' in $\mathcal{D}$.
+\end{defn}
+
+Since a comprehensive analysis of the \ac{ltd} problem would be beyond the scope of this thesis, we focus on two simpler questions:
+\begin{enumerate}
+	\item \textit{How can the \ac{ltd} problem be solved by a stack of graph convolution layers?}
+	\item \textit{What could be the foundation for such an ``\acs{ltd}-convolution'' layer?}
+\end{enumerate}
+
+We provide an answer to the first question in \cref{sec:ltd:edge-filter} by showing how in principle a graph convolution layer can learn decomposition functions $\psi$.
+This is motivated by the fact that neighborhood convolutions already implicitly define a static subtree decomposition function as we saw in \cref{sec:ltag:formulation:gcnn}.
+
+After establishing the connection between the \acs{ltd} problem and graph convolutions on a high level, we then tackle the second question in \crefrange{sec:ltd:kgnn-problems}{sec:ltd:wl2gnn-implementation}.
+There a novel graph convolution approach is proposed which could serve as a starting point for a true ``\ac{ltd}-\ac{gcnn}''.
+
+\section{Learning Constituents via Edge-Filters}%
+\label{sec:ltd:edge-filter}
+
+\section{Shortcomings of the Existing $k$-\acs*{gnn}}%
+\label{sec:ltd:kgnn-problems}
+
+\section{The 2-\acs*{wl} Convolution Operator}%
+\label{sec:ltd:wl2gnn-definition}
+
+\section{The Expressive Power of 2-\acs*{wl}-\acsp*{gnn}}%
+\label{sec:ltd:wl2gnn-properties}
+
+\section{Implementing 2-\acs*{wl}-\acsp*{gnn} on \acsp*{gpgpu}}%
+\label{sec:ltd:wl2gnn-implementation}

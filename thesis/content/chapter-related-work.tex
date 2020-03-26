@@ -501,11 +501,11 @@ As briefly mentioned before, the combinatorial graph Laplacian $L_G$ is not the 
 Note that the eigenvalues of $L_G$ grow with the number of edges\footnote{
 	This is trivially shown by $\sum_{i=1}^n \lambda_{G,i} = \Tr(L_G) = \Tr(D_G) = |\mathcal{E}_G|$.
 }.
-Consequently a small graph $G$ will typically have a large spectral distance to a large graph $H$ (assuming ${|\mathcal{V}_G|} \ll {|\mathcal{V}_H|}$) irrespective of their similarity when ignoring the scale difference.
+Consequently a small graph $G$ will typically have a large spectral distance to a large graph $H$ (assuming ${|\mathcal{E}_G|} \ll {|\mathcal{E}_H|}$) irrespective of their similarity when ignoring the scale difference.
 In domains where the absolute size of a graph should not influence its spectral characterization, it can therefore be useful to normalize the spectrum.
 One common way to do so is via the so-called \textit{symmetric normalized Laplacian} $L^{\text{sym}}_G$.
 \begin{defn}\label{defn:related:laplacian-sym}
-	$L^{\text{sym}}_G \coloneqq D^{-\frac{1}{2}} L_G D^{-\frac{1}{2}}$ is the symmetric normalized Laplacian of $G$.
+	$L^{\text{sym}}_G \coloneqq D^{-\frac{1}{2}} L_G D^{-\frac{1}{2}}$ is the \textit{symmetric normalized Laplacian} of $G$.
 \end{defn}
 The eigenvalues $\lambda^{\text{sym}}_{G, i}$  of this Laplacian all lie in the range $[0, 2]$.
 \Cref{fig:related:spectral-normalization} illustrates how this makes it possible to compare the structure of graphs across varying vertex counts.
@@ -752,17 +752,17 @@ To see why this is the case, we rewrite \cref{eq:related:gcn-layer} and compare 
 \end{alignat*}
 Here $\mu(v) \coloneqq {\left(\left| \Gamma_G(v) \right| + 1\right)}^{-\frac{1}{2}}$ are normalization factors introduced by $\tilde{D}_G^{-\frac{1}{2}}$.
 The comparison shows that \ac{gcn} convolutions can be understood as iterative refinements of continuous ``color vectors'' $Z^{(t)}[v] \in \mathbb{R}^{d^{(t)}}$.
-Then the continuous analogue to the injective 1-\acs{wl} hash function $h: \mathcal{C}^{*} \to \mathcal{C}$ can be defined as $h_{\text{\acs*{gcn}}}(z_0, z_1, \dots, z_m) = \sigma(\sum_{j=0}^m \mu(v_0) \mu(v_j) z_j \Theta^{(t)})$ which computes a single color vector from multiple color vectors $z_j$ where $v_j$ are the corresponding vertices.
+Then the continuous analogue to the injective 1-\acs{wl} hash function $h: \mathcal{C}^{*} \to \mathcal{C}$ can be defined as $h_{\mathrm{\acs*{gcn}}}(z_0, z_1, \dots, z_m) = \sigma(\sum_{j=0}^m \mu(v_0) \mu(v_j) z_j \Theta^{(t)})$ which computes a single color vector from multiple color vectors $z_j$ where $v_j$ are the corresponding vertices.
 
 \paragraph{A 1-\acs{wl} bound on \ac{gnn} power}
 The relation between \acp{gcnn} using neighborhood aggregation convolution and 1-\acs{wl} was formally analyzed by \citet{Xu2018}.
 They show that the discriminative power of such a \ac{gcnn} is upper-bounded by that of 1-\acs{wl}.
-In particular the \ac{gcn} architecture is strictly less powerful than 1-\acs{wl} due to the fact that $h_{\text{\acs*{gcn}}}$ is not an injective hash function.
+In particular the \ac{gcn} architecture is strictly less powerful than 1-\acs{wl} due to the fact that $h_{\mathrm{\acs*{gcn}}}$ is not an injective hash function.
 To overcome this limitation an alternative neighborhood aggregation architecture called \ac{gin} was proposed:
 \begin{align}
-	Z^{(t)}[v] \coloneqq \text{\acs*{mlp}}^{(t)}\left( Z^{(t-1)}[v] + \smashoperator[lr]{\sum_{u \in \Gamma_G(v)}} Z^{(t-1)}[u] \right)
+	Z^{(t)}[v] \coloneqq \mathrm{\acs*{mlp}}^{(t)}\left( Z^{(t-1)}[v] + \smashoperator[lr]{\sum_{u \in \Gamma_G(v)}} Z^{(t-1)}[u] \right)
 \end{align}
-By leaving out the normalization factors $\mu(v)$ and by using a \ac{mlp} instead of the single fully-connected layer $\sigma \circ \Theta^{(t)}$ the resulting hashing function $h_{\text{\acs*{gin}}}(z_1, \dots, z_m) = \text{\acs*{mlp}}^{(t)}(\sum_{j=1}^{m} z_j)$ becomes injective\footnote{
+By leaving out the normalization factors $\mu(v)$ and by using a \ac{mlp} instead of the single fully-connected layer $\sigma \circ \Theta^{(t)}$ the resulting hashing function $h_{\mathrm{\acs*{gin}}}(z_1, \dots, z_m) = \mathrm{\acs*{mlp}}^{(t)}(\sum_{j=1}^{m} z_j)$ becomes injective\footnote{
 	Under the assumption that the set of possible input feature matrices $X \in \mathbb{R}^{n \times d^{(0)}}$ is countable.
 	This is reasonable since real-world \ac{gcr} domains typically only have a finite set of possible vertex feature vectors, e.g\ one-hot label encodings.
 }, i.e.\ it assigns a unique color vector to each multiset of color vectors.
@@ -813,7 +813,7 @@ We will now briefly look at two such approaches.
 
 \paragraph{SortPooling}
 One way to combine feature vectors is called \textit{SortPooling}~\cite{Zhang2018}.
-It interprets the convolved vectors as continuous \ac{wl} colors that encode different structural roles of vertices (or vertex sets in case of $k$-\acp{gnn}).
+It interprets the convolved vectors as continuous \ac{wl} colors that encode different structural roles of vertices (or vertex $k$-multisets in case of $k$-\acp{gnn}).
 By imposing a component-wise lexicographic ordering on the set of color vectors, it can be reduced to a vertex permutation invariant top-$p$ list of vectors $(z_1, \dots, z_p)$ for some fixed $p \in \mathbb{N}$.
 The final graph feature vector then is the concatenation $z_G = \left( \bigoplus_{i=1}^{p} z_i \right) \in \mathbb{R}^{d^{(T)} p}$.
 SortPooling is based on the idea that the convolutional layers will learn to use the most-significant lexicographic vector components to represent that vector's importance.
