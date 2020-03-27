@@ -295,20 +295,20 @@ Note that each vertex $k$-tuple has one neighbor for each $u \in \mathcal{V}_G$,
 This more abstract notion of neighborhood is illustrated in \cref{fig:related:wl-neighbors}.
 \begin{figure}[ht]
 	\centering
-	\begin{subfigure}{0.33\textwidth}
+	\begin{subfigure}{0.32\textwidth}
 		\centering
-		\includegraphics[width=0.8\linewidth]{gfx/related-work/wl1-neighbors.pdf}
-		\subcaption{1-WL $v_1$ neighbors}\label{fig:related:wl-neighbors:1}
+		\includegraphics[width=0.8\textwidth]{gfx/related-work/wl1-neighbors.pdf}
+		\subcaption{$v_1$'s 1-WL neighbors}\label{fig:related:wl-neighbors:1}
 	\end{subfigure}%
-	\begin{subfigure}{0.33\textwidth}
+	\begin{subfigure}{0.32\textwidth}
 		\centering
-		\includegraphics[width=0.8\linewidth]{gfx/related-work/wl2-neighbors.pdf}
-		\subcaption{2-WL $(v_1, v_2)$ neighbors}\label{fig:related:wl-neighbors:2}
+		\includegraphics[width=0.8\textwidth]{gfx/related-work/wl2-neighbors.pdf}
+		\subcaption{$(v_1, v_2)$'s 2-WL neighbors}\label{fig:related:wl-neighbors:2}
 	\end{subfigure}%
-	\begin{subfigure}{0.33\textwidth}
+	\begin{subfigure}{0.36\textwidth}
 		\centering
-		\includegraphics[width=0.8\linewidth]{gfx/related-work/wl3-neighbors.pdf}
-		\subcaption{3-WL $(v_1, v_2, v_3)$ neighbors}\label{fig:related:wl-neighbors:3}
+		\includegraphics[width=0.711\textwidth]{gfx/related-work/wl3-neighbors.pdf}
+		\subcaption{$(v_1, v_2, v_3)$'s 3-WL neighbors}\label{fig:related:wl-neighbors:3}
 	\end{subfigure}
 	\caption[\ac{wl} neighborhoods for different values of $k$.]{
 		Tuple neighborhoods for different values of $k$.
@@ -551,11 +551,11 @@ We will now look at two main families of explicit graph and vertex embedding app
 The first works on graph embeddings were motivated by the study of chemical structures~\cite{Adamson1973}\cite{Willett1986}.
 There a molecule can be interpreted as a labeled graph for which the \ac{gcr} problem corresponds to the prediction of some chemical property, e.g.\ toxicity or solubility.
 So-called \textit{fingerprint embeddings} try to match a fixed set of subgraphs $S_1, \dots, S_d$ to the input graph.
-The embedding of a graph $G$ is a binary vector ${\varphi}_{\text{FP}}(G) \in {\{0, 1\}}^d$ with ${\varphi}_{\text{FP}}(G)[i] \coloneqq \mathit{contain}_{S_i}(G)$ (see~\cref{defn:related:wl-count-detect}).
-Alternatively a fingerprint embedding can additionally encode multiplicities via ${\varphi}_{\text{FP}}(G)[i] \coloneqq \mathit{count}_{S_i}(G) \in \mathbb{N}_0$.
+The embedding of a graph $G$ is a binary vector ${\varphi}_{\mathrm{FP}}(G) \in {\{0, 1\}}^d$ with ${\varphi}_{\mathrm{FP}}(G)[i] \coloneqq \mathit{contain}_{S_i}(G)$ (see~\cref{defn:related:wl-count-detect}).
+Alternatively a fingerprint embedding can additionally encode multiplicities via ${\varphi}_{\mathrm{FP}}(G)[i] \coloneqq \mathit{count}_{S_i}(G) \in \mathbb{N}_0$.
 
 This simple approach usually requires a careful choice of subgraphs but can still be competitive with the other more recent approaches we will look at in the following sections.
-Fingerprint embeddings are for example used in multiple state-of-the-art toxicity prediction tools like RASAR~\cite{Luechtefeld2018}\cite{ToxTrack}, ProTox~\cite{Drwal2014}\cite{ProTox}\cite{Banerjee2018} or the \ac{toxTest}~\cite{TEST}.
+Fingerprint embeddings are for example used in multiple state-of-the-art toxicity prediction tools like RASAR~\cite{Luechtefeld2018}\cite{ToxTrack}, the \ac{toxTest}~\cite{TEST} or ProTox~\cite{Drwal2014}\cite{ProTox}\cite{Banerjee2018}.
 
 \subsubsection{Skip-gram inspired Embeddings}
 
@@ -615,35 +615,35 @@ While there is a large variety of different \acp{gk}~\cite{Kriege2020}, we will 
 One well-known \ac{gk} is based directly on the 1-\acs{wl} coloring algorithm, the so-called \textit{\ac{wl} subtree kernel}~\cite{Shervashidze2011}.
 It is uses the mapping
 \begin{align}
-	\varphi_{\text{ST}}(G) \coloneqq \bigoplus_{t=0}^{T} {\left( \mathit{dist}_{\chi_{G,1}^{(t)}}(c) \right)}_{c \in \mathcal{C}}
+	\varphi_{\mathrm{ST}}(G) \coloneqq \bigoplus_{t=0}^{T} {\left( \mathit{dist}_{\chi_{G,1}^{(t)}}(c) \right)}_{c \in \mathcal{C}}
 	\quad\text{with $\oplus$ denoting vector concatenation.} \label{eq:related:wl-subtree-kernel}
 \end{align}
-$\varphi_{\text{ST}}(G)$ encodes the color counts across a fixed number $T$ of 1-\acs{wl} refinement steps.
-Via this mapping, the \ac{wl} subtree kernel function $k_{\text{ST}}: \mathcal{G} \times \mathcal{G} \to \mathbb{R}$ can then be simply written as the standard inner vector product $k_{\text{ST}}(G, H) \coloneqq \langle \varphi_{\text{ST}}(G), \varphi_{\text{ST}}(H) \rangle$.
+$\varphi_{\mathrm{ST}}(G)$ encodes the color counts across a fixed number $T$ of 1-\acs{wl} refinement steps.
+Via this mapping, the \ac{wl} subtree kernel function $k_{\mathrm{ST}}: \mathcal{G} \times \mathcal{G} \to \mathbb{R}$ can then be simply written as the standard inner vector product $k_{\mathrm{ST}}(G, H) \coloneqq \langle \varphi_{\mathrm{ST}}(G), \varphi_{\mathrm{ST}}(H) \rangle$.
 \begin{figure}[ht]
 	\centering
-	\includegraphics[width=0.7\linewidth]{gfx/related-work/wl-subtree.pdf}
+	\includegraphics[width=0.75\linewidth]{gfx/related-work/wl-subtree.pdf}
 	\caption[Illustration of the correspondence between the \ac{wl} color $\chi_{G,1}^{(t)}(v)$ and the breadth-first subtree of depth $l$ rooted at $v$.]{
-		Illustration of the correspondence between the \ac{wl} color $\chi_{G,1}^{(t)}(v)$ and the breadth-first subtree of depth $t$ rooted at $v$ (for $t = 2$ and $v = \texttt{\textcolor{t_blue}{\circled{1}}}$). % chktex 25
-		An arrow $A \to B$ indicates that the refined color of $A$ depends on the color of $B$.
+		Illustration of the correspondence between the \ac{wl} color $\chi_{G,1}^{(t)}(v)$ and the breadth-first subtree of depth $t$ rooted at $v$ (for $t = 2$ and $v = \textcolor{t_red}{v_1}$). % chktex 25
+		An arrow $\displaystyle v \rightarrowRHD u$ indicates that the refined color of $v$ depends on the color of $u$.
 		\source[based~on]{Shervashidze2011}
 	}\label{fig:related:wl-subtree}
 \end{figure}
 
 \Cref{fig:related:wl-subtree} illustrates how this definition relates to subtrees.
-Since all vertex colors $c \in \mathcal{C}$ correspond to a subtree isomorphism class, $k_{\text{ST}}(G, H)$ effectively computes the similarity of $G$ and $H$ by comparing their local subtree structures of depth at most $T$.
-Note that the underlying mapping $\varphi_{\text{ST}}$ cannot be computed independently for each graph $G \in \mathcal{G}_{\mathcal{D}} \subseteq \mathcal{G}$ in a given training dataset $\mathcal{D}$ since the set of colors $c \in \mathcal{C}$ introduced by the hashing function $h$ is conjointly determined by all graphs $\mathcal{G}_{\mathcal{D}}$ (see \cref{defn:related:wl1-refine}).
-Consequently the dimensionality $d$ of $\varphi_{\text{ST}}(G) \in \mathbb{N}^d$ varies, depending on the entire dataset $\mathcal{D}$.
+Since all vertex colors $c \in \mathcal{C}$ correspond to a subtree isomorphism class, $k_{\mathrm{ST}}(G, H)$ effectively computes the similarity of $G$ and $H$ by comparing their local subtree structures of depth at most $T$.
+Note that the underlying mapping $\varphi_{\mathrm{ST}}$ cannot be computed independently for each graph $G \in \mathcal{G}_{\mathcal{D}} \subseteq \mathcal{G}$ in a given training dataset $\mathcal{D}$ since the set of colors $c \in \mathcal{C}$ introduced by the hashing function $h$ is conjointly determined by all graphs $\mathcal{G}_{\mathcal{D}}$ (see \cref{defn:related:wl1-refine}).
+Consequently the dimensionality $d$ of $\varphi_{\mathrm{ST}}(G) \in \mathbb{N}^d$ varies, depending on the entire dataset $\mathcal{D}$.
 
 \paragraph{\ac{wl} shortest path kernel}
 Extending the idea of the \ac{wl} subtree kernel, the \textit{\ac{wl} shortest path kernel}~\cite{Shervashidze2011}\cite{Borgwardt2005} adds global structural information to the local subtree comparisons.
-The $i$-th component of a graph's shortest path vector $\varphi_{\text{SP}}(G)$ corresponds to the 4-tuple $(t_i, a_i, b_i, d_i) \in {\{ 0, \dots, T \}} \times \mathcal{C} \times \mathcal{C} \times \mathbb{N}_0$ and its value is described by
+The $i$-th component of a graph's shortest path vector $\varphi_{\mathrm{SP}}(G)$ corresponds to the 4-tuple $(t_i, a_i, b_i, d_i) \in {\{ 0, \dots, T \}} \times \mathcal{C} \times \mathcal{C} \times \mathbb{N}_0$ and its value is described by
 \begin{align}
-	{\varphi_{\text{SP}}(G)}[i] \coloneqq \left| \left\{ (v, u) \in \mathcal{V}_G^2 \,|\, {\chi_{G,1}^{(t_i)}(v) = a_i} \land {\chi_{G,1}^{(t_i)}(u) = b_i} \land {d_{\text{SP}}(v, u) = d_i} \right\} \right| \text{,} \label{eq:related:wl-shortest-path-kernel} % chktex 21
+	{\varphi_{\mathrm{SP}}(G)}[i] \coloneqq \left| \left\{ (v, u) \in \mathcal{V}_G^2 \,|\, {\chi_{G,1}^{(t_i)}(v) = a_i} \land {\chi_{G,1}^{(t_i)}(u) = b_i} \land {d_{\mathrm{SP}}(v, u) = d_i} \right\} \right| \text{,} \label{eq:related:wl-shortest-path-kernel} % chktex 21
 \end{align}
-with $d_{\text{SP}}(v, u)$ denoting the length of the shortest path from $v$ to $u$ in $G$.
-Analogous to $k_{\text{ST}}$, the shortest path kernel function is defined as $k_{\text{SP}}(G, H) \coloneqq \langle \varphi_{\text{SP}}(G), \varphi_{\text{SP}}(H) \rangle$.
-Since $\varphi_{\text{SP}}(G)$ has one component for each possible 4-tuple $(t_i, a_i, b_i, d_i)$, its dimensionality grows quadratically with the total number of introduced 1-\acs{wl} colors $\mathcal{C}$ and linearly with the length of the longest shortest path $\max_{G \in \mathcal{G}_{\mathcal{D}}, (v, u) \in \mathcal{V}_G^2} d_{\text{SP}}(v, u)$.
+with $d_{\mathrm{SP}}(v, u)$ denoting the length of the shortest path from $v$ to $u$ in $G$.
+Analogous to $k_{\mathrm{ST}}$, the shortest path kernel function is defined as $k_{\mathrm{SP}}(G, H) \coloneqq \langle \varphi_{\mathrm{SP}}(G), \varphi_{\mathrm{SP}}(H) \rangle$.
+Since $\varphi_{\mathrm{SP}}(G)$ has one component for each possible 4-tuple $(t_i, a_i, b_i, d_i)$, its dimensionality grows quadratically with the total number of introduced 1-\acs{wl} colors $\mathcal{C}$ and linearly with the length of the longest shortest path $\max_{G \in \mathcal{G}_{\mathcal{D}}, (v, u) \in \mathcal{V}_G^2} d_{\mathrm{SP}}(v, u)$.
 While this approach is computationally significantly more expensive than the subtree kernel, it also has a higher discriminative power and allows the shortest path kernel to distinguish even some 1-\acs{wl} indistinguishable graphs.
 The subtree kernel only compares graphs by the presence of local subtrees;
 the shortest path kernel additionally checks how well the distances between those subtrees align.

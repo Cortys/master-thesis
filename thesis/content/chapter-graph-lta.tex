@@ -105,7 +105,7 @@ The more ``\acs{lta}-like'' a given model is, the stronger its bias towards loca
 However, when considering problem domains in which the true composition scores $y_G$ are accurately described by an \acs{lta}-like generative process, a less expressive \ac{lta}-like model could generalize better than a more expressive non-\ac{lta} model.
 This idea is captured by the so-called \textit{\ac{lta} assumption}.
 \begin{defn}
-	A problem domain $\mathcal{D}$ satisfies the \textit{\ac{lta} assumption} iff.\ there is an \ac{lta} method which produces models with an equal or lower out-of-sample error than the models produced by non-\acs{lta} methods for most training samples $\mathcal{D}_{\text{train}} \subseteq \mathcal{D}$.
+	A problem domain $\mathcal{D}$ satisfies the \textit{\ac{lta} assumption} iff.\ there is an \ac{lta} method which produces models with an equal or lower out-of-sample error than the models produced by non-\acs{lta} methods for most training samples $\mathcal{D}_{\mathrm{train}} \subseteq \mathcal{D}$.
 \end{defn}
 Due to the fuzziness of the class of \ac{lta} methods, the \ac{lta} assumption is naturally also a fuzzy concept.
 Nonetheless evidence for its truthiness in a given domain $\mathcal{D}$ can be empirically obtained by comparing candidate \ac{lta} methods with the best known non-\ac{lta} method for $\mathcal{D}$, assuming that some cut-off condition for the required ``\ac{lta}-ness'' of an \ac{lta} method is agreed upon.
@@ -140,11 +140,11 @@ Based on this requirement we now proof the main theorem which shows the relation
 	A binary \ac{svm} graph classifier $h$ that applies a \ac{sce} $\varphi$ to its inputs has an \ac{lta} formulation that uses an underlying decomposition $\psi_{\varphi}$ of $\varphi$.
 \end{thm}
 \begin{proof}
-	Let $h: \mathcal{G} \to {\{ -1, +1 \}}$ be a binary graph classifier expressed as $h = h_{\text{\acs*{svm}}} \circ \varphi$ where $\varphi: \mathcal{G} \to \mathbb{N}_0^{d}$ is an \ac{sce} and $h_{\text{\acs*{svm}}}: \mathbb{R}^{d} \to {\{ -1, +1 \}}$ a standard \ac{svm} classifier.
+	Let $h: \mathcal{G} \to {\{ -1, +1 \}}$ be a binary graph classifier expressed as $h = h_{\mathrm{\acs*{svm}}} \circ \varphi$ where $\varphi: \mathcal{G} \to \mathbb{N}_0^{d}$ is an \ac{sce} and $h_{\mathrm{\acs*{svm}}}: \mathbb{R}^{d} \to {\{ -1, +1 \}}$ a standard \ac{svm} classifier.
 	Additionally, let $\psi_{\varphi}$ be some underlying decomposition of $\varphi$ with ${\{ \gamma_{\varphi, i} \}}_{i=1}^d$ being the corresponding multiplicity functions.
 
 	Based on this decomposition we now bring the \ac{svm} graph classifier $h$ into an \ac{lta} formulation.
-	If $h$ is trained on a dataset $\mathcal{D}_{\text{train}} = {\{ (G_1, y_1), \dots, (G_N, y_N) \}}$, via the kernel trick it can be expressed as
+	If $h$ is trained on a dataset $\mathcal{D}_{\mathrm{train}} = {\{ (G_1, y_1), \dots, (G_N, y_N) \}}$, via the kernel trick it can be expressed as
 	\begin{align*}
 		h(G) &= \sgn\left( \sum_{j = 1}^{N} \alpha_j y_j {\langle \varphi(G), \varphi(G_j) \rangle} + b \right)
 		\quad\text{for some $\alpha \in \mathbb{R}_{\geq 0}^N$ and $b \in \mathbb{R}$} \\
@@ -168,7 +168,7 @@ Based on this requirement we now proof the main theorem which shows the relation
 \end{proof}
 
 The central statement of \cref{thm:ltag:svm-ltag-formulation} is that \acs{svm} graph classifiers that use an \ac{sce} $\varphi$ implicitly perform an \acs{lta}-like weighted majority vote aggregation of constituent scores $y_t$.
-Those constituent scores can in turn be expressed as a majority vote of the graph scores in the training dataset $\mathcal{D}_{\text{train}}$:
+Those constituent scores can in turn be expressed as a majority vote of the graph scores in the training dataset $\mathcal{D}_{\mathrm{train}}$:
 \begin{align}
 	y_t \coloneqq \sgn z_t
 	 &= \sgn\left( \sum_{j=1}^N \underbrace{\left( \alpha_j \smashoperator[l]{\sum_{c_k \in \psi_{\varphi}(G_j)}} \sum_{i=1}^d \gamma_{\varphi,i}(c_t) \gamma_{\varphi,i}(c_k) \right)}_{w_j \geq 0} y_j \right) \\
@@ -179,10 +179,10 @@ Note that, if the constituents of $G_j$ all come from different embedding compon
 To see what \cref{thm:ltag:svm-ltag-formulation} implies in practice, we will now apply it to the graph embedding approaches described in \cref{sec:related:gcr:embed,sec:related:gcr:kernel}:
 \begin{enumerate}[label=\textbf{\arabic*.},ref={\arabic*}]
 	\item \textbf{Fingerprint embeddings:}\label{itm:ltag:fingerprint-lta-formulation}
-		Here the $i$-th embedding component represent the number of occurrences of a substructure $S_i$, i.e.\ ${\varphi}_{\text{FP}}(G)[i] \coloneqq \mathit{count}_{S_i}(G)$ (see \cfullref{defn:related:wl-count-detect}).
-		Such a fingerprint embedding naturally is an \ac{sce} with the decomposition functions $\psi_{\text{FP}, i}(G) \coloneqq \{ G[\set(s)]\, |\, s \in \mathcal{V}_G^{*} \land G[s] \equiv S_i \}$ and the multiplicity functions $\gamma_{\text{FP}, i}(c) \coloneqq \mathbbm{1}[c \simeq S_i]$ since those functions produce the subgraphs that are counted by ${\varphi}_{\text{FP}}(G)[i]$ with multiplicity $1$. % chktex 21
+		Here the $i$-th embedding component represent the number of occurrences of a substructure $S_i$, i.e.\ ${\varphi}_{\mathrm{FP}}(G)[i] \coloneqq \mathit{count}_{S_i}(G)$ (see \cfullref{defn:related:wl-count-detect}).
+		Such a fingerprint embedding naturally is an \ac{sce} with the decomposition functions $\psi_{\mathrm{FP}, i}(G) \coloneqq \{ G[\set(s)]\, |\, s \in \mathcal{V}_G^{*} \land G[s] \equiv S_i \}$ and the multiplicity functions $\gamma_{\mathrm{FP}, i}(c) \coloneqq \mathbbm{1}[c \simeq S_i]$ since those functions produce the subgraphs that are counted by ${\varphi}_{\mathrm{FP}}(G)[i]$ with multiplicity $1$. % chktex 21
 
-		Under the assumption that the substructure patterns $S_i$ are chosen s.t.\ the their instances $c \in \psi_{\text{FP}, i}(G)$ are nontrivial interpretable constituents, the underlying joint decomposition $\psi_{\text{FP}}(G) \coloneqq \bigcup_{i=1}^d \psi_{\text{FP}, i}(G)$ must also be nontrivial and interpretable.
+		Under the assumption that the substructure patterns $S_i$ are chosen s.t.\ the their instances $c \in \psi_{\mathrm{FP}, i}(G)$ are nontrivial interpretable constituents, the underlying joint decomposition $\psi_{\mathrm{FP}}(G) \coloneqq \bigcup_{i=1}^d \psi_{\mathrm{FP}, i}(G)$ must also be nontrivial and interpretable.
 		Thus, by \cref{thm:ltag:svm-ltag-formulation}, \acp{svm} trained on fingerprint embeddings are \ac{lta} models that produce locally explainable predictions.
 		\badgebox[t_green]{\acs*{lta}}
 	\item \textbf{\texttt{graph2vec}:}
@@ -191,13 +191,13 @@ To see what \cref{thm:ltag:svm-ltag-formulation} implies in practice, we will no
 		The resulting component values can be arbitrary reals, therefore this approach is not an \ac{sce} which in turn implies that it does not have an \ac{lta} formulation as in \cref{thm:ltag:svm-ltag-formulation}.
 		\badgebox[t_red]{non-\acs*{lta}}
 	\item \textbf{\ac{wl} subtree kernel:}\label{itm:ltag:wlst-lta-formulation}
-		The individual components of the \ac{wl} subtree kernel's embedding $\varphi_{\text{ST}}$ represent the number of occurrences of a color $\kappa_i \in \mathcal{C}$, i.e.\ $\varphi_{\text{ST}}(G)[i, t] \coloneqq \mathit{dist}_{\chi_{G,1}^{(t)}}(\kappa_i)$ as defined in \cfullref[ on ]{eq:related:wl-subtree-kernel}\footnote{
+		The individual components of the \ac{wl} subtree kernel's embedding $\varphi_{\mathrm{ST}}$ represent the number of occurrences of a color $\kappa_i \in \mathcal{C}$, i.e.\ $\varphi_{\mathrm{ST}}(G)[i, t] \coloneqq \mathit{dist}_{\chi_{G,1}^{(t)}}(\kappa_i)$ as defined in \cfullref[ on ]{eq:related:wl-subtree-kernel}\footnote{
 			To avoid confusion $\kappa_i \in \mathcal{C}$ is used for colors and $c_j \in \mathcal{G}$ for constituents in this context.
 		}.
 		The occurrence of a color $\kappa_i$ at some vertex $v_j \in \mathcal{V}_G$ in the $t$-th refinement step (i.e.\ $\chi_{G,1}^{(t)}(v_j) = \kappa_i$) in turn implies that the \ac{bfs} tree $S_{j,t} \coloneqq \text{\acs*{bfs}}(G, v_j, t)$ of depth $t$ rooted at $v_j$ is isomorphic to some \ac{wl} color subtree $S_{\kappa_i}$ (i.e.\ $S_{j,t} \simeq S_{\kappa_i}$).
 		This relation between \ac{wl} colors $\kappa_i$ and subtrees $S_{\kappa_i}$ was illustrated in \cfullref[ on ]{fig:related:wl-subtree}.
 
-		To show that $\varphi_{\text{ST}}$ is an \ac{sce}, we have to define decomposition functions $\psi_{\varphi, i, t}$ and multiplicity functions $\gamma_{\varphi, i, t}$ s.t.\ $\varphi(G)[i, t] = \sum_{c \in \psi_{\varphi, i, t}(G)} \gamma_{\varphi, i, t}(c)$.
+		To show that $\varphi_{\mathrm{ST}}$ is an \ac{sce}, we have to define decomposition functions $\psi_{\varphi, i, t}$ and multiplicity functions $\gamma_{\varphi, i, t}$ s.t.\ $\varphi(G)[i, t] = \sum_{c \in \psi_{\varphi, i, t}(G)} \gamma_{\varphi, i, t}(c)$.
 		Since $\varphi(G)[i, t]$ counts the occurrences $S_{j,t}$ of a subtree $S_{\kappa_i}$ in $G$, the \ac{sce} requirement would be trivially satisfied if each $S_{j,t}$ were a constituent with multiplicity $1$.
 		This intuition is however not quite correct because the constituents of a graph $G$ must be induced subgraphs of $G$, not \ac{bfs} subtrees $S_{j, t}$ of $G$.
 		\begin{figure}[t]
@@ -216,29 +216,29 @@ To see what \cref{thm:ltag:svm-ltag-formulation} implies in practice, we will no
 		As illustrated in \cref{fig:ltag:wl1-constituents}, the number of distinct constituents $c_{j,t}$ might be smaller than the number of \ac{bfs} subtrees $S_{j,t}$ because two distinct subtrees might span the same set of vertices.
 		To fix this discrepancy between the subtree occurrence count (which equals $\varphi(G)[i, t]$) and the number of constituents, the multiplicities $\gamma_{\varphi, i, t}(c)$ of the constituents $c$ have to correspond to the number of \ac{bfs} subtrees they were spanned up by, i.e.\
 		\begin{align}
-			&\gamma_{\varphi, i, t}(c) \coloneqq {\left|\{ S = \text{\acs*{bfs}}(c, v_{\text{root}}, t)\, |\, v_{\text{root}} \in \mathcal{V}_c \land S \simeq S_{\kappa_i} \land \mathit{complete}(S) \}\right|}\label{eq:ltag:wlst-constituent-subtree-count} \\
-			&\text{with }\mathit{complete}(S) \Leftrightarrow \forall\ \text{leaf nodes $v_{\text{leaf}}$ of the tree $S$}: {|\Gamma_c(v_{\text{leaf}})|} = {|\Gamma_G(v_{\text{leaf}})|}
+			&\gamma_{\varphi, i, t}(c) \coloneqq {\left|\{ S = \text{\acs*{bfs}}(c, v_{\mathrm{root}}, t)\, |\, v_{\mathrm{root}} \in \mathcal{V}_c \land S \simeq S_{\kappa_i} \land \mathit{complete}(S) \}\right|}\label{eq:ltag:wlst-constituent-subtree-count} \\
+			&\text{with }\mathit{complete}(S) \Leftrightarrow \forall\ \text{leaf nodes $v_{\mathrm{leaf}}$ of the tree $S$}: {|\Gamma_c(v_{\mathrm{leaf}})|} = {|\Gamma_G(v_{\mathrm{leaf}})|}
 			\text{.} \nonumber
 		\end{align}
 		The purpose of the $\mathit{complete}(S)$ condition is to only count the \ac{bfs} subtrees of the constituent $c$ that are also \ac{bfs} subtrees of the complete graph $G$.
 		To see why this is required, note that in \cref{fig:ltag:wl1-constituents} the $c_{1,1}$/$c_{2,1}$ constituent contains the color subtree $S_{\textcolor{t_red}{\texttt{B}}}$ three times (rooted at $v_1$, $v_2$ and $v_3$) even though $G$ only contains it twice (rooted at $v_1$ and $v_2$). % chktex 25
-		Also note that, since $\gamma_{\varphi, i, t}(c)$ must only depend on a given constituent $c$ and not on the graph $G$ it was decomposed from, the degree information $|\Gamma_G(v_{\text{leaf}})|$ of the constituent vertices $v \in \mathcal{V}_c$ is assumed to be statically encoded in the labels $l_c[v]$ or feature vectors $x_c[v]$.
+		Also note that, since $\gamma_{\varphi, i, t}(c)$ must only depend on a given constituent $c$ and not on the graph $G$ it was decomposed from, the degree information $|\Gamma_G(v_{\mathrm{leaf}})|$ of the constituent vertices $v \in \mathcal{V}_c$ is assumed to be statically encoded in the labels $l_c[v]$ or feature vectors $x_c[v]$.
 
-		Via the decomposition and multiplicity functions that were just described, $\varphi_{\text{ST}}$ is in fact an \ac{sce} with a nontrivial, subtree-based decomposition function.
+		Via the decomposition and multiplicity functions that were just described, $\varphi_{\mathrm{ST}}$ is in fact an \ac{sce} with a nontrivial, subtree-based decomposition function.
 		Additionally each constituent's diameter is upper bounded by $2T$ (with $T$ being the maximum number of \ac{wl} iterations) which guarantees that constituents are localized within a neighborhood of bounded size.
 		By \cref{thm:ltag:svm-ltag-formulation}, \acp{svm} that use the \ac{wl} subtree kernel therefore have nontrivial \ac{lta} formulations with localized constituents, i.e.\ they can be considered to be ``\ac{lta}-like'' models.
 		However, unlike fingerprint embeddings, the \ac{wl} subtree constituents are not manually chosen to be interpretable.
 		This implies that the localized explainability characteristic of \ac{lta} is only partially satisfied since the \ac{svm} predictions are based on local constituent predictions that are not necessarily interpretable.
 		\badgebox[t_green]{\acs*{lta}-like}
 	\item \textbf{\ac{wl} shortest path kernel:}\label{itm:ltag:wlsp-lta-formulation}
-		As defined in \cfullref[ on ]{eq:related:wl-shortest-path-kernel}, the $i$-th component of the \ac{wl} shortest path embedding $\varphi_{\text{SP}}$ represents a 4-tuple $(t_i, a_i, b_i, d_i) \in {\{ 0, \dots, T \}} \times \mathcal{C} \times \mathcal{C} \times \mathbb{N}_0$.
-		The value $\varphi_{\text{SP}}(G)[i]$ is defined as the number of vertex pairs $v_a, v_b \in \mathcal{V}_G$ that have a shortest connecting path of length $d_i$ and the \ac{wl} color combination $\chi_{G,1}^{(t_i)}(v_a) = a_i$ and $\chi_{G,1}^{(t_i)}(v_b) = b_i$.
+		As defined in \cfullref[ on ]{eq:related:wl-shortest-path-kernel}, the $i$-th component of the \ac{wl} shortest path embedding $\varphi_{\mathrm{SP}}$ represents a 4-tuple $(t_i, a_i, b_i, d_i) \in {\{ 0, \dots, T \}} \times \mathcal{C} \times \mathcal{C} \times \mathbb{N}_0$.
+		The value $\varphi_{\mathrm{SP}}(G)[i]$ is defined as the number of vertex pairs $v_a, v_b \in \mathcal{V}_G$ that have a shortest connecting path of length $d_i$ and the \ac{wl} color combination $\chi_{G,1}^{(t_i)}(v_a) = a_i$ and $\chi_{G,1}^{(t_i)}(v_b) = b_i$.
 
 		To determine the number of such vertex pairs via an \ac{sce} multiplicity function $\gamma_{\varphi, t_i, a_i, b_i, d_i}$, each connected pair of vertices $v_a, v_b$ and the shortest path between them must occur together in at least one constituent, otherwise a multiplicity function cannot compute whether $v_a$ and $v_b$ are in fact $d_i$ hops apart.
 		One simple decomposition which guarantees that all shortest paths are part of at least one constituent simply splits a given graph into its connected components.
 		Even though such a decomposition is non-trivial since it uses at least some structural information to determine the set of constituents, the fact that any pair of connected vertices must co-occur within a single constituent means that constituents must span arbitrarily large distances within a given graph.
 		Depending on ones domain-specific interpretation of \textit{localized explainability}, this restriction can be seen to be not ``\acs{lta}-like''.
-		Since we do not attempt to clearly separate \ac{lta} from non-\acs{lta} methods, $\varphi_{\text{SP}}$ is categorized as an in-between case here.
+		Since we do not attempt to clearly separate \ac{lta} from non-\acs{lta} methods, $\varphi_{\mathrm{SP}}$ is categorized as an in-between case here.
 		\badgebox[t_yellow]{partially \acs*{lta}-like}
 	\item \textbf{$k$-LWL kernel:}\label{itm:ltag:klwl-lta-formulation}
 		The \ac{lta} interpretation of the $k$-LWL kernel is identical to that of the \ac{wl} subtree kernel.
@@ -293,7 +293,8 @@ This intuition is now formalized.
 	}\label{fig:ltag:gcnn-structure}
 \end{figure}
 
-\subsubsection{Graph Convolutions as \ac*{lta} Decomposition and Evaluation Functions}
+\subsection{Graph Convolutions as Decomposition and Evaluation}%
+\label{sec:ltag:formulation:gcnn:conv}
 
 To define an \ac{lta} formulation for \acp{gcnn}, we define two functions that are entirely based on the stack of convolution layers ($\mathit{Conv}$):
 \begin{enumerate*}
@@ -346,17 +347,18 @@ Consequently we define the \ac{lta} decomposition function of such neighborhood 
 \paragraph{\ac{gcnn} \ac{lta} multi-score evaluation}
 In addition to this decomposition function, $\mathit{Conv}$ also implicitly computes local constituent evaluations.
 If there is a translation function $\tau_{1}: \mathbb{R}^{d^{(T)}} \to \mathcal{Y} \times \mathbb{R}_{\geq 0}$, the convolved vectors $z_i \in \mathbb{R}^{d^{(T)}}$ can be interpreted as constituent evaluations.
-One trivial example for such a translation function would be the identity $\tau_{1}(z) = z$ for a graph regression problem with the score domain $\mathcal{Y} = [0, 1]$ and where the last convolution layer uses a sigmoid activation function with two output dimensions s.t.\ $z \in {[0,1]}^2$.
+One trivial example for such a translation function would be the identity $\tau_{1}(z) = z$ for a graph regression problem with the score domain $\mathcal{Y} = [0, 1]$ and where the last convolution layer uses a logistic activation function with two output dimensions s.t.\ $z \in {[0,1]}^2$.
 Assuming that there is a translation function $\tau_{1}$ we can define a multi-score evaluation function $f^{*}(c) \coloneqq {\ldblbrace \tau_{1}(z_i)\, |\, {i \in [n]} \land {c = c_i} \rdblbrace} = {\ldblbrace \tau_{1}(\mathit{Conv}(c)[v_i])\, |\, v_i \in \mathit{root}(c) \rdblbrace}$.
 The function $\mathit{root}(c) = \{ v_i\, |\, {i \in [n]} \land {c = c_i} \}$ returns the set of root vertices $v_i$ (or root vertex $k$-multisets in case of $k$-\acs{gnn}) whose \ac{bfs} subtree of depth $T$ in $G$ spans exactly the vertices in $c$.
 To compute $\mathit{root}(c)$ given only a single constituent $c$ and not the entire graph $G$, it has to be determined which \ac{bfs} subtrees of $c$ are also \ac{bfs} subtrees of $G$.
 We already saw how to do this in the \ac{lta} formulation of \ac{wl} subtree kernel \acp{svm} (see $\mathit{complete}$ in \cfullref{eq:ltag:wlst-constituent-subtree-count}).
 
-\subsubsection{Graph Pooling as \ac*{lta} Aggregation Functions}
+\subsection{Graph Pooling as Aggregation}%
+\label{sec:ltag:formulation:gcnn:pool}
 
 Based on the decomposition function $\psi: \mathcal{G} \to \mathcal{P}(\mathcal{G})$ and the multi-score evaluation function $f^{*}: \mathcal{G} \to {(\mathcal{Y} \times \mathbb{R}_{\geq 0})}^{*}$ which are implicitly defined by the stack of convolution layers $\mathit{Conv}$ of a given \ac{gcnn}, we now complete our \ac{gcnn} \ac{lta} formulation by defining an evaluation function $f: \mathcal{G} \to \mathcal{Y} \times \mathbb{R}_{\geq 0}$ as well as an aggregation function $\mathcal{A}: {(\mathcal{Y} \times \mathbb{R}_{\geq 0})}^{*} \to \mathcal{Y}$ based on the pooling layer $\mathit{Pool}: \mathbb{R}^{n \times d^{(T)}} \to \mathbb{R}^{d^{(\mathrm{pool})}}$.
 \begin{defn}\label{defn:ltag:assoc-algebra}
-	A variadic function $\xi: A^{*} \to B$ is called \textit{associative} iff.\ there is an operator $\rho: A^{*} \to A$ s.t.\ $\forall n \in \mathbb{N}: \forall (a_1, \dots, a_n) \in A^n: \forall {1 \leq i \leq j \leq n}: \xi(a_1, \dots, a_n) = \xi(a_1, \dots, a_{i-1}, \rho(a_i, \dots, a_j), a_{j+1}, \dots, a_n)$.
+	A variadic function $\xi: A^{*} \to B$ is called \textit{associative} iff.\ there is a replacement operator $\rho: A^{*} \to A$ s.t.\ $\forall n \in \mathbb{N}: \forall (a_1, \dots, a_n) \in A^n: \forall {1 \leq i \leq j \leq n}: \xi(a_1, \dots, a_n) = \xi(a_1, \dots, a_{i-1}, \rho(a_i, \dots, a_j), a_{j+1}, \dots, a_n)$.
 	The heterogeneous algebra\footnote{
 		See \citet{Birkhoff1970} for a more detailed description of heterogeneous algebras.
 	} $((A, B), (\xi, \rho))$ is called an \textit{associative algebra} of $\xi$.
@@ -385,7 +387,7 @@ Using those definitions we can complete the connection between \acp{gcnn} and \a
 \end{thm}
 \begin{proof}
 	We already saw that a stack of neighborhood convolutions computes the values of a multi-score evaluation function $f^{*}$ for the subtree constituents returned by a decomposition function $\psi$.
-	Since $\mathit{Pool}$ is assumed to be an associative weighted aggregation layer, there must be an operator $\rho_{\mathit{Pool}}: \mathbb{R}^{n \times d^{(T)}} \to \mathbb{R}^{n \times d^{(T)}}$ and a homomorphism $(\tau_{1}, \tau_{2})$ to an associative algebra with the operators $\mathcal{A}: {(\mathcal{Y} \times \mathbb{R}_{\geq 0})}^{*} \to \mathcal{Y}$ and $\rho_{\mathcal{A}}: {(\mathcal{Y} \times \mathbb{R}_{\geq 0})}^{*} \to {(\mathcal{Y} \times \mathbb{R}_{\geq 0})}$.
+	Since $\mathit{Pool}$ is assumed to be an associative weighted aggregation layer, there must be a replacement operator $\rho_{\mathit{Pool}}: \mathbb{R}^{n \times d^{(T)}} \to \mathbb{R}^{n \times d^{(T)}}$ and a homomorphism $(\tau_{1}, \tau_{2})$ to an associative algebra with the operators $\mathcal{A}: {(\mathcal{Y} \times \mathbb{R}_{\geq 0})}^{*} \to \mathcal{Y}$ and $\rho_{\mathcal{A}}: {(\mathcal{Y} \times \mathbb{R}_{\geq 0})}^{*} \to {(\mathcal{Y} \times \mathbb{R}_{\geq 0})}$.
 	This allows us to rewrite the \ac{gcnn} as
 	\begin{align*}
 		\tau_2(\mathit{Pool}(\mathit{Conv}(G)))
