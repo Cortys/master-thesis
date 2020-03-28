@@ -63,11 +63,45 @@ There are two general edge filtering strategies:
 	}\label{fig:ltd:dynamic-subtree-filtering}
 \end{figure}
 Irrespective of the chosen edge filtering strategy, the decision whether to remove a given edge $e_{ij} = (v_i, v_j)$ or not has to be made based on relevant information about $e_{ij}$ and its surroundings.
-One natural way to encode the information about $e_{ij}$ is via an edge feature vector $z_{ij} \in \mathbb{R}^d$ that is fed into the edge filter.
-We propose that those edge feature vectors could be obtained by a 2-\acs{wl} inspired graph convolution layer since 2-\acs{wl} colors represent the structural roles of edges as described in \cref{sec:related:character:wl}.
+One way to encode the information about $e_{ij}$ is via an edge feature vector $z_{ij} \in \mathbb{R}^d$ that is fed into the edge filter.
 
-\section{Shortcomings of the Existing $k$-\acs*{gnn}}%
-\label{sec:ltd:kgnn-problems}
+We propose that those edge feature vectors can be obtained via a 2-\acs{wl} inspired graph convolution layer since 2-\acs{wl} colors naturally represent the structural roles of edges as described in \cref{sec:related:character:wl}.
+We already saw a \ac{gcnn} architecture in \cref{sec:related:gcr:nn} which could potentially compute such 2-\acs{wl} inspired edge feature vectors, the $k$-\acs{gnn}~\cite{Morris2019}.
+Its variant for $k = 2$ produces edge feature vectors that can be used as the input for an edge filter.
+However, as we will see in the next section, there are significant limitations to the discriminative and computational power of 2-\acsp{gnn}.
+
+\section{Limitations of the Existing 2-\acs*{gnn}}%
+\label{sec:ltd:kgnn-limits}
+
+The $k$-\acs{gnn} is a \ac{gcnn} inspired by the $k$-\ac{wl} algorithm, it convolves feature vectors of vertex $k$-multisets.
+In this section we will compare its $k = 2$ variant with the 2-\ac{wl} algorithm.
+The main difference between the two boils down to their notion of ``neighborhood''.
+As already briefly mentioned in \cref{sec:related:gcr:nn}, 2-\acsp{gnn} define the neighbors of an edge $\textcolor{t_blue}{e_{ij}} = (\textcolor{t_red}{v_i}, \textcolor{t_darkgreen}{v_j})$ to be the edges that are incident to either $\textcolor{t_red}{v_i}$ or $\textcolor{t_darkgreen}{v_j}$. % chktex 25
+In 2-\acs{wl} on the other hand, the neighbors of $\textcolor{t_blue}{e_{ij}}$ are the edge pairs ${\left\{(\textcolor{t_red}{e_{il}}, \textcolor{t_darkgreen}{e_{lj}})\right\}}_{v_l \in \mathcal{V}_G}$, i.e.\ all possible paths of length two that start at $\textcolor{t_red}{v_i}$ and end at $\textcolor{t_darkgreen}{v_j}$. % chktex 21 chktex 25
+This difference becomes clear when comparing the definition of convolution in 2-\acsp{gnn} with that of color refinement in 2-\acs{wl} (see \cfullref[ on ]{eq:related:kgnn-layer} and \cfullref[ on ]{defn:related:wlk-refine}):
+\begin{alignat*}{4}
+	\text{2-\acs{gnn}: } && Z^{(t)}[e_{ij}] &= \sigma\Biggl( \textcolor{t_blue}{Z^{(t-1)}[e_{ij}]} W^{(t)} + &&\left( \smashoperator[r]{\sum_{v_l \in \Gamma_G(v_j)}} \textcolor{t_red}{Z^{(t-1)}[e_{il}]} + \smashoperator[lr]{\sum_{v_l \in \Gamma_G(v_i)}} \textcolor{t_darkgreen}{Z^{(t-1)}[e_{lj}]} \right) W_{\Gamma}^{(t)} \Biggr) \\ % chktex 25
+	\text{2-\acs{wl}: } && \chi_{G,2}^{(t)}(e_{ij}) &= h\Bigl(\textcolor{t_blue}{\chi_{G,2}^{(t-1)}(e_{ij})}, &&\ldblbrace (\textcolor{t_red}{\chi_{G,2}^{(t-1)}(e_{il})}, \textcolor{t_darkgreen}{\chi_{G,2}^{(t-1)}(e_{lj})})\, |\, v_l \in \mathcal{V}_G \rdblbrace\Bigr) % chktex 25
+\end{alignat*}
+We will now analyze what those different notions of neighborhood imply for the discriminative and computational power of 2-\acsp{gnn}.
+In the first step we show that the discriminative power of 2-\acsp{gnn} on all graphs $G \in \mathcal{G}$ is upper bounded by that of 1-\acs{wl} on the so-called \textit{edge neighborhood graphs} $G_{\mathcal{E}} \in \mathcal{G}_{\mathcal{E}}$.
+\begin{defn}
+	The \textit{edge neighborhood graph} of a given graph $G = (\mathcal{V}_G, \mathcal{E}_G)$ is defined as $G_{\mathcal{E}} \coloneqq (\mathcal{V}_G \cup \mathcal{E}_G, \mathcal{E}_{G_{\mathcal{E}}})$. Its \textit{edge neighborhood edges} are defined as
+	\begin{align*}
+		\mathcal{E}_{G_{\mathcal{E}}} \coloneqq
+		\{ s \in \{ (v, e), (e, v) \}\, |\, v \in \mathcal{V}_G \land e \in \Gamma_G(v) \} \cup \{ (e, e') \in \mathcal{E}_G^2\, |\, e \cap e' \neq \emptyset \} % chktex 21
+		\text{.}
+	\end{align*}
+\end{defn}
+\begin{prop}
+	For all 2-\acsp{gnn} $h_2$ there is a \ac{gin} $h_1$ s.t.\ $\forall G \in \mathcal{G}: h_2(G) = h_1(G_{\mathcal{E}})$.
+\end{prop}
+\begin{proof}
+	Note that the 2-\acs{gnn} convolution operation defined in \cfullref[ on ]{eq:related:kgnn-layer} can be rewritten as
+	\begin{align*}
+		Z^{(t)}[e] = \sigma \left( Z^{(t-1)}[e] W^{(t)} + \smashoperator[lr]{\sum_{e' \in \Gamma_{G_{\mathcal{E}}}(e)}} Z^{(t-1)}[e'] W_{\Gamma}^{(t)} \right)
+	\end{align*}
+\end{proof}
 
 \section{The 2-\acs*{wl} Convolution Operator}%
 \label{sec:ltd:wl2gnn-definition}

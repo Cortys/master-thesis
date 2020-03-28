@@ -747,8 +747,8 @@ Instead of interpreting convolutions as applications of linear spectral filters,
 From this perspective a \ac{gcn} can be seen as a so-called spatial \ac{gcnn} because it operates directly in the vertex domain.
 To see why this is the case, we rewrite \cref{eq:related:gcn-layer} and compare it with the 1-\acs{wl} color refinement strategy (see \cfullref{defn:related:wl1-refine}):
 \begin{alignat*}{2}
-	\text{\ac*{gcn}:}\quad&& Z^{(t)}[v] &= \sigma\left(\left( {\mu(v)}^2 Z^{(t-1)}[v] + \smashoperator[lr]{\sum_{u \in \Gamma_G(v)}} \mu(v) \mu(u) Z^{(t-1)}[u] \right) \Theta^{(t)} \right) \\
-	\text{1-\acs{wl}:}\quad&& \chi_{G,1}^{(t)}(v) &= h\left( \chi_{G,1}^{(t-1)}(v), \ldblbrace \chi_{G,1}^{(t-1)}(u)\, |\, u \in \Gamma_{G}(v) \rdblbrace\right)
+	\text{\ac*{gcn}:}\quad&& Z^{(t)}[v] &= \sigma\left(\left( {\mu(v)}^2 \textcolor{t_blue}{Z^{(t-1)}[v]} + \smashoperator[lr]{\sum_{u \in \Gamma_G(v)}} \mu(v) \mu(u) \textcolor{t_red}{Z^{(t-1)}[u]} \right) \Theta^{(t)} \right) \\ % chktex 25
+	\text{1-\acs{wl}:}\quad&& \chi_{G,1}^{(t)}(v) &= h\left( \mkern60mu\textcolor{t_blue}{\chi_{G,1}^{(t-1)}(v)}, \ldblbrace \textcolor{t_red}{\chi_{G,1}^{(t-1)}(u)}\, |\, u \in \Gamma_{G}(v) \rdblbrace\right) % chktex 25
 \end{alignat*}
 Here $\mu(v) \coloneqq {\left(\left| \Gamma_G(v) \right| + 1\right)}^{-\frac{1}{2}}$ are normalization factors introduced by $\tilde{D}_G^{-\frac{1}{2}}$.
 The comparison shows that \ac{gcn} convolutions can be understood as iterative refinements of continuous ``color vectors'' $Z^{(t)}[v] \in \mathbb{R}^{d^{(t)}}$.
@@ -777,16 +777,16 @@ To go beyond the limits of 1-\acs{wl}, \citet{Morris2019} proposed the first \ac
 Similar to the $k$-LWL kernel which we looked at in \cref{sec:related:gcr:kernel}, their so-called $k$-\acs{gnn} uses the $k$-multiset and neighborhood localization optimizations to keep runtime costs feasible.
 The $k$-\ac{gnn} convolution is described by
 \begin{align}
-	Z^{(t)}[s] \coloneqq \sigma\left( {Z^{(t-1)}[s]} W^{(t)} + \smashoperator[lr]{\sum_{v \in s, u \in \Gamma_G(v)}} {Z^{(t-1)}[s \setminus \{ v \} \cup \{ u \}]} W_{\Gamma}^{(t)} \right) \text{.} \label{eq:related:kgnn-layer}
+	Z^{(t)}[s] \coloneqq \sigma\left( {Z^{(t-1)}[s]} W^{(t)} + \smashoperator[lr]{\sum_{{v \in s}, {u \in \Gamma_G(v)}}} {Z^{(t-1)}[s \setminus \{ v \} \cup \{ u \}]} W_{\Gamma}^{(t)} \right) \text{.} \label{eq:related:kgnn-layer}
 \end{align}
 It convolves the feature vectors of $k$-multisets $s \subseteq \mathcal{V}_G$ instead of single vertices $v \in \mathcal{V}_G$.
 Apart from this fundamental difference to 1-\acs{wl} bounded \acp{gnn}, $k$-\acp{gnn} additionally use two learnable parameter matrices $W^{(t)}, W_{\Gamma}^{(t)} \in \mathbb{R}^{d^{(t-1)} \times d^{(t)}}$ instead of the single $\Theta^{(t)}$ used in \acp{gcn}.
 This separation of the parameter matrix effectively fulfills the same purpose as the \ac{mlp} in \ac{gin}; it makes the implicitly defined $k$-\acs{gnn} hash function injective.
-This can be seen by realizing that a stack of $k$-\acs{gnn} convolution layers with $W_{\Gamma}^{(t)} = 0$ for all but the first layer simulates a \ac{mlp}.
+This can be seen by realizing that a stack of $k$-\acs{gnn} convolution layers with $W_{\Gamma}^{(t)} = \mathbf{0}$ for all but the first layer simulates a \ac{mlp}.
 
 As a final remark, note that the concept of ``neighborhood'' in \cref{eq:related:kgnn-layer} is slightly different from that used by the $k$-\acs{wl} algorithm (see \cfullref{defn:related:wlk-refine}):
 $k$-\acs{gnn} considers a single $k$-multiset as a neighbor while $k$-\acs{wl} uses $k$-sets of $k$-multisets as neighbors.
-We will get back to this difference later.
+We will get back to this difference later in \cref{sec:ltd:kgnn-limits}.
 
 \subsubsection{Graph Pooling}
 
@@ -800,7 +800,7 @@ Generally speaking there are two types of pooling approaches:
 		This type of pooling is similar to that found in \acp{cnn} on pictures where the resolution is iteratively reduced.
 		Similarly hierarchical graph pooling iteratively \textit{coarsens} a graph every couple of convolutional layers.
 		Graph coarsening works by merging vertices in a spectrum-preserving manner~\cite{Loukas2018}.
-		This is done until a single merged vertex is left whose feature vector then represents the entire graph.
+		This is done until a single merged vertex is left whose feature vector then represents the entire graph~\cite{Ying2018}.
 	\item \textbf{Global Pooling}:
 		Alternatively pooling can also be performed in a single step after the convolutional layers.
 		This type of pooling takes all $m$ feature vectors and directly maps them to a single graph feature vector.
