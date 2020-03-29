@@ -136,7 +136,7 @@
 \pgfplotsset{compat=1.14}
 \usepgfplotslibrary{dateplot, statistics}
 \pgfplotsset{
-    cycle list={t_blue\\t_red\\t_green\\},
+    cycle list={t_blue\\t_red\\t_green\\t_yellow\\},
 }
 
 \usepackage{listings}
@@ -180,7 +180,9 @@
     \node[shape=circle,draw,inner sep=#1] (char) {#2};}}
 \newcommand*{\badgeboxinline}[2][black]{\fcolorbox{#1}{white}{\textsf{%
 	\small\,% chktex 21
-	\ifthenelse{\equal{\detokenize{#1}}{\detokenize{t_yellow}}}{\textcolor{t_darkyellow}{#2}}{\textcolor{#1}{#2}}\,}}} % chktex 21
+	\ifthenelse{\equal{\detokenize{#1}}{\detokenize{t_yellow}}}{\textcolor{t_darkyellow}{#2}}{%
+	\ifthenelse{\equal{\detokenize{#1}}{\detokenize{t_green}}}{\textcolor{t_darkgreen}{#2}}{\textcolor{#1}{#2}}%
+	}\,}}} % chktex 21
 \newcommand*{\badgebox}[2][black]{\hspace*{\fill}\badgeboxinline[#1]{#2}}
 \newcommand{\cmark}{\ding{51}}
 \newcommand{\xmark}{\ding{55}}

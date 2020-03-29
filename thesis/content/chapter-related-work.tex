@@ -755,10 +755,13 @@ The comparison shows that \ac{gcn} convolutions can be understood as iterative r
 Then the continuous analogue to the injective 1-\acs{wl} hash function $h: \mathcal{C}^{*} \to \mathcal{C}$ can be defined as $h_{\mathrm{\acs*{gcn}}}(z_0, z_1, \dots, z_m) = \sigma(\sum_{j=0}^m \mu(v_0) \mu(v_j) z_j \Theta^{(t)})$ which computes a single color vector from multiple color vectors $z_j$ where $v_j$ are the corresponding vertices.
 
 \paragraph{A 1-\acs{wl} bound on \ac{gnn} power}
-The relation between \acp{gcnn} using neighborhood aggregation convolution and 1-\acs{wl} was formally analyzed by \citet{Xu2018}.
-They show that the discriminative power of such a \ac{gcnn} is upper-bounded by that of 1-\acs{wl}.
-In particular the \ac{gcn} architecture is strictly less powerful than 1-\acs{wl} due to the fact that $h_{\mathrm{\acs*{gcn}}}$ is not an injective hash function.
-To overcome this limitation an alternative neighborhood aggregation architecture called \ac{gin} was proposed:
+In the next step we will take a closer look at the relation between \acp{gcnn} that use vertex neighborhood convolution and 1-\acs{wl} by comparing their respective discriminative power.
+\begin{prop}[see {\citet[lemma 2]{Xu2018}} for the proof]\label{prop:related:gcnn-wl1-limit}
+	The discriminative power of a \ac{gcnn} that convolves vertex feature vectors via a convolution operator of the form $Z^{(t)}[v] = h^{(t)}\left(Z^{(t-1)}[v], \ldblbrace Z^{(t-1)}[u]\, |\, u \in \Gamma_G(v) \rdblbrace\right)$ is upper-bounded by that of 1-\acs{wl}, where $h^{(t)}: {(\mathbb{R}^{d^{(t-1)}})}^{*} \to \mathbb{R}^{d^{(t)}}$ is an arbitrary vertex neighborhood hashing function.
+	Moreover, if $h^{(t)}$ is not injective, the \ac{gcnn} has a strictly lower discriminative power than 1-\acs{wl}.
+\end{prop}
+By \cref{prop:related:gcnn-wl1-limit} the \ac{gcn} architecture is strictly less powerful than 1-\acs{wl} due to the fact that $h_{\mathrm{\acs*{gcn}}}$ is not an injective hash function.
+To overcome this limitation \citet{Xu2018} proposed an alternative vertex neighborhood convolution architecture called \ac{gin}:
 \begin{align}
 	Z^{(t)}[v] \coloneqq \mathrm{\acs*{mlp}}^{(t)}\left( Z^{(t-1)}[v] + \smashoperator[lr]{\sum_{u \in \Gamma_G(v)}} Z^{(t-1)}[u] \right)
 \end{align}
@@ -766,13 +769,13 @@ By leaving out the normalization factors $\mu(v)$ and by using a \ac{mlp} instea
 	Under the assumption that the set of possible input feature matrices $X \in \mathbb{R}^{n \times d^{(0)}}$ is countable.
 	This is reasonable since real-world \ac{gcr} domains typically only have a finite set of possible vertex feature vectors, e.g\ one-hot label encodings.
 }, i.e.\ it assigns a unique color vector to each multiset of color vectors.
-It was shown that this implies that \ac{gin} has the same discriminative power as 1-\ac{wl}.
+By \cref{prop:related:gcnn-wl1-limit} this implies that \ac{gin} has the same discriminative power as 1-\ac{wl}.
 As expected, \ac{gin} therefore fits training data better than non-injective \acp{gcnn} like \ac{gcn}.
 Interestingly \ac{gin} additionally seems to generalize better on test data than non-injective methods~\cite{Xu2018}\cite{Errica2020}.
 It is not yet fully understood why this is the case.
 
 \paragraph{Higher dimensional \ac{wl} \acp{gnn}}
-The majority of \ac{gnn} methods uses a neighborhood aggregation scheme which limits their discriminative and, more importantly, computational power to that of 1-\acs{wl} (see \cfullref{defn:related:wl-count-detect}).
+The majority of \ac{gnn} methods uses a vertex neighborhood convolution scheme which limits their discriminative and, more importantly, computational power to that of 1-\acs{wl} (see \cfullref{defn:related:wl-count-detect}).
 To go beyond the limits of 1-\acs{wl}, \citet{Morris2019} proposed the first \ac{gcnn} architecture inspired by the higher dimensional $k$-\acs{wl} algorithms.
 Similar to the $k$-LWL kernel which we looked at in \cref{sec:related:gcr:kernel}, their so-called $k$-\acs{gnn} uses the $k$-multiset and neighborhood localization optimizations to keep runtime costs feasible.
 The $k$-\ac{gnn} convolution is described by

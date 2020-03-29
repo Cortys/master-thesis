@@ -25,8 +25,8 @@ The goal of this chapter is to answer the following two questions:
 
 We provide an answer to the first question in \cref{sec:ltd:edge-filter} by showing how decomposition functions $\psi$ can be learned via so-called \textit{edge filters} as part of a convolutional \ac{gnn} architecture.
 This establishes the connection between the \acs{ltd} problem and graph convolutions on a high level.
-Then the second question is tackled in \crefrange{sec:ltd:kgnn-problems}{sec:ltd:wl2gnn-implementation}.
-There a novel graph convolution approach is proposed which could serve as a starting point for an \ac{ltd} convolution layer.
+Then the second question is tackled in \cref{sec:ltd:kgnn-limits,sec:ltd:wl2gnn}.
+There a novel graph convolution approach is proposed which could serve as a starting point for a convolution layer which solves the \ac{ltd} problem.
 
 \section{Learning Constituents via Edge Filters}%
 \label{sec:ltd:edge-filter}
@@ -76,38 +76,76 @@ However, as we will see in the next section, there are significant limitations t
 The $k$-\acs{gnn} is a \ac{gcnn} inspired by the $k$-\ac{wl} algorithm, it convolves feature vectors of vertex $k$-multisets.
 In this section we will compare its $k = 2$ variant with the 2-\ac{wl} algorithm.
 The main difference between the two boils down to their notion of ``neighborhood''.
-As already briefly mentioned in \cref{sec:related:gcr:nn}, 2-\acsp{gnn} define the neighbors of an edge $\textcolor{t_blue}{e_{ij}} = (\textcolor{t_red}{v_i}, \textcolor{t_darkgreen}{v_j})$ to be the edges that are incident to either $\textcolor{t_red}{v_i}$ or $\textcolor{t_darkgreen}{v_j}$. % chktex 25
-In 2-\acs{wl} on the other hand, the neighbors of $\textcolor{t_blue}{e_{ij}}$ are the edge pairs ${\left\{(\textcolor{t_red}{e_{il}}, \textcolor{t_darkgreen}{e_{lj}})\right\}}_{v_l \in \mathcal{V}_G}$, i.e.\ all possible paths of length two that start at $\textcolor{t_red}{v_i}$ and end at $\textcolor{t_darkgreen}{v_j}$. % chktex 21 chktex 25
+As already briefly mentioned in \cref{sec:related:gcr:nn}, 2-\acsp{gnn} define the neighbors of an edge $\textcolor{t_blue}{e_{ij}} = (v_i, v_j)$ to be the edges that are incident to either $v_i$ or $v_j$. % chktex 25
+In 2-\acs{wl} on the other hand, the neighbors of $\textcolor{t_blue}{e_{ij}}$ are the edge pairs ${\left\{(\textcolor{t_red}{e_{il}}, \textcolor{t_darkgreen}{e_{lj}})\right\}}_{v_l \in \mathcal{V}_G}$, i.e.\ all possible paths of length two that start at $v_i$ and end at $v_j$. % chktex 21 chktex 25
 This difference becomes clear when comparing the definition of convolution in 2-\acsp{gnn} with that of color refinement in 2-\acs{wl} (see \cfullref[ on ]{eq:related:kgnn-layer} and \cfullref[ on ]{defn:related:wlk-refine}):
 \begin{alignat*}{4}
-	\text{2-\acs{gnn}: } && Z^{(t)}[e_{ij}] &= \sigma\Biggl( \textcolor{t_blue}{Z^{(t-1)}[e_{ij}]} W^{(t)} + &&\left( \smashoperator[r]{\sum_{v_l \in \Gamma_G(v_j)}} \textcolor{t_red}{Z^{(t-1)}[e_{il}]} + \smashoperator[lr]{\sum_{v_l \in \Gamma_G(v_i)}} \textcolor{t_darkgreen}{Z^{(t-1)}[e_{lj}]} \right) W_{\Gamma}^{(t)} \Biggr) \\ % chktex 25
+	\text{2-\acs{gnn}\footnotemark: } && Z^{(t)}[e_{ij}] &= \sigma\Biggl( \textcolor{t_blue}{Z^{(t-1)}[e_{ij}]} W^{(t)} + &&\left( \smashoperator[r]{\sum_{v_l \in \Gamma_G(v_j)}} \textcolor{t_red}{Z^{(t-1)}[e_{il}]} + \smashoperator[lr]{\sum_{v_l \in \Gamma_G(v_i)}} \textcolor{t_darkgreen}{Z^{(t-1)}[e_{lj}]} \right) W_{\Gamma}^{(t)} \Biggr) \\ % chktex 25
 	\text{2-\acs{wl}: } && \chi_{G,2}^{(t)}(e_{ij}) &= h\Bigl(\textcolor{t_blue}{\chi_{G,2}^{(t-1)}(e_{ij})}, &&\ldblbrace (\textcolor{t_red}{\chi_{G,2}^{(t-1)}(e_{il})}, \textcolor{t_darkgreen}{\chi_{G,2}^{(t-1)}(e_{lj})})\, |\, v_l \in \mathcal{V}_G \rdblbrace\Bigr) % chktex 25
-\end{alignat*}
-We will now analyze what those different notions of neighborhood imply for the discriminative and computational power of 2-\acsp{gnn}.
-In the first step we show that the discriminative power of 2-\acsp{gnn} on all graphs $G \in \mathcal{G}$ is upper bounded by that of 1-\acs{wl} on the so-called \textit{edge neighborhood graphs} $G_{\mathcal{E}} \in \mathcal{G}_{\mathcal{E}}$.
-\begin{defn}
-	The \textit{edge neighborhood graph} of a given graph $G = (\mathcal{V}_G, \mathcal{E}_G)$ is defined as $G_{\mathcal{E}} \coloneqq (\mathcal{V}_G \cup \mathcal{E}_G, \mathcal{E}_{G_{\mathcal{E}}})$. Its \textit{edge neighborhood edges} are defined as
-	\begin{align*}
-		\mathcal{E}_{G_{\mathcal{E}}} \coloneqq
-		\{ s \in \{ (v, e), (e, v) \}\, |\, v \in \mathcal{V}_G \land e \in \Gamma_G(v) \} \cup \{ (e, e') \in \mathcal{E}_G^2\, |\, e \cap e' \neq \emptyset \} % chktex 21
-		\text{.}
-	\end{align*}
+\end{alignat*}\footnotetext{
+	To highlight the relation between 2-\acsp{gnn} and 2-\acs{wl}, a 2-\acs{gnn} definition that is not generally correct is shown here;
+	for self-loops with $i = j$ it incorrectly sums the feature vectors of neighboring edges twice.
+	The correct general formula uses a single sum over $v_l \in {\Gamma_G(v_j) \cup \Gamma_G(v_i)}$.
+}\begin{figure}[ht]
+	\centering
+	\includegraphics[width=\linewidth]{gfx/ltd/2gnn-2wl-diff.pdf}
+	\caption[Edge colorings on which 2-\acsp{gnn} and 2-\acs{wl} behave differently.]{
+		Two edge colorings on which 2-\acsp{gnn} and 2-\acs{wl} behave differently.
+		A 2-\acs{gnn} will refine the ``color vector'' of $e_{ij}$ to \textsf{\textbf{\small\textcolor{t_blue}{D}}} for both initial colorings.
+		2-\acs{wl} on the other hand differentiates both colorings by preserving the color tuple information.
+	}\label{fig:ltd:2gnn-2wl-diff}
+\end{figure}
+
+We will now analyze what those different notions of neighborhood imply for the discriminative and computational power of 2-\acsp{gnn} in comparison to 2-\acs{wl}.
+In the first step we show that the discriminative power of 2-\acsp{gnn} on all graphs $G \in \mathcal{G}$ is upper bounded by that of 1-\acs{wl} on the so-called \textit{edge neighborhood graphs} $G^{\mathcal{E}} \in \mathcal{G}^{\mathcal{E}}$.
+\begin{defn}\label{defn:ltd:edge-graph}
+	The \textit{edge neighborhood graph} of a given graph $G = (\mathcal{V}_G, \mathcal{E}_G)$ is defined as $G^{\mathcal{E}} \coloneqq (\mathcal{V}_{G^{\mathcal{E}}}, \mathcal{E}_{G^{\mathcal{E}}})$ with the vertices $\mathcal{V}_{G^{\mathcal{E}}} \coloneqq \{ \ldblbrace v, u \rdblbrace\, |\, (v, u) \in \mathcal{E}_G \lor v = u \}$ and the edges $\mathcal{E}_{G^{\mathcal{E}}} \coloneqq \left\{ (e, e') \in \mathcal{V}_{\mathcal{G}^{\mathcal{E}}}^2 |\, \left|e \cap e'\right| = 1 \right\}$. % chktex 21
 \end{defn}
-\begin{prop}
-	For all 2-\acsp{gnn} $h_2$ there is a \ac{gin} $h_1$ s.t.\ $\forall G \in \mathcal{G}: h_2(G) = h_1(G_{\mathcal{E}})$.
+\begin{prop}\label{prop:ltd:2gnn-wl1-limit}
+	The discriminative power of all 2-\acsp{gnn} $h_2$ is bounded by that of 1-\ac{wl} on edge neighborhood graphs, i.e.\ $\forall\, G, H \in \mathcal{G}: G^{\mathcal{E}} \mathrel{\simeq_1} H^{\mathcal{E}} \rightarrow h_2(G) = h_2(H)$. % chktex 21
 \end{prop}
 \begin{proof}
-	Note that the 2-\acs{gnn} convolution operation defined in \cfullref[ on ]{eq:related:kgnn-layer} can be rewritten as
+	By \cref{defn:ltd:edge-graph} it holds that $\forall e_{ij} \in \mathcal{E}_G: {\Gamma_G(v_i) \cup \Gamma_G(v_j)} = \Gamma_{G^{\mathcal{E}}}(e_{ij})$.
+	Therefore the 2-\acs{gnn} convolution operation defined in \cfullref[ on ]{eq:related:kgnn-layer} can be rewritten as a vertex neighborhood convolution operator
 	\begin{align*}
-		Z^{(t)}[e] = \sigma \left( Z^{(t-1)}[e] W^{(t)} + \smashoperator[lr]{\sum_{e' \in \Gamma_{G_{\mathcal{E}}}(e)}} Z^{(t-1)}[e'] W_{\Gamma}^{(t)} \right)
+		Z^{(t)}[e] = \sigma\left( Z^{(t-1)}[e] W^{(t)} + \smashoperator[lr]{\sum_{e' \in \Gamma_{G^{\mathcal{E}}}(e)}} Z^{(t-1)}[e'] W_{\Gamma}^{(t)} \right)
+		\text{.}
 	\end{align*}
+	\Cref{prop:ltd:2gnn-wl1-limit} then follows from \cref{prop:related:gcnn-wl1-limit}~(\cpageref{prop:related:gcnn-wl1-limit}).
+\end{proof}
+\begin{lem}\label{lem:wl1-regular-edge-neighbor-limit}
+	1-\ac{wl} cannot distinguish the edge neighborhood graphs $G^{\mathcal{E}}$ and $H^{\mathcal{E}}$ of any pair of $d$-regular graphs $G$ and $H$ with $n$ vertices.
+\end{lem}
+\begin{proof}
+	Let $G$ and $H$ be two $d$-regular graphs of size $n$.
+	Their corresponding edge neighborhood graphs $G^{\mathcal{E}}$ and $H^{\mathcal{E}}$ both have $n^{\mathcal{E}} = n + \frac{nd}{2}$ vertices.
+	$n$ of those edge neighborhood vertices correspond to the vertices of $G$ and $H$ respectively, we will refer to them as \textit{loop vertices} $L_G$/$L_H$.
+	The remaining $\frac{nd}{2}$ edge neighborhood vertices correspond to the edges of $G$ and $H$, we will refer to them as \textit{edge vertices} $E_G$/$E_H$.
+
+	W.l.o.g.\ we define the initial colors of the loop vertices as $\chi^{(0)}(v) = \textcolor{t_blue}{\texttt{A}}$ for all $v \in L_G \cup L_H$. % chktex 25
+	The initial colors of the edge vertices are defined as $\chi^{(0)}(e) = \textcolor{t_red}{\texttt{B}}$ for all $e \in E_G \cup E_H$. % chktex 25
+	Note that each loop vertex $\ldblbrace v_i, v_i \rdblbrace$ with $v_i \in \mathcal{V}_G \cup \mathcal{V}_H$ has $d$ neighbors, the edges incident to $v_i$.
+	Similarly each edge vertex $\ldblbrace v_i, v_j \rdblbrace$ has $2d$ neighbors, two of which are the loop vertices $\ldblbrace v_i, v_i \rdblbrace$ and $\ldblbrace v_j, v_j \rdblbrace$ with the remaining $2d - 2$ neighbors corresponding to the edges that are incident to $e_{ij}$.
+
+	After one color refinement step we then get $\chi^{(1)}(v) = h(\textcolor{t_blue}{\texttt{A}}, \ldblbrace \underbrace{\textcolor{t_red}{\texttt{B}}, \dots, \textcolor{t_red}{\texttt{B}}}_{d\text{ times}} \rdblbrace) \eqqcolon \textcolor{t_blue}{\texttt{C}}$ for all loop vertices $v \in  L_G \cup L_H$ and $\chi^{(1)}(e) = h(\textcolor{t_red}{\texttt{B}}, \ldblbrace \textcolor{t_blue}{\texttt{A}}, \textcolor{t_blue}{\texttt{A}}, \underbrace{\textcolor{t_red}{\texttt{B}}, \dots, \textcolor{t_red}{\texttt{B}}}_{\mathclap{2d - 2 \text{ times}}} \rdblbrace) \eqqcolon \textcolor{t_red}{\texttt{D}}$. % chktex 25
+	This means that $\chi^{(0)}$ and $\chi^{(1)}$ are identical up to the color substitutions $\textcolor{t_blue}{\texttt{A}} \to \textcolor{t_blue}{\texttt{C}}$ and $\textcolor{t_red}{\texttt{B}} \to \textcolor{t_red}{\texttt{D}}$, i.e.\ $\chi^{(0)} \equiv \chi^{(1)}$, which in turn implies that 1-\ac{wl} terminates after one iteration. % chktex 25
+	\Cref{lem:wl1-regular-edge-neighbor-limit} then directly follows since both $G^{\mathcal{E}}$ and $H^{\mathcal{E}}$ have $n$ vertices with the final color $\textcolor{t_blue}{\texttt{C}}$ and $\frac{nd}{2}$ vertices with the final color $\textcolor{t_red}{\texttt{D}}$, i.e.\ $G^{\mathcal{E}} \mathrel{\simeq_1} H^{\mathcal{E}}$. % chktex 25
+\end{proof}
+\begin{cor}
+	A 2-\acs{gnn} cannot distinguish $d$-regular graphs and therefore has a lower discriminative power than 2-\ac{wl}.
+\end{cor}
+\begin{proof}
+	The corollary directly follows from \cref{prop:ltd:2gnn-wl1-limit}, \cref{lem:wl1-regular-edge-neighbor-limit} and the fact that 2-\acs{wl} is able to distinguish most regular graphs~\cite[cor.~1.8.6]{Immerman1990}.
 \end{proof}
 
-\section{The 2-\acs*{wl} Convolution Operator}%
-\label{sec:ltd:wl2gnn-definition}
+\section{A Novel 2-\acs*{wl}-inspired \acs*{gnn}}%
+\label{sec:ltd:wl2gnn}
 
-\section{The Expressive Power of 2-\acs*{wl}-\acsp*{gnn}}%
-\label{sec:ltd:wl2gnn-properties}
+\subsection{Definition of the 2-\acs*{wl} Convolution Operator}%
+\label{sec:ltd:wl2gnn:definition}
 
-\section{Implementing 2-\acs*{wl}-\acsp*{gnn} on \acsp*{gpgpu}}%
-\label{sec:ltd:wl2gnn-implementation}
+\subsection{Expressive Power of 2-\acs*{wl}-\acsp*{gnn}}%
+\label{sec:ltd:wl2gnn:properties}
+
+\subsection{Implementation of 2-\acs*{wl}-\acsp*{gnn} on \acsp*{gpgpu}}%
+\label{sec:ltd:wl2gnn:implementation}
