@@ -113,7 +113,7 @@ In the first step we show that the discriminative power of 2-\acsp{gnn} on all g
 	\end{align*}
 	\Cref{prop:ltd:2gnn-wl1-limit} then follows from \cref{prop:related:gcnn-wl1-limit}~(\cpageref{prop:related:gcnn-wl1-limit}).
 \end{proof}
-\begin{lem}\label{lem:wl1-regular-edge-neighbor-limit}
+\begin{lem}\label{lem:ltd:wl1-regular-edge-neighbor-limit}
 	1-\ac{wl} cannot distinguish the edge neighborhood graphs $G^{\mathcal{E}}$ and $H^{\mathcal{E}}$ of any pair of $d$-regular graphs $G$ and $H$ with $n$ vertices.
 \end{lem}
 \begin{proof}
@@ -126,19 +126,50 @@ In the first step we show that the discriminative power of 2-\acsp{gnn} on all g
 	The initial colors of the edge vertices are defined as $\chi^{(0)}(e) = \textcolor{t_red}{\texttt{B}}$ for all $e \in E_G \cup E_H$. % chktex 25
 	Note that each loop vertex $\ldblbrace v_i, v_i \rdblbrace$ with $v_i \in \mathcal{V}_G \cup \mathcal{V}_H$ has $d$ neighbors, the edges incident to $v_i$.
 	Similarly each edge vertex $\ldblbrace v_i, v_j \rdblbrace$ has $2d$ neighbors, two of which are the loop vertices $\ldblbrace v_i, v_i \rdblbrace$ and $\ldblbrace v_j, v_j \rdblbrace$ with the remaining $2d - 2$ neighbors corresponding to the edges that are incident to $e_{ij}$.
+	This is illustrated in \cref{fig:ltd:edge-neighborhood}.
 
-	After one color refinement step we then get $\chi^{(1)}(v) = h(\textcolor{t_blue}{\texttt{A}}, \ldblbrace \underbrace{\textcolor{t_red}{\texttt{B}}, \dots, \textcolor{t_red}{\texttt{B}}}_{d\text{ times}} \rdblbrace) \eqqcolon \textcolor{t_blue}{\texttt{C}}$ for all loop vertices $v \in  L_G \cup L_H$ and $\chi^{(1)}(e) = h(\textcolor{t_red}{\texttt{B}}, \ldblbrace \textcolor{t_blue}{\texttt{A}}, \textcolor{t_blue}{\texttt{A}}, \underbrace{\textcolor{t_red}{\texttt{B}}, \dots, \textcolor{t_red}{\texttt{B}}}_{\mathclap{2d - 2 \text{ times}}} \rdblbrace) \eqqcolon \textcolor{t_red}{\texttt{D}}$. % chktex 25
+	After one color refinement step we get $\chi^{(1)}(v) = h(\textcolor{t_blue}{\texttt{A}}, \ldblbrace \underbrace{\textcolor{t_red}{\texttt{B}}, \dots, \textcolor{t_red}{\texttt{B}}}_{d\text{ times}} \rdblbrace) \eqqcolon \textcolor{t_blue}{\texttt{C}}$ for all loop vertices $v \in  L_G \cup L_H$ and $\chi^{(1)}(e) = h(\textcolor{t_red}{\texttt{B}}, \ldblbrace \textcolor{t_blue}{\texttt{A}}, \textcolor{t_blue}{\texttt{A}}, \underbrace{\textcolor{t_red}{\texttt{B}}, \dots, \textcolor{t_red}{\texttt{B}}}_{\mathclap{2d - 2 \text{ times}}} \rdblbrace) \eqqcolon \textcolor{t_red}{\texttt{D}}$. % chktex 25
 	This means that $\chi^{(0)}$ and $\chi^{(1)}$ are identical up to the color substitutions $\textcolor{t_blue}{\texttt{A}} \to \textcolor{t_blue}{\texttt{C}}$ and $\textcolor{t_red}{\texttt{B}} \to \textcolor{t_red}{\texttt{D}}$, i.e.\ $\chi^{(0)} \equiv \chi^{(1)}$, which in turn implies that 1-\ac{wl} terminates after one iteration. % chktex 25
-	\Cref{lem:wl1-regular-edge-neighbor-limit} then directly follows since both $G^{\mathcal{E}}$ and $H^{\mathcal{E}}$ have $n$ vertices with the final color $\textcolor{t_blue}{\texttt{C}}$ and $\frac{nd}{2}$ vertices with the final color $\textcolor{t_red}{\texttt{D}}$, i.e.\ $G^{\mathcal{E}} \mathrel{\simeq_1} H^{\mathcal{E}}$. % chktex 25
+	\Cref{lem:ltd:wl1-regular-edge-neighbor-limit} then directly follows since both $G^{\mathcal{E}}$ and $H^{\mathcal{E}}$ have $n$ vertices with the final color $\textcolor{t_blue}{\texttt{C}}$ and $\frac{nd}{2}$ vertices with the final color $\textcolor{t_red}{\texttt{D}}$, i.e.\ $G^{\mathcal{E}} \mathrel{\simeq_1} H^{\mathcal{E}}$. % chktex 25
 \end{proof}
-\begin{cor}
-	A 2-\acs{gnn} cannot distinguish $d$-regular graphs and therefore has a lower discriminative power than 2-\ac{wl}.
-\end{cor}
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=\linewidth]{gfx/ltd/edge-neighborhood.pdf}
+	\caption{
+		Illustration of the edge neighborhood graphs of two 2-regular graphs of size 6.
+	}\label{fig:ltd:edge-neighborhood}
+\end{figure}
+\begin{prop}\label{prop:ltd:2gnn-regular-limit}
+	A 2-\acs{gnn} cannot distinguish regular graphs of the same size and therefore has a lower discriminative power than 2-\ac{wl}.
+\end{prop}
 \begin{proof}
-	The corollary directly follows from \cref{prop:ltd:2gnn-wl1-limit}, \cref{lem:wl1-regular-edge-neighbor-limit} and the fact that 2-\acs{wl} is able to distinguish most regular graphs~\cite[cor.~1.8.6]{Immerman1990}.
+	The proposition directly follows from \cref{prop:ltd:2gnn-wl1-limit}, \cref{lem:ltd:wl1-regular-edge-neighbor-limit} and the fact that 2-\acs{wl} is able to distinguish most regular graphs~\cite[cor.~1.8.6]{Immerman1990}.
 \end{proof}
 
-\section{A Novel 2-\acs*{wl}-inspired \acs*{gnn}}%
+As described in \cref{sec:related:character:wl} the discriminative power of a model is, by itself, not necessarily relevant for real-world graph datasets.
+In \cfullref[ on ]{prop:related:wl2-cycle-count} we saw however that 2-\acs{wl} not only has a higher discriminative power than 1-\acs{wl} but also that it is able to count the number of $m$-cycles in a given graph for all $m \leq 7$.
+This is relevant because cycle counts are a commonly used metric in real-world domains such as social network and molecular structure analysis~\cite{Milo2002}\cite{Newman2003}\cite{Welser2007}\cite{Adamson1973}\cite{Kekule1866}.
+To conclude this section we now show that 2-\acsp{gnn} not only have a lower discriminative power than 2-\acs{wl} but are also unable to detect cycles.
+\begin{prop}
+	2-\acsp{gnn} cannot detect $m$-cycles for all $m \geq 3$.
+\end{prop}
+\begin{proof}
+	Let $n$ be the \ac{lcm} of $3$ and some $m > 3$.
+	We define $c_3 \coloneqq \frac{n}{3}$ and $c_m \coloneqq \frac{n}{m}$.
+	Based on that we define the following two graphs:
+	Let $G_3$ be a graph consisting of $c_3$ disconnected cycles of length $3$, analogously let $G_m$ be a graph consisting of $c_m$ disconnected cycles of length $m$.
+	Since both $G_3$ and $G_m$ are 2-regular and have the size $n$, any 2-\ac{gnn} $h_2: \mathcal{G} \to \mathcal{Y}$ must map both of them to the same $y \in \mathcal{Y}$ by \cref{prop:ltd:2gnn-regular-limit}.
+
+	Let us assume that $h_2$ is able to detect cycles of length $3$, i.e.\ triangles.
+	By \cfullref[ on ]{defn:related:wl-count-detect} this would imply that there is a function $g: \mathcal{Y} \to \{ 0, 1\}$ s.t.\ $g(h_2(G_3)) = g(y) = 1$ and $g(h_2(G_m)) = g(y) = 0\ \lightning$.
+	Conversely, assuming that $h_2$ is able to detect cycles of length $m > 3$, we obtain the contradiction $g(h_2(G_3)) = g(y) = 0$  and $g(h_2(G_m)) = g(y) = 1\ \lightning$.
+	This concludes the proof.
+\end{proof}
+
+In this section we compared 2-\acsp{gnn} with the 2-\acs{wl} algorithm and found that they have a significantly lower discriminative and computational power than 2-\acs{wl}.
+Motivated by those limitations we describe a novel graph convolution operator which is closer to 2-\acs{wl} in the following section.
+
+\section{A Novel 2-\acs*{wl} Inspired \acs*{gnn}}%
 \label{sec:ltd:wl2gnn}
 
 \subsection{Definition of the 2-\acs*{wl} Convolution Operator}%

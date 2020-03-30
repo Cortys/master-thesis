@@ -372,7 +372,7 @@ Thus 1-\acs{wl} is already able to distinguish most graphs; it fails however to 
 	A graph $G$ is called \textit{$d$-regular} ($\mathit{rg}_d(G)$) iff.\ $\forall v \in \mathcal{V}_G: {|\Gamma_G(v)|} = d$.
 \end{defn}
 We have already seen this in \cref{fig:related:wl1-problem} since the ``six-cycle'' and the ``two-triangles'' graphs are in fact both 2-regular and of size 6.
-This restriction alone is typically not an issue in the context of \ac{gcr} though, as molecular structures or social interaction graphs for example are rarely perfectly regular.
+This restriction alone is typically not an issue in the context of \ac{gcr} though, as graphs in many real-world domains are rarely perfectly regular~\cite{Abedijaberi2018}.
 A more relevant restriction of 1-\acs{wl} is the fact that it is unable to detect cycles of length $m \geq 3$.
 \begin{defn}\label{defn:related:wl-compute}
 	$k$-\acs{wl} \textit{computes} a function $f: \mathcal{G} \to Y$ iff.\ that function can be expressed as $f(G) = g(\mathit{dist}_{\chi_{G, k}^{*}})$ via some function $g: (\mathcal{C} \to \mathbb{N}) \to Y$.
@@ -389,7 +389,7 @@ This cycle-detection restriction of 1-\acs{wl} is relevant in practice because c
 If we increase the \acs{wl}-dimension to $k = 2$, the described 1-\acs{wl} restrictions no longer apply.
 2-\acs{wl} is able to distinguish more than $1 - \mathcal{O}(\nicefrac{1}{n})$ of the regular $n$-vertex graphs~\cite[cor.~1.8.6]{Immerman1990} and can even count cycles:
 \begin{prop}[see \citet{Fuerer2017} and \citet{Arvind2019} for the full proof]\label{prop:related:wl2-cycle-count}
-	2-\acs{wl} is able to count $m$-cycles for $m \leq 7$ but it cannot detect 8-cycles.
+	2-\acs{wl} is able to count $m$-cycles for all $m \leq 7$ but it cannot even detect them for $m > 7$.
 \end{prop}
 \begin{hproof}
 	Only the idea behind triangle and 4-cycle counting is outlined here to give an intuition for why \cref{prop:related:wl2-cycle-count} holds.
