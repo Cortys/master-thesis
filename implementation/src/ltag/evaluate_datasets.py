@@ -84,7 +84,8 @@ if __name__ == "__main__":
     else:
       ms = [
         "WL_st", "WL_sp", "LWL2", "GWL2",
-        "AvgCWL2GCN_Binary", "SagCWL2GCN_Binary"]
+        "AvgCWL2GCN_Binary", "SagCWL2GCN_Binary",
+        "AvgK2GNN_Binary", "SagK2GNN_Binary"]
   else:
     ms = args.model
 

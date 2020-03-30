@@ -140,24 +140,35 @@ noisy_triangle_classification_2 = fy.partial(
     }
   })
 
+balanced_eval_args = {
+  "epochs": 5000,
+  "patience": 1000,
+  "winner_repeat": 5,
+  "hp_args": {
+    # other widths ignored based on previous experiments:
+    "cwl2_layer_widths": [32],
+    "cwl2_layer_depths": [3],
+    "cwl2_local_act": "relu"
+  },
+  "ignore_worst": 2
+}
+
+balanced_triangle_classification_1 = fy.partial(
+  syn.balanced_triangle_classification_dataset(stored=True),
+  name_suffix="_n1",
+  wl2_neighborhood=1,
+  wl2_batch_size={
+    "batch_graph_count": 228
+  },
+  evaluation_args=balanced_eval_args)
+
 balanced_triangle_classification_2 = fy.partial(
   syn.balanced_triangle_classification_dataset(stored=True),
   wl2_neighborhood=2,
   wl2_batch_size={
     "batch_graph_count": 228
   },
-  evaluation_args={
-    "epochs": 5000,
-    "patience": 1000,
-    "winner_repeat": 5,
-    "hp_args": {
-      # other widths ignored based on previous experiments:
-      "cwl2_layer_widths": [32],
-      "cwl2_layer_depths": [3],
-      "cwl2_local_act": "relu"
-    },
-    "ignore_worst": 2
-  })
+  evaluation_args=balanced_eval_args)
 
 synthetic_binary = [
   "balanced_triangle_classification_2"

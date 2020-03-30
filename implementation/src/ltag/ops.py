@@ -84,6 +84,16 @@ def wl2_convolution_compact(X, ref_a, ref_b, backref, agg, with_back=False):
 
   return X_agg
 
+@tf.function
+def wl1_convolution_compact(X, ref_a, backref):
+  X_a = tf.gather(X, ref_a, axis=0)
+
+  X_shape = tf.shape(X)
+  backref = tf.expand_dims(backref, axis=-1)
+  X_agg = tf.scatter_nd(backref, X_a, shape=X_shape)
+
+  return X_agg
+
 
 # import ltag.datasets.synthetic.datasets as synthetic
 #

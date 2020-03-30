@@ -40,11 +40,22 @@ def gnn_wl2c_inputs():
 
   return X, ref_a, ref_b, backref, e_map, v_count
 
+@cm.model_inputs
+def gnn_en_inputs():
+  X = keras.Input(shape=(None,), dtype=tf.float32, name="X")
+  ref_a = keras.Input(shape=(), dtype=tf.int32, name="ref_a")
+  backref = keras.Input(shape=(), dtype=tf.int32, name="backref")
+  e_map = keras.Input(shape=(), dtype=tf.int32, name="e_map")
+  v_count = keras.Input(shape=(), dtype=tf.int32, name="v_count")
+
+  return X, ref_a, backref, e_map, v_count
+
 
 input_types = {
   "dense": gnn_dense_inputs,
   "wl2": gnn_wl2_inputs,
-  "wl2c": gnn_wl2c_inputs
+  "wl2c": gnn_wl2c_inputs,
+  "en": gnn_en_inputs
 }
 
 @cm.model_step
@@ -112,6 +123,11 @@ CWL2GCN = gnn_model("CWL2GCN", [
   select_features],
   input_type="wl2c")
 
+K2GNN = gnn_model("K2GNN", [
+  with_layers(lwl2.K2GNNLayer, prefix="conv"),
+  select_features],
+  input_type="en")
+
 # Averaging GNNs:
 
 AvgDenseGCN = DenseGCN.extend("AvgDenseGCN", [
@@ -122,6 +138,8 @@ AvgDenseWL2GCN = DenseWL2GCN.extend("AvgDenseWL2GCN", [
 AvgWL2GCN = WL2GCN.extend("AvgWL2GCN", [
   cm.with_layer(lwl2.AvgPooling, with_inputs=True)])
 AvgCWL2GCN = CWL2GCN.extend("AvgCWL2GCN", [
+  cm.with_layer(lwl2.AvgPooling, with_inputs=True)])
+AvgK2GNN = K2GNN.extend("AvgK2GNN", [
   cm.with_layer(lwl2.AvgPooling, with_inputs=True)])
 
 # Max GNNs:
@@ -144,3 +162,14 @@ SagCWL2GCN = gnn_model("SagCWL2GCN", [
   cm.merge_ios,
   cm.with_layer(lwl2.SagPooling, with_inputs=True)],
   input_type="wl2c")
+SagK2GNN = gnn_model("SagK2GNN", [
+  ([
+    with_layers(lwl2.K2GNNLayer, prefix="conv"),
+    select_features
+  ], [
+    with_layers(lwl2.K2GNNLayer, prefix="att_conv"),
+    select_features
+  ]),
+  cm.merge_ios,
+  cm.with_layer(lwl2.SagPooling, with_inputs=True)],
+  input_type="en")

@@ -44,12 +44,12 @@ class StoredGraphDatasetManager(GraphDatasetManager):
       if not wl2_dir.exists():
         os.makedirs(wl2_dir)
 
-        wl2_dataset = super()._load_wl2_dataset(neighborhood)
+      wl2_dataset = super()._load_wl2_dataset(neighborhood)
 
-        with open(wl2_dir / f"{self.name}.pickle", "wb") as f:
-          pickle.dump(wl2_dataset, f)
+      with open(wl2_dir / f"{self.name}.pickle", "wb") as f:
+        pickle.dump(wl2_dataset, f)
 
-          return wl2_dataset
+      return wl2_dataset
     else:
       with open(wl2_dir / f"{self.name}.pickle", "rb") as f:
         return pickle.load(f)
@@ -61,14 +61,31 @@ class StoredGraphDatasetManager(GraphDatasetManager):
       if not wl2_dir.exists():
         os.makedirs(wl2_dir)
 
-        wl2_dataset = super()._load_wl2c_dataset(neighborhood)
+      wl2_dataset = super()._load_wl2c_dataset(neighborhood)
 
-        with open(wl2_dir / f"{self.name}.pickle", "wb") as f:
-          pickle.dump(wl2_dataset, f)
+      with open(wl2_dir / f"{self.name}.pickle", "wb") as f:
+        pickle.dump(wl2_dataset, f)
 
-          return wl2_dataset
+      return wl2_dataset
     else:
       with open(wl2_dir / f"{self.name}.pickle", "rb") as f:
+        return pickle.load(f)
+
+  def _load_en_dataset(self):
+    en_dir = self.root_dir / "en"
+
+    if not (en_dir / f"{self.name}.pickle").exists():
+      if not en_dir.exists():
+        os.makedirs(en_dir)
+
+      en_dataset = super()._load_en_dataset()
+
+      with open(en_dir / f"{self.name}.pickle", "wb") as f:
+        pickle.dump(en_dataset, f)
+
+      return en_dataset
+    else:
+      with open(en_dir / f"{self.name}.pickle", "rb") as f:
         return pickle.load(f)
 
   def _make_splits(self):

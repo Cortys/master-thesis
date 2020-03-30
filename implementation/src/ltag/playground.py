@@ -178,15 +178,15 @@ def imdb_experient():
   print(model.evaluate(test))
 
 def wl2_power_experiment():
-  model_class = gnn_models.AvgCWL2GCN
+  model_class = gnn_models.SagK2GNN
   # model_class = gnn_models.with_fc(model_class)
   dsm = synthetic.threesix_dataset(stored=True)(
     wl2_neighborhood=1)  # ok(3, 2, 1)
 
-  if model_class.input_type == "wl2c":
-    in_dim = dsm.dim_wl2_features()
-  else:
+  if model_class.input_type == "dense":
     in_dim = dsm.dim_dense_features()
+  else:
+    in_dim = dsm.dim_wl2_features()
 
   if in_dim == 0:
     in_dim = 1
@@ -198,7 +198,7 @@ def wl2_power_experiment():
     layer_dims=[in_dim, 4, 1],
     fc_layer_dims=[1, 2, 1],
     neighborhood_mask=1,  # ok(3, 2), nok(-1, 1)
-    bias=False)
+    bias=False, no_local_hash=True)
 
   model.compile(
     optimizer=opt,
@@ -219,16 +219,16 @@ def wl2_power_experiment():
     model.predict(dsm.get_all(output_type=model_class.input_type)))
 
 def synthetic_experiment2():
-  model_class = gnn_models.SagCWL2GCN
+  model_class = gnn_models.AvgCWL2GCN
   dsm = synthetic.balanced_triangle_classification_dataset(stored=True)(
     with_holdout=False,
-    wl2_neighborhood=2,
+    wl2_neighborhood=1,
     wl2_batch_size=dict(batch_graph_count=228))
 
-  if model_class.input_type == "wl2c":
-    in_dim = dsm.dim_wl2_features()
-  else:
+  if model_class.input_type == "dense":
     in_dim = dsm.dim_dense_features()
+  else:
+    in_dim = dsm.dim_wl2_features()
 
   if in_dim == 0:
     in_dim = 1
@@ -240,7 +240,7 @@ def synthetic_experiment2():
     squeeze_output=True,
     layer_dims=[in_dim, 32, 32, 32, 1],
     att_conv_layer_dims=[in_dim, 32, 32, 32, 1],
-    bias=True)
+    bias=True, no_local_hash=True)
 
   model.compile(
     optimizer=opt,
@@ -275,7 +275,8 @@ def kernel_experiment():
     print(evaluate.train(model, ds, ds_test, label=f"{dsm.name}_{model.name}").history)
 
 
-# synthetic_experiment2()
+# wl2_power_experiment()
+synthetic_experiment2()
 # imdb_experient()
 
 #
