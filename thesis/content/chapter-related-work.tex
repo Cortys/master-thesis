@@ -167,7 +167,7 @@ Currently the \ac{owa} approach requires all possible constituents to be part of
 \section{Graph Characterization}%
 \label{sec:related:character}
 
-\begin{defn}
+\begin{defn}\label{defn:related:graph}
 	A \textit{graph} $G \coloneqq (\mathcal{V}_G, \mathcal{E}_G)$ consists of a finite set of vertices $v_i \in \mathcal{V}_G$ and a set of edges $e_{ij} = (v_i, v_j) \in \mathcal{E}_G \subseteq \mathcal{V}_G^2$.
 	Optionally discrete vertex labels $l_G[v_i] \in L_{\mathcal{V}}$ or edge labels $l_G[e_{ij}] \in L_{\mathcal{E}}$ may be associated with all vertices $v_i \in \mathcal{V}_G$ and edges $e_{ij}\in \mathcal{E}_G$ respectively.
 	Also continuous feature vectors $x_G[v_{i}] \in \mathcal{X}_{\mathcal{V}}$, $x_G[e_{ij}] \in \mathcal{X}_{\mathcal{E}}$ may be given.
@@ -661,7 +661,7 @@ To tackle this problem \citet{Morris2017} proposed a combination of two optimiza
 		This reduces the amount of colors that have to be refined in each \ac{wl} iteration by a factor of $k!$. % chktex 40
 		Based on \cref{defn:related:wlk-refine}, the multiset color refinement step is defined as
 		\begin{align}
-			\chi_{G,k}^{(t+1)}(s) \coloneqq h\left(\chi_{G,k}^{(t)}(s), \ldblbrace \{ \chi_{G,k}^{(t)}(s \setminus \{v\} \cup \{u\})\, |\, v \in s \}\, |\, u \in \mathcal{V}_G \rdblbrace\right) \text{.} \label{eq:related:wlk-set-refine} % chktex 21
+			\chi_{G,k}^{(t+1)}(s) \coloneqq h\left(\chi_{G,k}^{(t)}(s), \ldblbrace \ldblbrace \chi_{G,k}^{(t)}(s \setminus \{v\} \cup \{u\})\, |\, v \in s \rdblbrace\, |\, u \in \mathcal{V}_G \rdblbrace\right) \text{.} \label{eq:related:wlk-set-refine} % chktex 21
 		\end{align}
 		Even though this simplification generally reduces the discriminative power of the kernel, for $k = 2$ specifically no information and therefore no power is lost by replacing the tuples $(v, u)$ and $(u, v)$ with $\ldblbrace v, u \rdblbrace$ since the undirectedness of graphs implies that $\chi_{G,2}^{(t)}(v, u) = \chi_{G,2}^{(t)}(u, v)$ even when doing tuple-based color refinement.
 	\item \textbf{Neighborhood localization:}
@@ -686,8 +686,10 @@ Spectral and spatial \acp{gcnn}.
 
 The class of spectral \acp{gcnn} is motivated by spectral graph theory (see \cref{sec:related:character:spectral}).
 A spectral \ac{gcnn} expects a graph $G$ with real vertex feature vectors $x_G[v_i] \in \mathbb{R}^d$ as its input.
-Those feature vectors are typically one-hot encodings of labels or, if no such information is provided, vertex embedding vectors (see \cref{sec:related:gcr:embed}).
-We call $X_G \coloneqq \begin{pmatrix} x_G[v_1] \\ \vdots \\ x_G[v_n] \end{pmatrix} \in \mathbb{R}^{n \times d}$ the vertex feature matrix of $G$.
+Those feature vectors often are one-hot encodings of the labels $l_G[v_i]$ or, if no such information is provided, vertex embedding vectors (see \cref{sec:related:gcr:embed}).
+\begin{defn}\label{defn:related:vertex-feature-matrix}
+		We call $X_G \coloneqq \begin{pmatrix} x_G[v_1] \\ \vdots \\ x_G[v_n] \end{pmatrix} \in \mathbb{R}^{n \times d}$ the \textit{vertex feature matrix} of $G$.
+\end{defn}
 Note that each of the $d$ columns of $X_G$ can be interpreted as a separate graph signal function $x_{G,j}: \mathcal{V}_G \to \mathbb{R}$ for $j \in [d]$.
 The core idea of spectral \acp{gcnn} is to learn a graph convolution kernel $g$, similar to the grid kernels in conventional \acp{cnn}~\cite{LeCun1998}.
 The problem with this idea is that the convolution operation $g * x$ requires some notion of distance in order to ``move'' the kernel $g$ over the function $x$.
@@ -733,11 +735,11 @@ By fixing $K = 2$, by using a single filter parameter $\theta \in \mathbb{R}$ an
 In this formulation the spectral filter is effectively just a linear function $\hat{g}_{\theta}(\lambda) = \theta \lambda$.
 Via this simplified notion of convolution for a single feature signal $x_{G,j}$, a convolutional \acl{nn} layer over all features ${\{ x_{G,j} \}}_{j=1}^{d}$ can analogously be defined as
 \begin{align}
-	Z^{(t)} \coloneqq \sigma\left( \hat{A} Z^{(t-1)} \Theta^{(t)} \right)
-	\quad\text{with } \hat{A} \coloneqq \tilde{D}_G^{-\frac{1}{2}} \tilde{A}_G \tilde{D}_G^{-\frac{1}{2}}\quad\text{and}\quad Z^{(0)} \coloneqq X_G \text{.} \label{eq:related:gcn-layer}
+	Z_G^{(t)} \coloneqq \sigma\left( \hat{A} Z_G^{(t-1)} \Theta^{(t)} \right)
+	\quad\text{with } \hat{A} \coloneqq \tilde{D}_G^{-\frac{1}{2}} \tilde{A}_G \tilde{D}_G^{-\frac{1}{2}}\quad\text{and}\quad Z_G^{(0)} \coloneqq X_G \text{.} \label{eq:related:gcn-layer}
 \end{align}
 Here $\sigma$ is some non-linearity, e.g.\ ReLU, and $\Theta^{(t)} \in \mathbb{R}^{d^{(t-1)} \times d^{(t)}}$ is a matrix of learned filter parameters.
-This type of convolutional layer takes a graph signal $Z^{(t-1)} \in \mathbb{R}^{n \times d^{(t-1)}}$ and the corresponding adjacency matrix $A_G \in \mathbb{R}^{n \times n}$ as input and outputs a convolved signal $Z^{(t)} \in \mathbb{R}^{n \times d^{(t)}}$.
+This type of convolutional layer takes a graph signal $Z_G^{(t-1)} \in \mathbb{R}^{n \times d^{(t-1)}}$ and the corresponding adjacency matrix $A_G \in \mathbb{R}^{n \times n}$ as input and outputs a convolved signal $Z_G^{(t)} \in \mathbb{R}^{n \times d^{(t)}}$.
 By stacking multiple of those convolutional layers, complex non-linear signal filters can be learned despite the linearity of the underlying spectral filter.
 
 \subsubsection{Spatial \acp{gcnn}}
@@ -747,23 +749,23 @@ Instead of interpreting convolutions as applications of linear spectral filters,
 From this perspective a \ac{gcn} can be seen as a so-called spatial \ac{gcnn} because it operates directly in the vertex domain.
 To see why this is the case, we rewrite \cref{eq:related:gcn-layer} and compare it with the 1-\acs{wl} color refinement strategy (see \cfullref{defn:related:wl1-refine}):
 \begin{alignat*}{2}
-	\text{\ac*{gcn}:}\quad&& Z^{(t)}[v] &= \sigma\left(\left( {\mu(v)}^2 \textcolor{t_blue}{Z^{(t-1)}[v]} + \smashoperator[lr]{\sum_{u \in \Gamma_G(v)}} \mu(v) \mu(u) \textcolor{t_red}{Z^{(t-1)}[u]} \right) \Theta^{(t)} \right) \\ % chktex 25
+	\text{\ac*{gcn}:}\quad&& Z_G^{(t)}[v] &= \sigma\left(\left( {\mu(v)}^2 \textcolor{t_blue}{Z_G^{(t-1)}[v]} + \smashoperator[lr]{\sum_{u \in \Gamma_G(v)}} \mu(v) \mu(u) \textcolor{t_red}{Z_G^{(t-1)}[u]} \right) \Theta^{(t)} \right) \\ % chktex 25
 	\text{1-\acs{wl}:}\quad&& \chi_{G,1}^{(t)}(v) &= h\left( \mkern60mu\textcolor{t_blue}{\chi_{G,1}^{(t-1)}(v)}, \ldblbrace \textcolor{t_red}{\chi_{G,1}^{(t-1)}(u)}\, |\, u \in \Gamma_{G}(v) \rdblbrace\right) % chktex 25
 \end{alignat*}
 Here $\mu(v) \coloneqq {\left(\left| \Gamma_G(v) \right| + 1\right)}^{-\frac{1}{2}}$ are normalization factors introduced by $\tilde{D}_G^{-\frac{1}{2}}$.
-The comparison shows that \ac{gcn} convolutions can be understood as iterative refinements of continuous ``color vectors'' $Z^{(t)}[v] \in \mathbb{R}^{d^{(t)}}$.
+The comparison shows that \ac{gcn} convolutions can be understood as iterative refinements of continuous ``color vectors'' $Z_G^{(t)}[v] \in \mathbb{R}^{d^{(t)}}$.
 Then the continuous analogue to the injective 1-\acs{wl} hash function $h: \mathcal{C}^{*} \to \mathcal{C}$ can be defined as $h_{\mathrm{\acs*{gcn}}}(z_0, z_1, \dots, z_m) = \sigma(\sum_{j=0}^m \mu(v_0) \mu(v_j) z_j \Theta^{(t)})$ which computes a single color vector from multiple color vectors $z_j$ where $v_j$ are the corresponding vertices.
 
 \paragraph{A 1-\acs{wl} bound on \ac{gnn} power}
 In the next step we will take a closer look at the relation between \acp{gcnn} that use vertex neighborhood convolution and 1-\acs{wl} by comparing their respective discriminative power.
 \begin{prop}[see {\citet[lemma 2]{Xu2018}} for the proof]\label{prop:related:gcnn-wl1-limit}
-	The discriminative power of a \ac{gcnn} that convolves vertex feature vectors via a convolution operator of the form $Z^{(t)}[v] = h^{(t)}\left(Z^{(t-1)}[v], \ldblbrace Z^{(t-1)}[u]\, |\, u \in \Gamma_G(v) \rdblbrace\right)$ is upper-bounded by that of 1-\acs{wl}, where $h^{(t)}: {(\mathbb{R}^{d^{(t-1)}})}^{*} \to \mathbb{R}^{d^{(t)}}$ is an arbitrary vertex neighborhood hashing function.
+	The discriminative power of a \ac{gcnn} that convolves vertex feature vectors via a convolution operator of the form $Z_G^{(t)}[v] = h^{(t)}\left(Z_G^{(t-1)}[v], \ldblbrace Z_G^{(t-1)}[u]\, |\, u \in \Gamma_G(v) \rdblbrace\right)$ is upper-bounded by that of 1-\acs{wl}, where $h^{(t)}: {(\mathbb{R}^{d^{(t-1)}})}^{*} \to \mathbb{R}^{d^{(t)}}$ is an arbitrary vertex neighborhood hashing function.
 	Moreover, if $h^{(t)}$ is not injective, the \ac{gcnn} has a strictly lower discriminative power than 1-\acs{wl}.
 \end{prop}
 By \cref{prop:related:gcnn-wl1-limit} the \ac{gcn} architecture is strictly less powerful than 1-\acs{wl} due to the fact that $h_{\mathrm{\acs*{gcn}}}$ is not an injective hash function.
 To overcome this limitation \citet{Xu2018} proposed an alternative vertex neighborhood convolution architecture called \ac{gin}:
 \begin{align}
-	Z^{(t)}[v] \coloneqq \mathrm{\acs*{mlp}}^{(t)}\left( Z^{(t-1)}[v] + \smashoperator[lr]{\sum_{u \in \Gamma_G(v)}} Z^{(t-1)}[u] \right)
+	Z_G^{(t)}[v] \coloneqq \mathrm{\acs*{mlp}}^{(t)}\left( Z_G^{(t-1)}[v] + \smashoperator[lr]{\sum_{u \in \Gamma_G(v)}} Z_G^{(t-1)}[u] \right)
 \end{align}
 By leaving out the normalization factors $\mu(v)$ and by using a \ac{mlp} instead of the single fully-connected layer $\sigma \circ \Theta^{(t)}$ the resulting hashing function $h_{\mathrm{\acs*{gin}}}(z_1, \dots, z_m) = \mathrm{\acs*{mlp}}^{(t)}(\sum_{j=1}^{m} z_j)$ becomes injective\footnote{
 	Under the assumption that the set of possible input feature matrices $X \in \mathbb{R}^{n \times d^{(0)}}$ is countable.
@@ -780,7 +782,7 @@ To go beyond the limits of 1-\acs{wl}, \citet{Morris2019} proposed the first \ac
 Similar to the $k$-LWL kernel which we looked at in \cref{sec:related:gcr:kernel}, their so-called $k$-\acs{gnn} uses the $k$-multiset and neighborhood localization optimizations to keep runtime costs feasible.
 The $k$-\ac{gnn} convolution is described by
 \begin{align}
-	Z^{(t)}[s] \coloneqq \sigma\left( {Z^{(t-1)}[s]} W^{(t)} + \smashoperator[lr]{\sum_{{v \in s}, {u \in \Gamma_G(v)}}} {Z^{(t-1)}[s \setminus \{ v \} \cup \{ u \}]} W_{\Gamma}^{(t)} \right) \text{.} \label{eq:related:kgnn-layer}
+	Z_G^{(t)}[s] \coloneqq \sigma\left( {Z_G^{(t-1)}[s]} W^{(t)} + \smashoperator[lr]{\sum_{{v \in s}, {u \in \Gamma_G(v)}}} {Z_G^{(t-1)}[s \setminus \{ v \} \cup \{ u \}]} W_{\Gamma}^{(t)} \right) \text{.} \label{eq:related:kgnn-layer}
 \end{align}
 It convolves the feature vectors of $k$-multisets $s \subseteq \mathcal{V}_G$ instead of single vertices $v \in \mathcal{V}_G$.
 Apart from this fundamental difference to 1-\acs{wl} bounded \acp{gnn}, $k$-\acp{gnn} additionally use two learnable parameter matrices $W^{(t)}, W_{\Gamma}^{(t)} \in \mathbb{R}^{d^{(t-1)} \times d^{(t)}}$ instead of the single $\Theta^{(t)}$ used in \acp{gcn}.
@@ -793,7 +795,7 @@ We will get back to this difference later in \cref{sec:ltd:kgnn-limits}.
 
 \subsubsection{Graph Pooling}
 
-The graph convolution approaches that we just looked at all produce a set of convolved feature vectors ${\left\{ Z^{(T)}[s_i] \right\}}_{i=1}^{m}$ after $T$ convolutional layers. % chktex 21
+The graph convolution approaches that we just looked at all produce a set of convolved feature vectors ${\left\{ Z_G^{(T)}[s_i] \right\}}_{i=1}^{m}$ after $T$ convolutional layers. % chktex 21
 For 1-\acs{wl} bounded architectures like \ac{gcn} or \ac{gin}, there is one vector for each of the $m = {|\mathcal{V}_G|}$ vertices, while a $k$-\acs{wl} inspired architecture like $k$-\acs{gnn} produces $m \leq {|\mathcal{V}_G|}^{k}$ output vectors.
 In order to solve the \ac{gcr} problem, those vector sets need to be combined into a final predicted class or regression value.
 To do this, so-called \textit{graph pooling layers} are used.
