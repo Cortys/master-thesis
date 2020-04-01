@@ -173,7 +173,7 @@ Motivated by those limitations we describe a novel graph convolution operator wh
 \label{sec:ltd:wl2gnn}
 
 We have seen that the main difference between 2-\acsp{gnn} and 2-\acs{wl} is their notion of ``neighborhood''.
-In this section we describe a convolution operator which uses edge tuple neighbors just like 2-\acs{wl} to overcome the limitations of 2-\acsp{gnn}.
+In this section we describe a novel convolution operator which uses edge tuple neighbors just like 2-\acs{wl} to overcome the limitations of 2-\acsp{gnn}.
 This will be done in three steps:
 \begin{enumerate*}
 	\item We begin by formally defining the 2-\acs{wl} convolution operator.
@@ -184,32 +184,51 @@ This will be done in three steps:
 \subsection{Definition of the 2-\acs*{wl} Convolution Operator}%
 \label{sec:ltd:wl2gnn:definition}
 
-Similar to the 2-LWL kernel described in \cref{sec:related:gcr:kernel}, the 2-\acs{wl} convolution operator reduces the computational cost of 2-\acs{wl} via two simplifications:
+Similar to the 2-LWL kernel described in \cref{sec:related:gcr:kernel}, our 2-\acs{wl} convolution operator reduces the computational cost of 2-\acs{wl} via two simplifications:
 \begin{enumerate}[label=\textbf{\arabic*.}]
 	\item \textbf{2-multisets:}
 		Since we assume that graphs are undirected, $e_{ij}$ and $e_{ji}$ have identical feature vectors $x[e_{ij}] = x[e_{ji}] \in \mathcal{X}_{\mathcal{E}}$ and the same 2-\acs{wl} neighborhood.
 		Instead of refining/convolving the feature vectors of 2-tuples $(v_i, v_j)$ we can therefore refine/convolve the feature vectors of 2-multisets $\ldblbrace v_i, v_j \rdblbrace$.
 		This halves the number of feature vectors without affecting the discriminative or computational power of the 2-\acs{wl} convolution operator.
+		To simplify the notation we assume that $e_{ij} = e_{ji} = \ldblbrace v_i, v_j \rdblbrace$ in the rest of this section.
 	\item \textbf{Neighborhood localization:}
-		2-\acs{wl} refines the color of all tuples $(v_i, v_j) \in \mathcal{V}_G^2$ by hashing its current color and the colors of all pairs ${\{ ((v_i, v_l), (v_l, v_j)) \}}_{v_l \in \mathcal{V}_G}$.
+		Using the 2-multiset simplification, the original 2-\acs{wl} algorithm refines the color of all multisets $e_{ij} \in \mathcal{V}_G^2$ by hashing its current color and the colors of all neighbors ${\{ \ldblbrace e_{il}, e_{lj} \rdblbrace \}}_{v_l \in \mathcal{V}_G}$.
 		This means that the time complexity of a single refinement step is $\mathcal{O}(n^3)$ for $n \coloneqq \left| \mathcal{V}_G \right|$ which quickly becomes infeasible for large graphs.
-		We address this issue by reducing both the number of colored tuples as well as the number of neighbors of each tuple.
-		Through this reduction the time complexity of a refinement step becomes $\mathcal{O}(n d^k)$ where $d \coloneqq \max_{v \in \mathcal{V}_G} \left|\Gamma_G(v)\right|$ is the maximum vertex degree and $k \in \mathbb{N}$ is the freely choosable so-called \textit{neighborhood degree}.
-		We will now look at the details of this simplification.
+
+		To address this issue we reduce both the number of colored edges as well as the number of neighbors of each edge.
+		This is achieved by only considering the edges that are part of the so-called \textit{$r$-th power of a given graph $G$} where $r \in \mathbb{N}$ is the freely choosable \textit{neighborhood radius}.
+		\begin{defn}
+			The \textit{$r$-th power of a graph $G$} is defined as
+			\begin{align*}
+				G^r \coloneqq \left(\mathcal{V}_G, \left\{ e_{ij} \in \mathcal{V}_G^2\, |\, d_{\mathrm{SP}, G}(v_i, v_j) \leq r \right\}\right) % chktex 21
+			\end{align*}
+			where $d_{\mathrm{SP}, G}(v_i, v_j)$ is the length of the shortest path between $v_i$ and $v_j$ in $G$.
+			The distance of a vertex $v_i \in \mathcal{V}_G$ to itself is defined as $d_{\mathrm{SP}, G}(v_i, v_i) \coloneqq 0$.
+			Note that $G^1$ does not generally equal $G$ because $G^1$ has self-loop edges $e_{ii} \in \mathcal{E}_{G^1}$ at all vertices.
+		\end{defn}
+		For the neighborhood radius $r = 1$ only the self-loop edges ${\{ e_{ii} \}}_{v_i \in \mathcal{V}_G}$ and the edges $\mathcal{E}_{G}$ are considered;
+		for $r > 1$ edges between indirectly connected vertices are considered as well.
+		\Cref{fig:ltd:neighborhood-radius} illustrates this for varying neighborhood radii.
+		Through the reduction of the considered edges, the neighbors of each $e_{ij} \in \mathcal{E}_{G^r}$ are in turn reduced to the common $r$-neighbors of $v_i$ and $v_j$, i.e.\ $\{ \ldblbrace e_{il}, e_{lj} \rdblbrace\, |\, v_l \in {\Gamma_{G^r}(v_i) \cap \Gamma_{G^r}(v_j)} \}$. % chktex 21
+		\begin{figure}[t]
+			\centering
+			\includegraphics[width=0.9\linewidth]{gfx/ltd/neighborhood-radius.pdf}
+			\caption{
+				Illustration of the powers of the six-cycle graph for varying $r$.
+				The self-loop edge at each of the vertices is not explicitly shown.
+				For $r = 3$ all possible edges between the six vertices will be considered just as in the original 2-\acs{wl} algorithm.
+			}\label{fig:ltd:neighborhood-radius}
+		\end{figure}
+
+		Let us now consider what the reduced number of considered edges and the reduced number of edge neighbors implies for the runtime of a refinement step.
+		If $G$ is a sparse graph with the maximum vertex degree $d \coloneqq \max_{v \in \mathcal{V}_G} \left|\Gamma_G(v)\right|$, the number of considered edges is bounded by $\mathcal{O}(n d^r)$ where each edge has at most $\mathcal{O}(d^r)$ neighbors.
+		Consequently the time complexity of a refinement step becomes $\mathcal{O}(n d^{2r})$ which is a significant improvement over the $\mathcal{O}(n^3)$ bound of a full 2-\acs{wl} refinement step (assuming $d \ll n$).
 \end{enumerate}
-\begin{defn}
-	The \textit{$k$-th power of a graph $G$} is defined as
-	\begin{align*}
-		G^k \coloneqq \left(\mathcal{V}_G, \left\{ e_{ij} \in \mathcal{V}_G^2\, |\, d_{\mathrm{SP}, G}(v_i, v_j) \leq k \right\}\right) % chktex 21
-	\end{align*}
-	where $d_{\mathrm{SP}, G}(v_i, v_j)$ is the length of the shortest path between $v_i$ and $v_j$ in $G$.
-	The distance of a vertex $v_i \in \mathcal{V}_G$ to itself is defined as $d_{\mathrm{SP}, G}(v_i, v_i) \coloneqq 0$.
-	Note that $G^1$ does not generally equal $G$ because $G^1$ has self-loop edges $(v_i, v_i) \in \mathcal{E}_{G^1}$ for all vertices.
-\end{defn}
-\begin{defn}
-	The \textit{initial feature matrix $Z_G^{(0)}$} of the 2-\acs{wl} convolution operator with the neighborhood degree $k \in \mathbb{N}$ combines the vertex features $x[v_i] \in \mathcal{X}_{\mathcal{V}} = \mathbb{R}^{d_{\mathcal{V}}}$ and the edge features $x[e_{ij}] \in \mathcal{X}_{\mathcal{E}} = \mathbb{R}^{d_{\mathcal{E}}}$ of a given graph $G$.
-	More specifically $Z_G^{(0)} \in \mathbb{R}^{{|\mathcal{E}_{G^k}|} \times (d_{\mathcal{V}} + d_{\mathcal{E}})}$ assigns a row vector $Z_G^{(0)}[e_{ij}]$ to all edges $e_{ij} \in \mathcal{E}_{G^k}$ of $G^k$.
-	Those edge feature vectors are defined by the following vector concatenation:
+Based on the 2-multiset and the neighborhood localization simplifications we can now define the 2-\ac{wl} convolution operator.
+\begin{defn}\label{defn:ltd:wl2-conv-init}
+	The \textit{initial feature matrix $Z_G^{(0)}$} of the 2-\acs{wl} convolution operator with the neighborhood radius $r \in \mathbb{N}$ contains both the vertex features $x[v_i] \in \mathcal{X}_{\mathcal{V}} = \mathbb{R}^{d_{\mathcal{V}}}$ as well as the edge features $x[e_{ij}] \in \mathcal{X}_{\mathcal{E}} = \mathbb{R}^{d_{\mathcal{E}}}$ of a given graph $G$.
+	More specifically $Z_G^{(0)} \in \mathbb{R}^{{|\mathcal{E}_{G^r}|} \times (d_{\mathcal{V}} + d_{\mathcal{E}})}$ assigns a row vector $Z_G^{(0)}[e_{ij}]$ to all edges $e_{ij} \in \mathcal{E}_{G^r}$.
+	Those initial edge feature vectors are defined by the following vector concatenation:
 	\begin{align*}
 		Z_G^{(0)}[e_{ij}] \coloneqq \left( \begin{cases}
 			x[v_i] & \text{if $i = j$} \\
@@ -220,21 +239,39 @@ Similar to the 2-LWL kernel described in \cref{sec:related:gcr:kernel}, the 2-\a
 		\end{cases} \right)
 	\end{align*}
 \end{defn}
-Using this definition, the number of convolved feature vectors can be controlled via the neighborhood degree $k$.
-For $k = 1$ only the vertices and edges of a given graph $G$ have a feature vector.
-For $k > 1$ nonexistent edges $e_{ij} \notin \mathcal{E}_G$ also get feature vectors.
-\begin{defn}
-	We define the \textit{2-\acs{wl} graph convolution operator} with the neighborhood degree $k \in \mathbb{N}$ as
+\begin{defn}\label{defn:ltd:wl2-conv-step}
+	We define the \textit{2-\acs{wl} graph convolution operator} as
 	\begin{gather*}
-		Z_G^{(t)}[e_{ij}] \coloneqq \sigma\left( Z_G^{(t-1)}[e_{ij}] W_{\mathrm{L}}^{(t)} + \smashoperator[lr]{\sum_{v_l \in {\Gamma_{G^k}(v_i) \cap \Gamma_{G^k}(v_j)}}} \kappa^{(t)}\left( Z_G^{(t-1)}[e_{ij}], \ldblbrace Z_G^{(t-1)}[e_{il}], Z_G^{(t-1)}[e_{lj}] \rdblbrace \right) \right) \\
+		Z_G^{(t)}[e_{ij}] \coloneqq \sigma\left( Z_G^{(t-1)}[e_{ij}] W_{\mathrm{L}}^{(t)} + \smashoperator[lr]{\sum_{v_l \in {\Gamma_{G^r}(v_i) \cap \Gamma_{G^r}(v_j)}}} \kappa^{(t)}\left( Z_G^{(t-1)}[e_{ij}], \ldblbrace Z_G^{(t-1)}[e_{il}], Z_G^{(t-1)}[e_{lj}] \rdblbrace \right) \right) \\
 		\text{with } \kappa^{(t)}(z_{ij}, \ldblbrace z_{il}, z_{lj} \rdblbrace) \coloneqq \left( z_{ij} W_{\mathrm{F}}^{(t)} \right) \odot \sigma_{\Gamma}\left(\left( z_{il} + z_{lj} \right) W_{\Gamma}^{(t)} \right)
 		\text{.}
 	\end{gather*}
-	The operator is parameterized by the three matrices $W_{\mathrm{L}}^{(t)}, W_{\mathrm{F}}^{(t)},  W_{\Gamma}^{(t)} \in \mathbb{R}^{d^{(t-1)} \times d^{(t)}}$.
 \end{defn}
+The convolution operator from \cref{defn:ltd:wl2-conv-step} is parameterized by the three matrices $W_{\mathrm{L}}^{(t)}, W_{\mathrm{F}}^{(t)},  W_{\Gamma}^{(t)} \in \mathbb{R}^{d^{(t-1)} \times d^{(t)}}$ and uses two freely choosable nonlinearities $\sigma$ and $\sigma_{\Gamma}$.
+There are three properties which motivate this particular choice of convolution layer:
+\begin{enumerate}[label=\textbf{\arabic*.}]
+	\item \textbf{Simulation of \acp{mlp}:}
+		By choosing $W_{F}^{(t)} = \mathbf{0}$ the convolution behaves like a regular fully connected layer.
+		A stack of 2-\acs{wl} convolution layers can therefore simulate arbitrary \acp{mlp}.
+	\item \textbf{Perservation of edge pair information:}
+		The 2-\acs{wl} convolution layer computes a feature vector for each neighbor $\ldblbrace e_{il}, e_{lj} \rdblbrace$ of $e_{ij}$ via $\sigma_{\Gamma}\left(\left( z_{il} + z_{lj} \right) W_{\Gamma}^{(t)} \right)$.
+		A 2-\acs{gnn} use a similar formulation but leaves out the inner nonlinearity $\sigma_{\Gamma}$;
+		as we saw in \cref{fig:ltd:2gnn-2wl-diff} this causes 2-\acsp{gnn} to lose the edge pair information due to the commutativity and associativity of $+$.
+	\item \textbf{Context-dependent neighborhood filtering:}
+		Instead of filtering out all neighbors, $W_{F}^{(t)}$ also allows to filter the neighborhood of $e_{ij}$ more selectively.
+		We can interpret $z_{ij} W_{\mathrm{F}}^{(t)} \in \mathbb{R}^{d^{(t)}}$ as a row vector of feature dimension weights.
+		The feature dimensions of neighbors are rescaled via those weights which allows the model to aggregate different types of neighbors depending on $z_{ij}$.
+\end{enumerate}
 
 \subsection{Expressive Power of 2-\acs*{wl}-\acsp*{gnn}}%
 \label{sec:ltd:wl2gnn:properties}
+
+In this section we will analyze the discriminative and computational power of the 2-\ac{wl} convolution operator that was just defined.
+We begin by showing that 2-\acs{wl}-\acsp{gnn} are at least as powerful as 1-\acs{wl}.
+
+\begin{prop}
+	2-\acs{wl}-\acsp{gnn} can simulate arbitrary \acp{gin}.
+\end{prop}
 
 \subsection{Implementation of 2-\acs*{wl}-\acsp*{gnn} on \acsp*{gpgpu}}%
 \label{sec:ltd:wl2gnn:implementation}
