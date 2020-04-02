@@ -765,7 +765,7 @@ In the next step we will take a closer look at the relation between \acp{gcnn} t
 By \cref{prop:related:gcnn-wl1-limit} the \ac{gcn} architecture is strictly less powerful than 1-\acs{wl} due to the fact that $h_{\mathrm{\acs*{gcn}}}$ is not an injective hash function.
 To overcome this limitation \citet{Xu2018} proposed an alternative vertex neighborhood convolution architecture called \ac{gin}:
 \begin{align}
-	Z_G^{(t)}[v] \coloneqq \mathrm{\acs*{mlp}}^{(t)}\left( Z_G^{(t-1)}[v] + \smashoperator[lr]{\sum_{u \in \Gamma_G(v)}} Z_G^{(t-1)}[u] \right)
+	Z_G^{(t)}[v] \coloneqq \mathrm{\acs*{mlp}}^{(t)}\left( Z_G^{(t-1)}[v] + \smashoperator[lr]{\sum_{u \in \Gamma_G(v)}} Z_G^{(t-1)}[u] \right) \label{eq:related:gin-layer}
 \end{align}
 By leaving out the normalization factors $\mu(v)$ and by using a \ac{mlp} instead of the single fully-connected layer $\sigma \circ \Theta^{(t)}$ the resulting hashing function $h_{\mathrm{\acs*{gin}}}(z_1, \dots, z_m) = \mathrm{\acs*{mlp}}^{(t)}(\sum_{j=1}^{m} z_j)$ becomes injective\footnote{
 	Under the assumption that the set of possible input feature matrices $X \in \mathbb{R}^{n \times d^{(0)}}$ is countable.

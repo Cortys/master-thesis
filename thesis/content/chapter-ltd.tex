@@ -269,9 +269,100 @@ There are three properties which motivate this particular choice of convolution 
 In this section we will analyze the discriminative and computational power of the 2-\ac{wl} convolution operator that was just defined.
 We begin by showing that 2-\acs{wl}-\acsp{gnn} are at least as powerful as 1-\acs{wl}.
 
-\begin{prop}
-	2-\acs{wl}-\acsp{gnn} can simulate arbitrary \acp{gin}.
-\end{prop}
+\begin{thm}
+	A stack of 2-\acs{wl} convolution layers can simulate a stack of \ac{gin} convolution layers as defined in \cfullref[ on ]{eq:related:gin-layer}, i.e.\ all vertices $v_i \in \mathcal{V}_G$ of a given graph $G$ have the same feature vectors after applying the \ac{gin} convolutions as the self-loops $e_{ii}$ after applying the 2-\acs{wl} convolutions.
+\end{thm}
+\begin{proof}
+	A stack of \ac{gin} convolution layers can be described as a sequence of neighborhood aggregations of the form $Z_G^{(t)}[v_i] = (1 + \varepsilon) Z_G^{(t-1)}[v_i] + \sum_{v_j \in \Gamma_G(v_i)} Z_G^{(t-1)}[v_j]$ with fully connected layers interspersed between them\footnote{
+		The $(1 + \varepsilon) \in \mathbb{R}$ factor is required to guarantee the injectivity and therefore 1-\acs{wl} equivalence of \acp{gin}~\cite{Xu2018}.
+		In our previous description of \ac{gin} we assumed that $\varepsilon = 0$ for simplicity.
+		However for the formal correctness of this proof we also have to account for the case of $\varepsilon > 0$.
+	}.
+	As already mentioned, the 2-\acs{wl} convolution layer is reduced to a fully connected layer if $W_{F}^{(t)} = \mathbf{0}$.
+	To show that 2-\acs{wl} convolutions can simulate \ac{gin}, it is therefore sufficient to show that for the $t$-th \ac{gin} layer there is a stack $S^{(t)}$ of 2-\ac{wl} convolution layers s.t.\ %
+	\begin{align*}
+		\exists P^{(t)}: \forall v_i \in \mathcal{V}_G: S^{(t)}\left(Z_{G}^{(t-1)}\right)[e_{ii}] P^{(t)} = (1 + \varepsilon) Z_{G}^{(t-1)}[e_{ii}] P^{(t)} + \smashoperator[lr]{\sum_{v_l \in \Gamma_G(v_i)}} Z_{G}^{(t-1)}[e_{ll}] P^{(t)}
+		\text{.}
+	\end{align*}
+	Because \ac{gin}'s neighborhood aggregation is described by a sum of vertex feature vectors, the individual vertex feature dimensions can be treated independently.
+	W.l.o.g.\ we will therefore assume that each vertex only has a single scalar feature to simplify notation.
+
+	We now inductively construct the set of 2-\acs{wl} stacks ${\{ S^{(t)} \}}_{t=1}^T$. % chktex 21
+	A neighborhood radius of $r = 1$ will be sufficient to simulate the \ac{gin} aggregation.
+Therefore each convolved feature matrix $Z_G^{(t)}$ contains $m \coloneqq \left|\mathcal{E}_{G^1}\right| = \left|\mathcal{V}_G\right| + \left|\mathcal{E}_G\right|$ rows, one for each vertex/self-loop and one for each edge of the input graph $G$.
+	Based on the assumption that each vertex has one-dimensional features, the initial feature matrix $Z_G^{(0)}$ can be described by the following row vectors:
+	\begin{align*}
+		\forall v_i \in \mathcal{V}_G: Z_G^{(0)}[e_{ii}] \coloneqq (1, x[v_i], 0)
+		\quad\text{and}\quad
+		\forall e_{ij} \in \mathcal{E}_G: Z_G^{(0)}[e_{ij}] \coloneqq (0, 0, 1)
+		\text{.}
+	\end{align*}
+	The first stack $S^{(1)} \coloneqq S^{(1, 2)} \circ S^{(1, 1)}$ takes those initial feature vector and performs a neighborhood aggregation by applying two 2-\acs{wl} convolution layers.
+	The first 2-\acs{wl} layer $S^{(1, 1)}: \mathbb{R}^{m \times 3} \to \mathbb{R}^{m \times 4}$ is defined as
+	\begin{gather*}
+		\begin{aligned}
+			S^{(1, 1)}\left(Z^{(0)}\right)[e_{ij}] &= \textcolor{t_blue}{Z^{(0)}[e_{ij}] W_L^{(1,1)}} + \smashoperator[lr]{\sum_{v_l \in {\Gamma_{G^1}(v_i) \cap \Gamma_{G^1}(v_j)}}} \textcolor{t_red}{\left( Z^{(0)}[e_{ij}] W_F^{(1,1)}\right)} \odot \textcolor{t_darkgreen}{\left( \left( Z^{(0)}[e_{il}] + Z^{(0)}[e_{lj}] \right) W_{\Gamma}^{(1,1)} \right)} \\ % chktex 25
+			&= \begin{cases}
+				\textcolor{t_blue}{(1, \varepsilon x[v_i], 0, 0)} - \left|\Gamma_{G^1}(v_i)\right| \textcolor{t_red}{(0, x[v_i], 0, 0)} & \text{if $i = j$} \\ % chktex 25
+				\textcolor{t_blue}{(0, 0, 1, 0)} + \textcolor{t_darkgreen}{(0, 0, 0, x[v_i])} + \textcolor{t_darkgreen}{(0, 0, 0, x[v_j])} & \text{else} % chktex 25
+			\end{cases} \\
+			&= \begin{cases}
+				\left(1, (\varepsilon - \left|\Gamma_{G^1}(v_i)\right|) x[v_i], 0, 0\right) & \text{if $i = j$} \\
+				(0, 0, 1, x[v_i] + x[v_j]) & \text{else}
+			\end{cases}
+		\end{aligned}\\
+		\text{with }
+		W_L^{(1,1)} \coloneqq \begin{pmatrix}
+			1 & 0 & 0 & 0 \\
+			0 & \varepsilon & 0 & 0 \\
+			0 & 0 & 1 & 0
+		\end{pmatrix},
+		W_F^{(1,1)} \coloneqq \begin{pmatrix}
+			0 & 0 & 0 & 0 \\
+			0 & -\frac{1}{2} & 0 & 0 \\
+			0 & 0 & 0 & 1
+		\end{pmatrix},
+		W_{\Gamma}^{(1,1)} \coloneqq \begin{pmatrix}
+			0 & 1 & 0 & 0 \\
+			0 & 0 & 0 & 1 \\
+			0 & 1 & 0 & 0
+		\end{pmatrix}
+		\text{.}
+	\end{gather*}
+	The aggregation is then completed in the second layer $S^{(1, 2)}: \mathbb{R}^{m \times 4} \to \mathbb{R}^{m \times 3}$:
+	\begin{gather*}
+		\begin{aligned}
+			S^{(1)}\left(Z^{(0)}\right)[e_{ij}] &= \begin{cases}
+				\textcolor{t_blue}{\left(1, (\varepsilon - \left|\Gamma_{G^1}(v_i)\right|) x[v_i], 0\right)} + \displaystyle\smashoperator[lr]{\sum_{v_l \in \Gamma_{G^1}(v_i)}} \textcolor{t_darkgreen}{(0, x[v_i] + x[v_l], 0)} & \text{if $i = j$} \\ % chktex 25
+				\textcolor{t_blue}{(0, 0, 1)} & \text{else} % chktex 25
+			\end{cases} \\
+			&= \begin{cases}
+				\left(1, (1 + \varepsilon) x[v_i] + \displaystyle\smashoperator[lr]{\sum_{v_l \in \Gamma_{G}(v_i)}} x[v_l], 0\right) & \text{if $i = j$} \\
+				(0, 0, 1) & \text{else}
+			\end{cases}
+		\end{aligned}\\
+		\text{with }
+		W_L^{(1,2)} \coloneqq \begin{pmatrix}
+			1 & 0 & 0 \\
+			0 & 1 & 0 \\
+			0 & 0 & 1 \\
+			0 & 0 & 0
+		\end{pmatrix},\quad
+		W_F^{(1,2)} \coloneqq \begin{pmatrix}
+			0 & \frac{1}{2} & 0 \\
+			0 & 0 & 0 \\
+			0 & 0 & 0 \\
+			0 & 0 & 0
+		\end{pmatrix},\quad
+		W_{\Gamma}^{(1,2)} \coloneqq \begin{pmatrix}
+			0 & 0 & 0 \\
+			0 & 0 & 0 \\
+			0 & 0 & 0 \\
+			0 & 1 & 0
+		\end{pmatrix}
+		\text{.}
+	\end{gather*}
+\end{proof}
 
 \subsection{Implementation of 2-\acs*{wl}-\acsp*{gnn} on \acsp*{gpgpu}}%
 \label{sec:ltd:wl2gnn:implementation}
