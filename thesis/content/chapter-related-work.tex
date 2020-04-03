@@ -748,10 +748,12 @@ This allows for a very different perspective on \acp{gcn}:
 Instead of interpreting convolutions as applications of linear spectral filters, we can interpret them as vertex neighborhood aggregations, similar to 1-\acs{wl}.
 From this perspective a \ac{gcn} can be seen as a so-called spatial \ac{gcnn} because it operates directly in the vertex domain.
 To see why this is the case, we rewrite \cref{eq:related:gcn-layer} and compare it with the 1-\acs{wl} color refinement strategy (see \cfullref{defn:related:wl1-refine}):
-\begin{alignat*}{2}
-	\text{\ac*{gcn}:}\quad&& Z_G^{(t)}[v] &= \sigma\left(\left( {\mu(v)}^2 \textcolor{t_blue}{Z_G^{(t-1)}[v]} + \smashoperator[lr]{\sum_{u \in \Gamma_G(v)}} \mu(v) \mu(u) \textcolor{t_red}{Z_G^{(t-1)}[u]} \right) \Theta^{(t)} \right) \\ % chktex 25
-	\text{1-\acs{wl}:}\quad&& \chi_{G,1}^{(t)}(v) &= h\left( \mkern60mu\textcolor{t_blue}{\chi_{G,1}^{(t-1)}(v)}, \ldblbrace \textcolor{t_red}{\chi_{G,1}^{(t-1)}(u)}\, |\, u \in \Gamma_{G}(v) \rdblbrace\right) % chktex 25
-\end{alignat*}
+\begin{equation}
+	\begin{alignedat}{2}
+		\text{\ac*{gcn}:}\quad&& Z_G^{(t)}[v] &= \sigma\left(\left( {\mu(v)}^2 \textcolor{t_blue}{Z_G^{(t-1)}[v]} + \smashoperator[lr]{\sum_{u \in \Gamma_G(v)}} \mu(v) \mu(u) \textcolor{t_red}{Z_G^{(t-1)}[u]} \right) \Theta^{(t)} \right) \\ % chktex 25
+		\text{1-\acs{wl}:}\quad&& \chi_{G,1}^{(t)}(v) &= h\left( \mkern60mu\textcolor{t_blue}{\chi_{G,1}^{(t-1)}(v)}, \ldblbrace \textcolor{t_red}{\chi_{G,1}^{(t-1)}(u)}\, |\, u \in \Gamma_{G}(v) \rdblbrace\right) % chktex 25
+	\end{alignedat}\label{eq:related:gcn-wl1}
+\end{equation}
 Here $\mu(v) \coloneqq {\left(\left| \Gamma_G(v) \right| + 1\right)}^{-\frac{1}{2}}$ are normalization factors introduced by $\tilde{D}_G^{-\frac{1}{2}}$.
 The comparison shows that \ac{gcn} convolutions can be understood as iterative refinements of continuous ``color vectors'' $Z_G^{(t)}[v] \in \mathbb{R}^{d^{(t)}}$.
 Then the continuous analogue to the injective 1-\acs{wl} hash function $h: \mathcal{C}^{*} \to \mathcal{C}$ can be defined as $h_{\mathrm{\acs*{gcn}}}(z_0, z_1, \dots, z_m) = \sigma(\sum_{j=0}^m \mu(v_0) \mu(v_j) z_j \Theta^{(t)})$ which computes a single color vector from multiple color vectors $z_j$ where $v_j$ are the corresponding vertices.

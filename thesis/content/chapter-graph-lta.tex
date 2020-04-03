@@ -376,7 +376,7 @@ Based on the decomposition function $\psi: \mathcal{G} \to \mathcal{P}(\mathcal{
 \begin{defn}\label{defn:ltag:assoc-aggregation-pooling}
 	A pooling layer $\mathit{Pool}: \mathbb{R}^{n \times d^{(T)}} \to \mathbb{R}^{d^{(\mathrm{pool})}}$ is called an \textit{associative weighted aggregation layer} iff.
 	\begin{enumerate*}
-		\item there is an associative algebra of $\mathit{Pool}$,
+		\item there is an associative algebra of $\mathit{Pool}$ and
 		\item there is a weighted aggregation function $\mathcal{A}: {(\mathcal{Y} \times \mathbb{R}_{\geq 0})}^{*} \to \mathcal{Y}$ with an associative algebra and
 		\item there is a homomorphism $(\tau_{1}: \mathbb{R}^{d^{(T)}} \to (\mathcal{Y} \times \mathbb{R}_{\geq 0}), \tau_{2}: \mathbb{R}^{d^{(\mathrm{pool})}} \to \mathcal{Y})$ from the associative algebra of $\mathit{Pool}$ to that of $\mathcal{A}$
 	\end{enumerate*}.
@@ -407,7 +407,7 @@ Using those definitions we can complete the connection between \acp{gcnn} and \a
 	}.
 \end{proof}
 Note that \cref{thm:ltag:gcnn-ltag-formulation} requires \acp{gcnn} without a final \ac{mlp} which is unlike the architecture proposed in the \ac{gcn}~\cite{Kipf2017} and \ac{gin}~\cite{Xu2018} papers.
-The reason for this is that the composition $\mathrm{\acs*{mlp}} \circ \mathit{Pool}$ cannot be guaranteed to be homomorphic to a weighted aggregation function $\mathcal{A}$ due to the universal approximation theorem.
+The reason for this is that the composition $\mathrm{\acs*{mlp}} \circ \mathit{Pool}$ cannot be guaranteed to be homomorphic to a weighted aggregation function $\mathcal{A}$ due to the well-known universal approximation theorem~\cite{Hornik1991}.
 
 To conclude our analysis of the relation between \ac{lta} and \acp{gcnn}, we check which of the graph pooling layers described in \cref{sec:related:gcr:nn} satisfy \cref{defn:ltag:assoc-aggregation-pooling} are therefore allowed in \acs{lta}-like \acp{gcnn} by \cref{thm:ltag:gcnn-ltag-formulation}.
 For simplicity we assume that the target score domain is $\mathcal{Y} = [0, 1]$.
