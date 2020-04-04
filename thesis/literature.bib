@@ -405,24 +405,26 @@
 }
 
 @Online{TEST,
-  title        = {{Toxicity Estimation Software Tool (TEST)}},
+  label        = {{$\linksym$TET}},
   organization = {EPA},
+  title        = {{Toxicity Estimation Software Tool (TEST)}},
   url          = {https://www.epa.gov/chemical-research/toxicity-estimation-software-tool-test},
   urldate      = {2019-11-18},
 }
 
 @Online{ProTox,
   author       = {Banerjee, Priyanka and Preissner, Robert and Eckert, Andreas and Schrey, Anna K.},
-  title        = {{ProTox-II - Prediction Of Toxicity Of Chemicals}},
-  year         = {2018},
+  label        = {{$\linksym$PT}},
   organization = {{Charité – Universitätsmedizin Berlin}},
+  title        = {{ProTox-II - Prediction Of Toxicity Of Chemicals}},
   url          = {http://tox.charite.de/protox_II/},
   urldate      = {2019-11-18},
 }
 
 @Online{ToxTrack,
-  title        = {{ToxTrack} - Cheminformatics Modeling},
+  label        = {{$\linksym$TT}},
   organization = {ToxTrack Inc.},
+  title        = {{ToxTrack} - Cheminformatics Modeling},
   url          = {https://toxtrack.com/},
   urldate      = {2019-11-18},
 }
@@ -538,6 +540,7 @@
 
 @Online{McKay,
   author  = {McKay, Brendan and Piperno, Adolfo},
+  label   = {{$\linksym$NT}},
   title   = {{nauty and Traces}},
   url     = {http://pallini.di.uniroma1.it/index.html},
   urldate = {2020-02-21},
@@ -847,7 +850,7 @@
 }
 
 @InProceedings{Gilpin2018,
-  author      = {L. H. {Gilpin} and D. {Bau} and B. Z. {Yuan} and A. {Bajwa} and M. {Specter} and L. {Kagal}},
+  author      = {L. H. Gilpin and D. Bau and B. Z. Yuan and A. Bajwa and M. Specter and L. Kagal},
   title       = {Explaining Explanations: An Overview of Interpretability of Machine Learning},
   booktitle   = {2018 IEEE 5th International Conference on Data Science and Advanced Analytics (DSAA)},
   year        = {2018},
@@ -957,6 +960,64 @@
   volume    = {4},
   doi       = {10.1016/0893-6080(91)90009-t},
   publisher = {Elsevier {BV}},
+}
+
+@Misc{Fey2019,
+  author      = {Matthias Fey and Jan Eric Lenssen},
+  title       = {Fast Graph Representation Learning with PyTorch Geometric},
+  year        = {2019},
+  abstract    = {We introduce PyTorch Geometric, a library for deep learning on irregularly structured input data such as graphs, point clouds and manifolds, built upon PyTorch. In addition to general graph data structures and processing methods, it contains a variety of recently published methods from the domains of relational learning and 3D data processing. PyTorch Geometric achieves high data throughput by leveraging sparse GPU acceleration, by providing dedicated CUDA kernels and by introducing efficient mini-batch handling for input examples of different size. In this work, we present the library in detail and perform a comprehensive comparative study of the implemented methods in homogeneous evaluation scenarios.},
+  date        = {2019-03-06},
+  eprint      = {1903.02428v3},
+  eprintclass = {cs.LG},
+  eprinttype  = {arXiv},
+  file        = {:http\://arxiv.org/pdf/1903.02428v3:PDF},
+  keywords    = {cs.LG, stat.ML},
+}
+
+@Misc{Wang2019,
+  author      = {Minjie Wang and Lingfan Yu and Da Zheng and Quan Gan and Yu Gai and Zihao Ye and Mufei Li and Jinjing Zhou and Qi Huang and Chao Ma and Ziyue Huang and Qipeng Guo and Hao Zhang and Haibin Lin and Junbo Zhao and Jinyang Li and Alexander Smola and Zheng Zhang},
+  title       = {Deep Graph Library: Towards Efficient and Scalable Deep Learning on Graphs},
+  year        = {2019},
+  abstract    = {Accelerating research in the emerging field of deep graph learning requires new tools. Such systems should support graph as the core abstraction and take care to maintain both forward (i.e. supporting new research ideas) and backward (i.e. integration with existing components) compatibility. In this paper, we present Deep Graph Library (DGL). DGL enables arbitrary message handling and mutation operators, flexible propagation rules, and is framework agnostic so as to leverage high-performance tensor, autograd operations, and other feature extraction modules already available in existing frameworks. DGL carefully handles the sparse and irregular graph structure, deals with graphs big and small which may change dynamically, fuses operations, and performs auto-batching, all to take advantages of modern hardware. DGL has been tested on a variety of models, including but not limited to the popular Graph Neural Networks (GNN) and its variants, with promising speed, memory footprint and scalability.},
+  date        = {2019-09-03},
+  eprint      = {1909.01315v1},
+  eprintclass = {cs.LG},
+  eprinttype  = {arXiv},
+  file        = {:http\://arxiv.org/pdf/1909.01315v1:PDF},
+  keywords    = {cs.LG, stat.ML},
+}
+
+@Online{Spektral,
+  author  = {Daniele Grattarola},
+  label   = {{$\linksym$Spe}},
+  title   = {Spektral},
+  url     = {https://spektral.graphneural.network},
+  urldate = {2020-04-04},
+}
+
+@Online{PyG,
+  label   = {{$\linksym$PyG}},
+  author  = {Matthias Fey},
+  title   = {PyTorch Geometric},
+  url     = {https://github.com/rusty1s/pytorch_geometric},
+  urldate = {2020-04-04},
+}
+
+@Online{DGL,
+  label   = {{$\linksym$DGL}},
+  title   = {Deep Graph Library},
+  author  = {Minjie Wang and Lingfan Yu and Da Zheng and Quan Gan and Yu Gai and Zihao Ye and Mufei Li and Jinjing Zhou and Qi Huang and Chao Ma and Ziyue Huang and Qipeng Guo and Hao Zhang and Haibin Lin and Junbo Zhao and Jinyang Li and Alexander Smola and Zheng Zhang},
+  url     = {https://www.dgl.ai/},
+  urldate = {2020-04-04},
+}
+
+@Online{GN,
+  label   = {{$\linksym$GN}},
+  organization = {DeepMind},
+  title   = {Graph Nets},
+  url     = {https://github.com/deepmind/graph_nets},
+  urldate = {2020-04-04},
 }
 
 @Comment{jabref-meta: databaseType:bibtex;}

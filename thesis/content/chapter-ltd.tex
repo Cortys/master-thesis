@@ -91,7 +91,7 @@ This difference becomes clear when comparing the definition of convolution in 2-
 	\includegraphics[width=\linewidth]{gfx/ltd/2gnn-2wl-diff.pdf}
 	\caption[Edge colorings on which 2-\acsp{gnn} and 2-\acs{wl} behave differently.]{
 		Two edge colorings on which 2-\acsp{gnn} and 2-\acs{wl} behave differently.
-		A 2-\acs{gnn} will refine the ``color vector'' of $e_{ij}$ to \textsf{\textbf{\small\textcolor{t_blue}{D}}} for both initial colorings.
+		A 2-\acs{gnn} will refine the ``color vector'' of $e_{ij}$ to \colorlabel{t_blue}{D} for both initial colorings.
 		2-\acs{wl} on the other hand differentiates both colorings by preserving the color tuple information.
 	}\label{fig:ltd:2gnn-2wl-diff}
 \end{figure}
@@ -122,14 +122,14 @@ In the first step we show that the discriminative power of 2-\acsp{gnn} on all g
 	$n$ of those edge neighborhood vertices correspond to the vertices of $G$ and $H$ respectively, we will refer to them as \textit{loop vertices} $L_G$/$L_H$.
 	The remaining $\frac{nd}{2}$ edge neighborhood vertices correspond to the edges of $G$ and $H$, we will refer to them as \textit{edge vertices} $E_G$/$E_H$.
 
-	W.l.o.g.\ we define the initial colors of the loop vertices as $\chi^{(0)}(v) = \textcolor{t_blue}{\texttt{A}}$ for all $v \in L_G \cup L_H$. % chktex 25
+	W.l.o.g.\ we define the initial colors of the loop vertices as $\chi^{(0)}(v) = \colorlabel{t_blue}{A}$ for all $v \in L_G \cup L_H$. % chktex 25
 	The initial colors of the edge vertices are defined as $\chi^{(0)}(e) = \textcolor{t_red}{\texttt{B}}$ for all $e \in E_G \cup E_H$. % chktex 25
 	Note that each loop vertex $\ldblbrace v_i, v_i \rdblbrace$ with $v_i \in \mathcal{V}_G \cup \mathcal{V}_H$ has $d$ neighbors, the edges incident to $v_i$.
 	Similarly each edge vertex $\ldblbrace v_i, v_j \rdblbrace$ has $2d$ neighbors, two of which are the loop vertices $\ldblbrace v_i, v_i \rdblbrace$ and $\ldblbrace v_j, v_j \rdblbrace$ with the remaining $2d - 2$ neighbors corresponding to the edges that are incident to $e_{ij}$.
 	This is illustrated in \cref{fig:ltd:edge-neighborhood}.
 
-	After one color refinement step we get $\chi^{(1)}(v) = h(\textcolor{t_blue}{\texttt{A}}, \ldblbrace \underbrace{\textcolor{t_red}{\texttt{B}}, \dots, \textcolor{t_red}{\texttt{B}}}_{d\text{ times}} \rdblbrace) \eqqcolon \textcolor{t_blue}{\texttt{C}}$ for all loop vertices $v \in  L_G \cup L_H$ and $\chi^{(1)}(e) = h(\textcolor{t_red}{\texttt{B}}, \ldblbrace \textcolor{t_blue}{\texttt{A}}, \textcolor{t_blue}{\texttt{A}}, \underbrace{\textcolor{t_red}{\texttt{B}}, \dots, \textcolor{t_red}{\texttt{B}}}_{\mathclap{2d - 2 \text{ times}}} \rdblbrace) \eqqcolon \textcolor{t_red}{\texttt{D}}$. % chktex 25
-	This means that $\chi^{(0)}$ and $\chi^{(1)}$ are identical up to the color substitutions $\textcolor{t_blue}{\texttt{A}} \to \textcolor{t_blue}{\texttt{C}}$ and $\textcolor{t_red}{\texttt{B}} \to \textcolor{t_red}{\texttt{D}}$, i.e.\ $\chi^{(0)} \equiv \chi^{(1)}$, which in turn implies that 1-\ac{wl} terminates after one iteration. % chktex 25
+	After one color refinement step we get $\chi^{(1)}(v) = h(\colorlabel{t_blue}{A}, \ldblbrace \underbrace{\textcolor{t_red}{\texttt{B}}, \dots, \textcolor{t_red}{\texttt{B}}}_{d\text{ times}} \rdblbrace) \eqqcolon \textcolor{t_blue}{\texttt{C}}$ for all loop vertices $v \in  L_G \cup L_H$ and $\chi^{(1)}(e) = h(\textcolor{t_red}{\texttt{B}}, \ldblbrace \colorlabel{t_blue}{A}, \colorlabel{t_blue}{A}, \underbrace{\textcolor{t_red}{\texttt{B}}, \dots, \textcolor{t_red}{\texttt{B}}}_{\mathclap{2d - 2 \text{ times}}} \rdblbrace) \eqqcolon \textcolor{t_red}{\texttt{D}}$. % chktex 25
+	This means that $\chi^{(0)}$ and $\chi^{(1)}$ are identical up to the color substitutions $\colorlabel{t_blue}{A} \to \textcolor{t_blue}{\texttt{C}}$ and $\textcolor{t_red}{\texttt{B}} \to \textcolor{t_red}{\texttt{D}}$, i.e.\ $\chi^{(0)} \equiv \chi^{(1)}$, which in turn implies that 1-\ac{wl} terminates after one iteration. % chktex 25
 	\Cref{lem:ltd:wl1-regular-edge-neighbor-limit} then directly follows since both $G^{\mathcal{E}}$ and $H^{\mathcal{E}}$ have $n$ vertices with the final color $\textcolor{t_blue}{\texttt{C}}$ and $\frac{nd}{2}$ vertices with the final color $\textcolor{t_red}{\texttt{D}}$, i.e.\ $G^{\mathcal{E}} \mathrel{\simeq_1} H^{\mathcal{E}}$. % chktex 25
 \end{proof}
 \begin{figure}[ht]
@@ -224,7 +224,7 @@ Similar to the 2-LWL kernel described in \cref{sec:related:gcr:kernel}, our 2-\a
 		If $G$ is a sparse graph with the maximum vertex degree $d \coloneqq \max_{v \in \mathcal{V}_G} \left|\Gamma_G(v)\right|$, the number of considered edges is bounded by $\mathcal{O}(n d^r)$ where each edge has at most $\mathcal{O}(d^r)$ neighbors.
 		Consequently the time complexity of a refinement step becomes $\mathcal{O}(n d^{2r})$ which is a significant improvement over the $\mathcal{O}(n^3)$ bound of a full 2-\acs{wl} refinement step (assuming $d \ll n$).
 \end{enumerate}
-Based on the 2-multiset and the neighborhood localization simplifications we can now define the 2-\ac{wl} convolution operator.
+Based on the 2-multiset and the neighborhood localization simplifications we can now define the 2-\ac{wl} convolution operator and the corresponding so-called \textit{2-\acs{wl}-\acs{gnn}}.
 \begin{defn}\label{defn:ltd:wl2-conv-init}
 	The \textit{initial feature matrix $Z_G^{(0)}$} of the 2-\acs{wl} convolution operator with the neighborhood radius $r \in \mathbb{N}$ contains both the vertex features $x[v_i] \in \mathcal{X}_{\mathcal{V}} = \mathbb{R}^{d_{\mathcal{V}}}$ as well as the edge features $x[e_{ij}] \in \mathcal{X}_{\mathcal{E}} = \mathbb{R}^{d_{\mathcal{E}}}$ of a given graph $G$.
 	More specifically $Z_G^{(0)} \in \mathbb{R}^{{|\mathcal{E}_{G^r}|} \times (d_{\mathcal{V}} + d_{\mathcal{E}})}$ assigns a row vector $Z_G^{(0)}[e_{ij}]$ to all edges $e_{ij} \in \mathcal{E}_{G^r}$.
@@ -257,6 +257,7 @@ There are three properties which motivate this particular choice of convolution 
 		The 2-\acs{wl} convolution layer computes a feature vector for each neighbor $\ldblbrace e_{il}, e_{lj} \rdblbrace$ of $e_{ij}$ via $\sigma_{\Gamma}\left(\left( z_{il} + z_{lj} \right) W_{\Gamma}^{(t)} \right)$.
 		A 2-\acs{gnn} use a similar formulation but leaves out the inner nonlinearity $\sigma_{\Gamma}$;
 		as we saw in \cref{fig:ltd:2gnn-2wl-diff} this causes 2-\acsp{gnn} to lose the edge pair information due to the commutativity and associativity of $+$.
+		2-\acs{wl}-\acsp{gnn} do not generally have this problem because $\kappa^{(t)}(\colorlabel{t_blue}{A}, \ldblbrace \colorlabel{t_red}{B}, \colorlabel{t_red}{B} \rdblbrace) + \kappa^{(t)}(\colorlabel{t_blue}{A}, \ldblbrace \colorlabel{t_darkgreen}{C}, \colorlabel{t_darkgreen}{C} \rdblbrace) \neq \kappa^{(t)}(\colorlabel{t_blue}{A}, \ldblbrace \colorlabel{t_red}{B}, \colorlabel{t_darkgreen}{C} \rdblbrace) + \kappa^{(t)}(\colorlabel{t_blue}{A}, \ldblbrace \colorlabel{t_red}{B}, \colorlabel{t_darkgreen}{C} \rdblbrace)$ if $\sigma_{\Gamma}$ is chosen to be a nonlinear activation function. % chktex 25
 	\item \textbf{Context-dependent neighborhood filtering:}
 		Instead of filtering out all neighbors, $W_{\mathrm{F}}^{(t)}$ also allows to filter the neighborhood of $e_{ij}$ more selectively.
 		We can interpret $z_{ij} W_{\mathrm{F}}^{(t)} \in \mathbb{R}^{d^{(t)}}$ as a row vector of feature dimension weights.
@@ -266,8 +267,9 @@ There are three properties which motivate this particular choice of convolution 
 \subsection{Expressive Power of 2-\acs*{wl}-\acsp*{gnn}}%
 \label{sec:ltd:wl2gnn:properties}
 
-In this section we will analyze the discriminative and computational power of the 2-\ac{wl} convolution operator that was just defined.
-We begin by showing that 2-\acs{wl}-\acsp{gnn} are at least as powerful as 1-\acs{wl}.
+In this section we will analyze the power of \acp{gnn} which use the 2-\acs{wl} convolution operator that was just defined.
+Our goal is to show that such 2-\acs{wl}-\acsp{gnn} have a strictly larger discriminative power than 1-\acs{wl}.
+We begin by proving that 2-\acs{wl}-\acsp{gnn} are at least as powerful as 1-\acs{wl}.
 
 \begin{defn}\label{defn:ltd:vert-conv}
 	A \ac{gnn} $h_1: \mathcal{G} \to \mathcal{Y}$ uses \textit{weighted vertex neighborhood sums} if its convolutional layers can be described by
@@ -330,7 +332,7 @@ We begin by showing that 2-\acs{wl}-\acsp{gnn} are at least as powerful as 1-\ac
 	Note that the weighted vertex neighborhood sum only requires scalar multiplication and vector addition, i.e.\ the $d^{(t-1)}$ vertex feature dimensions are mutually independent.
 	W.l.o.g.\ this allows us to simplify notation by treating the vertex feature vectors as if they were scalars in the following definitions, i.e.\ we can assume $d^{(t-1)} = 1$ and $Z^{(t,0)}[e_{ii}] = (1, Z^{(t-1)}[v_i], w_{ii}) \in \mathbb{R}^{3}$.
 	The layer $S^{(t, 1)}$ is defined by
-	\begin{gather*}
+	\begin{gather*}\allowdisplaybreaks
 		\begin{aligned}
 			Z^{(t,1)}[e_{ij}] &= \textcolor{t_blue}{Z^{(t,0)}[e_{ij}] W_{\mathrm{L}}^{(t,1)}} + \smashoperator[lr]{\sum_{v_l \in {\Gamma_{G^1}(v_i) \cap \Gamma_{G^1}(v_j)}}} \textcolor{t_red}{\left( Z^{(t,0)}[e_{ij}] W_{\mathrm{F}}^{(t,1)}\right)} \odot \textcolor{t_darkgreen}{\left( \left( Z^{(t,0)}[e_{il}] + Z^{(t,0)}[e_{lj}] \right) W_{\Gamma}^{(t,1)} \right)} \\ % chktex 25
 			&= \begin{cases}
@@ -341,7 +343,7 @@ We begin by showing that 2-\acs{wl}-\acsp{gnn} are at least as powerful as 1-\ac
 				\left(1, \mkern6mu\smashoperator[lr]{\sum_{v_l \in \Gamma_{G^1}(v_i)}} w_{il} Z^{(t-1)}[v_i], w_{ii}, 2 w_{ii} Z^{(t-1)}[v_i] \right) & \text{if $i = j$} \\
 				\left(0, 0, w_{ij}, w_{ij} (Z^{(t-1)}[v_i] + Z^{(t-1)}[v_j])\right) & \text{else}
 			\end{cases}
-		\end{aligned}\\
+		\end{aligned}\\[10pt]
 		\text{with }
 		W_{\mathrm{L}}^{(t,1)} \coloneqq \begin{pmatrix}
 			\textcolor{t_blue}{1} & 0 & 0 & 0 \\ % chktex 25
@@ -361,7 +363,7 @@ We begin by showing that 2-\acs{wl}-\acsp{gnn} are at least as powerful as 1-\ac
 		\text{.}
 	\end{gather*}
 	The vertex neighborhood summation is completed via $S^{(t, 2)}$ which is defined by
-	\begin{gather*}
+	\begin{gather*}\allowdisplaybreaks
 		\begin{aligned}
 			Z^{(t,2)}[e_{ij}] &= \begin{cases}
 				\textcolor{t_blue}{\left(1, -\smashoperator[lr]{\sum_{v_l \in \Gamma_{G^1}(v_i)}} w_{il} Z^{(t-1)}[v_i], w_{ii} \right)} + \smashoperator[lr]{\sum_{v_l \in \Gamma_{G^1}(v_i)}} \textcolor{t_darkgreen}{\left(0, w_{il}\left(Z^{(t-1)}[v_i] + Z^{(t-1)}[v_l]\right), 0\right)} & \text{if $i = j$} \\ % chktex 25
@@ -447,7 +449,18 @@ To complete our analysis of the expressive power of 2-\acs{wl}-\acsp{gnn} we now
 This concludes our analysis of the expressive power of 2-\acs{wl}-\acsp{gnn}.
 The key takeaway from this section is that 2-\acs{wl}-\acsp{gnn} are more powerful than all vertex neighborhood aggregation \acp{gcnn} because the power of the latter is upper bounded by 1-\acs{wl}.
 Additionally we can conclude that 2-\acs{wl}-\acsp{gnn} are in fact also more powerful than 2-\acsp{gnn} due to \cref{prop:ltd:2gnn-regular-limit}.
-A more thorough discussion of the relation between 2-\acs{wl}-\acsp{gnn} and 2-\acs{wl} is left for future work.
+
+Note that no statement regarding the discriminative or computational power of 2-\acs{wl}-\acsp{gnn} compared to 2-\acs{wl} was made.
+It is easy to see that 2-\acs{wl}-\acsp{gnn} \textit{generally} cannot have the same power as 2-\acs{wl} due to the neighborhood localization simplification;
+e.g.\ for a small neighborhood radius of $r = 1$, nonexistent edges $e_{ij} \notin \mathcal{E}_G$ do not have a feature vector which implies that the proof of 2-\acs{wl}'s $m$-cycle counting ability no longer holds for $m \geq 4$ (see \cfullref{prop:related:wl2-cycle-count}).
+We leave a more thorough discussion of the relation between 2-\acs{wl}-\acsp{gnn} and 2-\acs{wl} for future work.
 
 \subsection{Implementation of 2-\acs*{wl}-\acsp*{gnn} on \acsp*{gpgpu}}%
 \label{sec:ltd:wl2gnn:implementation}
+
+Apart from the theoretical expressive power of a model, it also has to be computable efficiently in order to be useful in practice.
+In this section we will therefore describe how 2-\acs{wl} convolutions can be implemented on \acp{gpgpu}.
+
+Efficient high-level software libraries for the implementation of vertex neighborhood convolution approaches such as \ac{gcn} or \ac{gin} already exist.
+They describe convolutions via a message-passing abstraction in which vertex feature vectors are passed along their neighboring edges (see \citet{Battaglia2018}).
+A few notable implementations of this abstraction are the \citetitle{GN} library~\cite{GN}, \citetitle{PyG}~\cite{Fey2019}\cite{PyG}, \citetitle{DGL}~\cite{Wang2019}\cite{DGL} and \citetitle{Spektral}~\cite{Spektral}.
