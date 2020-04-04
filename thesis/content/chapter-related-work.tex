@@ -317,7 +317,7 @@ This more abstract notion of neighborhood is illustrated in \cref{fig:related:wl
 		Each neighbor is highlighted with a different color, except for 3-WL where the \textcolor{t_red}{red}, \textcolor{t_darkgreen}{green} and \textcolor{t_darkyellow}{yellow} triples actually form the single neighbor for $u = v_4$.
 	}\label{fig:related:wl-neighbors}
 \end{figure}
-For $k = 2$ this means that each potential edge $(v, w) \in \mathcal{V}_G^2$ has all possible paths of length $2$ from $v$ to $w$ as its neighbors (see~\cref{fig:related:wl-neighbors:2}).
+For $k = 2$ this means that each potential edge $(v, w) \in \mathcal{V}_G^2$ has all possible walks of length $2$ from $v$ to $w$ as its neighbors (see~\cref{fig:related:wl-neighbors:2}).
 Also note that, even though $k$-\acs{wl} refines $k$-tuple colors, lower-dimensional structures still get their own colors since a tuple does not have to consist of distinct vertices, i.e.\ in $k$-\acs{wl} the color of a single vertex $v \in \mathcal{V}_G$ is described by $\chi^{*}_{G, k}(s)$ for $s = (v, \dots, v) \in \mathcal{V}_G^k$.
 
 Let us now look at how the tuple colors are initialized.
@@ -393,7 +393,7 @@ If we increase the \acs{wl}-dimension to $k = 2$, the described 1-\acs{wl} restr
 \end{prop}
 \begin{hproof}
 	Only the idea behind triangle and 4-cycle counting is outlined here to give an intuition for why \cref{prop:related:wl2-cycle-count} holds.
-	Note that the 2-\acs{wl} neighbors of each edge $(v, w) \in \mathcal{E}_G$ correspond to all possible paths $(v, u, w)$ of length 2, i.e.\ all possible triangles.
+	Note that the 2-\acs{wl} neighborhood of each edge $(v, w) \in \mathcal{E}_G$ includes all possible paths $(v, u, w)$ of length $2$, i.e.\ all possible triangles.
 	By \cref{defn:related:wlk-refine} there must thus be a color subset $C^{\triangle}_j \subseteq \mathcal{C}$ representing that an edge is involved in exactly $j$ triangles after one refinement step.
 	2-\acs{wl} then trivially counts triangles by setting $g(\mathit{dist}_\chi) = \frac{1}{3} \sum_j j \sum_{c \in C^{\triangle}_j} \mathit{dist}_\chi(c)$ to satisfy \cref{defn:related:wl-compute}.
 	Analogously for 4-cycles, let $C^{\square}_j \subseteq \mathcal{C}$ be the colors indicating a non-edge $(v, w) \notin \mathcal{E}_G$ with $j$ common vertex neighbors $u \in \Gamma_G(v) \cap \Gamma_G(w)$.
@@ -760,9 +760,9 @@ Then the continuous analogue to the injective 1-\acs{wl} hash function $h: \math
 
 \paragraph{A 1-\acs{wl} bound on \ac{gnn} power}
 In the next step we will take a closer look at the relation between \acp{gcnn} that use vertex neighborhood convolution and 1-\acs{wl} by comparing their respective discriminative power.
-\begin{prop}[see {\citet[lemma 2]{Xu2018}} for the proof]\label{prop:related:gcnn-wl1-limit}
-	The discriminative power of a \ac{gcnn} that convolves vertex feature vectors via a convolution operator of the form $Z_G^{(t)}[v] = h^{(t)}\left(Z_G^{(t-1)}[v], \ldblbrace Z_G^{(t-1)}[u]\, |\, u \in \Gamma_G(v) \rdblbrace\right)$ is upper-bounded by that of 1-\acs{wl}, where $h^{(t)}: {(\mathbb{R}^{d^{(t-1)}})}^{*} \to \mathbb{R}^{d^{(t)}}$ is an arbitrary vertex neighborhood hashing function.
-	Moreover, if $h^{(t)}$ is not injective, the \ac{gcnn} has a strictly lower discriminative power than 1-\acs{wl}.
+\begin{prop}[see {\citet[lemma 2 and theorem 3]{Xu2018}} for the proof]\label{prop:related:gcnn-wl1-limit}
+	The discriminative power of a \ac{gcnn} that convolves vertex feature vectors via a convolution operator of the form $Z_G^{(t)}[v] = h^{(t)}\left(Z_G^{(t-1)}[v], \ldblbrace Z_G^{(t-1)}[u]\, |\, u \in \Gamma_G(v) \rdblbrace\right)$ is upper-bounded by that of 1-\acs{wl}, where $h^{(t)}: {\left(\mathbb{R}^{d^{(t-1)}}\right)}^{*} \to \mathbb{R}^{d^{(t)}}$ is an arbitrary vertex neighborhood hashing function.
+	Moreover, iff.\ $h^{(t)}$ is injective, the \ac{gcnn} has the same discriminative power as 1-\acs{wl}.
 \end{prop}
 By \cref{prop:related:gcnn-wl1-limit} the \ac{gcn} architecture is strictly less powerful than 1-\acs{wl} due to the fact that $h_{\mathrm{\acs*{gcn}}}$ is not an injective hash function.
 To overcome this limitation \citet{Xu2018} proposed an alternative vertex neighborhood convolution architecture called \ac{gin}:

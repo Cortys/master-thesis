@@ -247,18 +247,18 @@ Based on the 2-multiset and the neighborhood localization simplifications we can
 		\text{.}
 	\end{gather*}
 \end{defn}
-The convolution operator from \cref{defn:ltd:wl2-conv-step} is parameterized by the three matrices $W_{\mathrm{L}}^{(t)}, W_{\mathrm{F}}^{(t)},  W_{\Gamma}^{(t)} \in \mathbb{R}^{d^{(t-1)} \times d^{(t)}}$ and uses two freely choosable nonlinearities $\sigma$ and $\sigma_{\Gamma}$.
+The convolution operator from \cref{defn:ltd:wl2-conv-step} is parameterized by the three matrices $W_{\mathrm{L}}^{(t)}, W_{\mathrm{F}}^{(t)},  W_{\Gamma}^{(t)} \in \mathbb{R}^{d^{(t-1)} \times d^{(t)}}$ and uses two freely choosable activation functions $\sigma$ and $\sigma_{\Gamma}$.
 There are three properties which motivate this particular choice of convolution layer:
 \begin{enumerate}[label=\textbf{\arabic*.}]
 	\item \textbf{Simulation of \acp{mlp}:}
-		By choosing $W_{F}^{(t)} = \mathbf{0}$ the convolution behaves like a regular fully connected layer.
+		By choosing $W_{\mathrm{F}}^{(t)} = \mathbf{0}$ the convolution behaves like a regular fully connected layer.
 		A stack of 2-\acs{wl} convolution layers can therefore simulate arbitrary \acp{mlp}.
 	\item \textbf{Perservation of edge pair information:}
 		The 2-\acs{wl} convolution layer computes a feature vector for each neighbor $\ldblbrace e_{il}, e_{lj} \rdblbrace$ of $e_{ij}$ via $\sigma_{\Gamma}\left(\left( z_{il} + z_{lj} \right) W_{\Gamma}^{(t)} \right)$.
 		A 2-\acs{gnn} use a similar formulation but leaves out the inner nonlinearity $\sigma_{\Gamma}$;
 		as we saw in \cref{fig:ltd:2gnn-2wl-diff} this causes 2-\acsp{gnn} to lose the edge pair information due to the commutativity and associativity of $+$.
 	\item \textbf{Context-dependent neighborhood filtering:}
-		Instead of filtering out all neighbors, $W_{F}^{(t)}$ also allows to filter the neighborhood of $e_{ij}$ more selectively.
+		Instead of filtering out all neighbors, $W_{\mathrm{F}}^{(t)}$ also allows to filter the neighborhood of $e_{ij}$ more selectively.
 		We can interpret $z_{ij} W_{\mathrm{F}}^{(t)} \in \mathbb{R}^{d^{(t)}}$ as a row vector of feature dimension weights.
 		The feature dimensions of neighbors are rescaled via those weights which allows the model to aggregate different types of neighbors depending on $z_{ij}$.
 \end{enumerate}
@@ -302,14 +302,14 @@ We begin by showing that 2-\acs{wl}-\acsp{gnn} are at least as powerful as 1-\ac
 	\end{figure}
 
 	Let $\varphi: \mathbb{R}^{d^{(T, 2 + K)}} \to \mathbb{R}^{d^{(T)}} \cup \{ \texttt{nil} \}$ be a function which maps the final 2-\acs{wl} feature vectors produced by $\mathit{Conv}_2$ to the output space of $\mathit{Conv}_1$ or the constant \texttt{nil}.
-	Let $\mathit{Pool}_2(Z_G^{(T,2+K)}) \coloneqq \mathit{Pool}_1(\ldblbrace z_{ij}\, |\, z_{ij} = \varphi(Z_G^{(T,2+K)}[e_{ij}]) \land e_{ij} \in \mathcal{E}_{G^1} \land z_{ij} \neq \texttt{nil} \rdblbrace)$.
+	Let $\mathit{Pool}_2\left(Z_G^{(T,2+K)}\right) \coloneqq \mathit{Pool}_1(\ldblbrace z_{ij}\, |\, z_{ij} = \varphi\left(Z_G^{(T,2+K)}[e_{ij}]\right) \land e_{ij} \in \mathcal{E}_{G^1} \land z_{ij} \neq \texttt{nil} \rdblbrace)$.
 	\Cref{thm:ltd:wl2-simulation} then follows if there is a function $\varphi$ s.t.\ $\forall v_i \in \mathcal{V}_G: \mathit{Conv}_1(G)[v_i] = \varphi(\mathit{Conv}_2(G)[e_{ii}])$ and $\forall e_{ij} \in \mathcal{E}_G: \varphi(\mathit{Conv}_2(G)[e_{ij}]) = \texttt{nil}$.
 	To guarantee that there is such a function $\varphi$ we now inductively prove the following three invariants which have to hold for all $t \in \{ 0, \dots, T \}$:
 	\begin{enumerate}[label={(P\arabic*)}]
 		\item\label{inv:ltd:wl2-simulation:indicator}
-			${Z_G^{(t,2+K)}[e_{ij}]}_1 = \mathbbm{1}[i = j]$, i.e.\ the first component of each 2-\acs{wl} feature vector allows $\varphi$ to decide whether it should be mapped to \texttt{nil}.
+			${Z_G^{(t,2+K)}[e_{ij}]}_1 = \mathbbm{1}[i = j]$, i.e.\ the first component of each 2-\acs{wl} feature vector allows $\varphi$ to decide whether that vector should be mapped to \texttt{nil}.
 		\item\label{inv:ltd:wl2-simulation:feature}
-			${Z_G^{(t,2+K)}[e_{ii}]}_{2, \dots, (d^{(t)} + 1)} = Z_G^{(t)}[v_{i}]$, i.e.\ the second to $(1 + d^{(t)})$-th components of each self-loop feature vector contain the corresponding convolved vertex feature vector at layer $t$.
+			${Z_G^{(t,2+K)}[e_{ii}]}_{2, \dots, (d^{(t)} + 1)} = Z_G^{(t)}[v_{i}]$, i.e.\ the second to $(1 + d^{(t)})$-th components of each self-loop feature vector in $h_2$ contain the corresponding convolved vertex feature vector at layer $t$ in $h_1$.
 		\item\label{inv:ltd:wl2-simulation:weight}
 			${Z_G^{(t,2+K)}[e_{ij}]}_{d^{(t)} + 2} = w_{ij}$, i.e.\ the weights for the vertex neighborhood sums are encoded in the edge and self-loop feature vectors.
 	\end{enumerate}
@@ -397,13 +397,13 @@ We begin by showing that 2-\acs{wl}-\acsp{gnn} are at least as powerful as 1-\ac
 	Additionally for all $e_{ij} \in \mathcal{E}_{G^1}$ the indicators ${Z^{(t,2)}[e_{ij}]}_1 = \mathbbm{1}[i = j]$ and the weights ${Z^{(t,2)}[e_{ij}]}_{d^{(t)} + 2} = w_{ij}$ are preserved.
 	This means that the invariants~\ref{inv:ltd:wl2-simulation:indicator} and~\ref{inv:ltd:wl2-simulation:weight} are satisfied after $S^{(t, 2)}$.
 	To complete the induction step it now remains to show that all three invariants hold after applying the layers $S^{(t, 2+1)}, \dots, S^{(t, 2+K)}$.
-	As previously mentioned, a 2-\acs{wl} convolution layer is reduced to a fully connected layer if $W_{F}^{(t)} = \mathbf{0}$.
+	As previously mentioned, a 2-\acs{wl} convolution layer is reduced to a fully connected layer if $W_{\mathrm{F}}^{(t)} = \mathbf{0}$.
 	Via the universal approximation theorem~\cite{Hornik1991} we can therefore use $S^{(t, 2+1)}, \dots, S^{(t, 2+K)}$ to simulate the $K$ layers of $\mathrm{\acs*{mlp}}^{(t)}$ without changing the first and last dimension of each feature vector to preserve the invariants~\ref{inv:ltd:wl2-simulation:indicator} and~\ref{inv:ltd:wl2-simulation:weight}.
 	The resulting feature matrix $Z^{(t,2+K)}$ then satisfies all three invariants which completes the induction.
 
 	Using invariants~\ref{inv:ltd:wl2-simulation:indicator} and~\ref{inv:ltd:wl2-simulation:feature} for $t = T$ we can therefore set
 	\begin{align*}
-		\varphi(Z_G^{(T,2+K)}[e_{ij}]) \coloneqq \begin{cases}
+		\varphi\left(Z_G^{(T,2+K)}[e_{ij}]\right) \coloneqq \begin{cases}
 			{Z_G^{(T,2+K)}[e_{ij}]}_{2, \dots, (d^{T} + 1)} & \text{if ${Z_G^{(T,2+K)}[e_{ij}]}_1 = 1$} \\
 			\texttt{nil} & \text{else}
 		\end{cases}
@@ -411,6 +411,43 @@ We begin by showing that 2-\acs{wl}-\acsp{gnn} are at least as powerful as 1-\ac
 	\end{align*}
 	By our previous definition of $\mathit{Pool}_2$, this in turn implies that $\mathit{Pool}_2(Z_G^{(T,2+K)}) = \mathit{Pool}_1(Z_G^{(T)}) \iff h_2(G) = h_1(G)$ which concludes the proof.
 \end{proof}
+\begin{cor}\label{cor:ltd:wl2-gnn-wl1-power}
+	2-\acs{wl}-\acsp{gnn} have at least the same discriminative power as 1-\acs{wl}.
+\end{cor}
+\begin{proof}
+	The corollary directly follows from the fact that 2-\acs{wl}-\acsp{gnn} can simulate \acp{gin} by \cref{thm:ltd:wl2-simulation} and the fact that \acp{gin} have the same discriminative power as 1-\acs{wl} by \cref{prop:related:gcnn-wl1-limit} (see \cpageref{prop:related:gcnn-wl1-limit}) because they use injective vertex neighborhood hashing functions~\cite{Xu2018}.
+\end{proof}
+
+To complete our analysis of the expressive power of 2-\acs{wl}-\acsp{gnn} we now show that they are not just as powerful as 1-\acs{wl} but in fact more powerful than 1-\acs{wl}.
+\begin{prop}\label{cor:ltd:wl2-gnn-regular}
+	There are $d$-regular graphs $G$ and $H$ of size $n$ which can be distinguished by 2-\acs{wl}-\acsp{gnn}.
+\end{prop}
+\begin{proof}
+	The proposition follows if we choose the six-cycle graph for $G$ and the two three-cycles graph for $H$, both of which should be well-known at this point.
+	Let $h_2 = \mathit{Pool} \circ S$ be a 2-\acs{wl}-\acs{gnn} with the neighborhood radius $r = 1$ which consists of a single 2-\acs{wl} convolution layer $S: \mathbb{R}^{* \times 2} \to \mathbb{R}^{* \times 1}$ and the pooling layer $\mathit{Pool} = \min$.
+	In accordance with \cref{defn:ltd:wl2-conv-init} we set the initial feature vectors of the vertices $v_i$ of $G$ and $H$ to $Z^{(0)}[e_{ii}] \coloneqq (1, 0)$ and the initial feature vectors of their edges $e_{ij}$ to $Z^{(0)}[e_{ij}] \coloneqq (0, 1)$.
+	Let the weight matrices of $S$ be $W_{\mathrm{L}} \coloneqq \mathbf{0}$ and $W_{\mathrm{F}} = W_{\Gamma} \coloneqq \begin{pmatrix} 1\\1 \end{pmatrix}$.
+	For simplicity we choose the identity activation functions $\sigma = \sigma_{\Gamma} = \mathrm{id}$.
+
+	By \cref{defn:ltd:wl2-conv-step} all self-loops $e_{ii}$ of $G^1$ and $H^1$ have the three neighbors $\{ \textcolor{t_blue}{\ldblbrace e_{ii}, e_{ii} \rdblbrace},\allowbreak \textcolor{t_red}{\ldblbrace e_{ij}, e_{ji} \rdblbrace},\allowbreak \textcolor{t_darkgreen}{\ldblbrace e_{il}, e_{li} \rdblbrace} \}$, i.e.\ the length-two walk along $e_{ii}$ itself and the length-two walks to and from the two neighboring vertices $\Gamma(v_i) = \{ v_j, v_l \}$. % chktex 25
+	Therefore the convolved feature vector of all self-loops are $Z^{(1)}[e_{ii}] = (1) \odot (\textcolor{t_blue}{(1 + 1)} + \textcolor{t_red}{(1 + 1)} + \textcolor{t_darkgreen}{(1 + 1)}) = 6$. % chktex 25
+	However for the non-self-loops of $G^1$ and $H^1$, i.e.\ the edges of $G$ and $H$, we get differing convolved feature vectors.
+	The 2-\acs{wl} neighbors of $e_{ij} \in \mathcal{E}_G$ are $\{ \ldblbrace e_{ii},  e_{ij} \rdblbrace,\allowbreak \ldblbrace e_{ij}, e_{jj} \rdblbrace \}$.
+	The 2-\acs{wl} neighbors of $e_{ij}' \in \mathcal{E}_H$ are $\{ \ldblbrace e_{ii}',  e_{ij}' \rdblbrace,\allowbreak \ldblbrace e_{ij}',  e_{jj}' \rdblbrace,\allowbreak \ldblbrace e_{il}',  e_{lj}' \rdblbrace \}$ where $v_l' \in \mathcal{V}_H$ is the common neighbor of $v_i'$ and $v_j'$.
+	The different neighborhood sizes of the edges of $G$ and $H$ imply that $\forall e_{ij} \in \mathcal{E}_G: Z^{(1)}[e_{ij}] = 4$ while $\forall e_{ij}' \in \mathcal{E}_H: Z^{(1)}[e_{ij}] = 6$.
+	Thus $h_2(G) = \min\{ 4, 6 \} \neq \min\{ 6, 6 \} = h_2(H)$ which concludes the proof. % chktex 21
+\end{proof}
+\begin{cor}\label{cor:ltd:wl2-gnn-more-wl1-power}
+	The discriminative power of 2-\acs{wl}-\acsp{gnn} is strictly greater than that of the 1-\acs{wl} algorithm.
+\end{cor}
+\begin{proof}
+	The corollary directly follows from \cref{cor:ltd:wl2-gnn-wl1-power} and \cref{cor:ltd:wl2-gnn-regular} since 1-\acs{wl} cannot distinguish regular graphs~\cite[cor.~1.8.5]{Immerman1990}.
+\end{proof}
+
+This concludes our analysis of the expressive power of 2-\acs{wl}-\acsp{gnn}.
+The key takeaway from this section is that 2-\acs{wl}-\acsp{gnn} are more powerful than all vertex neighborhood aggregation \acp{gcnn} because the power of the latter is upper bounded by 1-\acs{wl}.
+Additionally we can conclude that 2-\acs{wl}-\acsp{gnn} are in fact also more powerful than 2-\acsp{gnn} due to \cref{prop:ltd:2gnn-regular-limit}.
+A more thorough discussion of the relation between 2-\acs{wl}-\acsp{gnn} and 2-\acs{wl} is left for future work.
 
 \subsection{Implementation of 2-\acs*{wl}-\acsp*{gnn} on \acsp*{gpgpu}}%
 \label{sec:ltd:wl2gnn:implementation}
