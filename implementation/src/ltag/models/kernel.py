@@ -80,6 +80,10 @@ def fs_kernel(name):
 # Models:
 WL_st = kernel_model("WL_st", grakel_kernel(
   "WL_st", kernel=[{"name": "WL"}, "VH"]))
+WL_st_1 = kernel_model("WL_st_1", grakel_kernel(
+  "WL_st_1", kernel=[{"name": "WL", "n_iter": 1}, "VH"]))
+WL_st_2 = kernel_model("WL_st_2", grakel_kernel(
+  "WL_st_2", kernel=[{"name": "WL", "n_iter": 2}, "VH"]))
 WL_sp = kernel_model("WL_sp", grakel_kernel(
   "WL_sp", kernel=[{"name": "WL"}, "SP"]))
 LWL2 = kernel_model("LWL2", fs_kernel("LWL2"))
