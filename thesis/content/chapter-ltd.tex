@@ -459,8 +459,108 @@ We leave a more thorough discussion of the relation between 2-\acs{wl}-\acsp{gnn
 \label{sec:ltd:wl2gnn:implementation}
 
 Apart from the theoretical expressive power of a model, it also has to be computable efficiently in order to be useful in practice.
-In this section we will therefore describe how 2-\acs{wl} convolutions can be implemented on \acp{gpgpu}.
+In this section we will therefore describe how 2-\acs{wl} convolutions can be implemented on \acfp{gpgpu}.
 
 Efficient high-level software libraries for the implementation of vertex neighborhood convolution approaches such as \ac{gcn} or \ac{gin} already exist.
 They describe convolutions via a message-passing abstraction in which vertex feature vectors are passed along their neighboring edges (see \citet{Battaglia2018}).
 A few notable implementations of this abstraction are the \citetitle{GN} library~\cite{GN}, \citetitle{PyG}~\cite{Fey2019}\cite{PyG}, \citetitle{DGL}~\cite{Wang2019}\cite{DGL} and \citetitle{Spektral}~\cite{Spektral}.
+Since a message-passing model along edges is incompatible with the edge-pair neighborhoods of 2-\acs{wl}, a custom convolution implementation is required for 2-\acs{wl}-\acsp{gnn}.
+
+For this purpose we propose a sparse 2-\acs{wl} graph representation which is inspired by the coordinate list adjacency format described by \citet{Fey2019}.
+Given a neighborhood radius $r$ we encode a graph $G$ using the following two matrices:
+\begin{enumerate}
+	\item $Z_G^{(0)} \in \mathbb{R}^{m \times d^{(0)}}$:
+		The initial feature matrix is represented directly as a dense floating point matrix with $m \coloneqq \left| \mathcal{E}_{G^r} \right|$ rows, each of which encodes the feature vector of an edge $e_{ij} \in \mathcal{E}_{G^r}$.
+		Edge feature duplicates are prevented by only encoding edges with $i \leq j$ for some arbitrary vertex ordering of $G$.
+	\item $R_G \in {[m]}^{\gamma \times 3}$:
+		The reference matrix $R_G$ encodes the edge neighborhood information.
+		It consists of $\gamma \coloneqq \sum_{e_{ij} \in \mathcal{E}_{G^r}} \left| \Gamma_{G^r}(v_i) \cap \Gamma_{G^r}(v_j) \right|$ rows, one for each 2-\acs{wl} neighbor $\ldblbrace e_{il}, e_{lj} \rdblbrace$ of each edge $e_{ij}$.
+		Each neighbor row is a vector $(r_{\mathrm{L}}, r_{\Gamma,1}, r_{\Gamma,2}) \in {[m]}^3$ of three index pointers to rows in $Z_G^{(0)}$.
+		$r_{\mathrm{L}}$ points to the row index of the feature vector of $e_{ij}$ while $r_{\Gamma,1}$ and $r_{\Gamma,2}$ point to the indices of $e_{il}$ and $e_{lj}$ respectively.
+		We will refer to the three column vectors of $R_G$ as $R_{G, \mathrm{L}}$, $R_{G, \Gamma, 1}$ and $R_{G, \Gamma, 2}$.
+\end{enumerate}
+This encoding can also be used to represent graph batches by simply concatenating the rows of each graph's feature and reference matrices while shifting the index pointers to account for the concatenation offsets.
+\Cref{fig:ltd:wl2-encoding} illustrates how such a batch encoding might look like.
+\begin{figure}[t]
+	\centering
+	\def\vertvec{$(1, 0)$}
+	\def\edgevec{$(0, 1)$}
+	\raisebox{-.5\height}{\includegraphics[height=11em]{gfx/ltd/wl2-encoding.pdf}}\hspace{3em}%
+	\begin{tabu}{@{\makebox[2.5em][c]{$\rownumber$\space}} c c}
+		\multicolumn{1}{@{\makebox[2.5em][c]{idx.}} c}{edge} & $Z^{(0)}$ \\
+		\toprule
+		\rowfont{\color{t_blue}}$e_{11}$ & \vertvec\\ % chktex 21
+		\rowfont{\color{t_blue}}$e_{22}$ & \vertvec\\ % chktex 21
+		\rowfont{\color{t_blue}}$e_{33}$ & \vertvec\\ % chktex 21
+		\rowfont{\color{t_red}}$e_{12}$ & \edgevec\\ % chktex 21
+		\rowfont{\color{t_red}}$e_{13}$ & \edgevec\\ % chktex 21
+		\rowfont{\color{t_red}}$e_{23}$ & \edgevec\\ % chktex 21
+		\midrule
+		\rowfont{\color{t_blue}}$e_{11}'$ & \vertvec\\ % chktex 21
+		\rowfont{\color{t_blue}}$e_{22}'$ & \vertvec\\ % chktex 21
+		\rowfont{\color{t_red}}$e_{12}'$ & \edgevec% chktex 21
+	\end{tabu}\hspace{3em}{\tiny\begin{tabu}{c c c}
+		\rowfont{\footnotesize}$R_{\mathrm{L}}$ & $R_{\Gamma, 1}$ & $R_{\Gamma, 2}$ \\
+		\toprule
+		\rowfont{\color{t_blue}}$1$ & $1$ & $1$ \\
+		\rowfont{\color{t_blue}}$1$ & $4$ & $4$ \\
+		\rowfont{\color{t_blue}}$1$ & $5$ & $5$ \\
+		\rowfont{\color{t_blue}}$2$ & $2$ & $2$ \\
+		\rowfont{\color{t_blue}}$2$ & $4$ & $4$ \\
+		\rowfont{\color{t_blue}}$2$ & $6$ & $6$ \\
+		\rowfont{\color{t_blue}}$3$ & $3$ & $3$ \\
+		\rowfont{\color{t_blue}}$3$ & $5$ & $5$ \\
+		\rowfont{\color{t_blue}}$3$ & $6$ & $6$ \\
+		\rowfont{\color{t_red}}$4$ & $1$ & $4$ \\
+		\rowfont{\color{t_red}}$4$ & $4$ & $2$ \\
+		\rowfont{\color{t_red}}$4$ & $5$ & $6$ \\
+		\rowfont{\color{t_red}}$5$ & $1$ & $5$ \\
+		\rowfont{\color{t_red}}$5$ & $5$ & $3$ \\
+		\rowfont{\color{t_red}}$5$ & $4$ & $6$ \\
+		\rowfont{\color{t_red}}$6$ & $2$ & $6$ \\
+		\rowfont{\color{t_red}}$6$ & $6$ & $3$ \\
+		\rowfont{\color{t_red}}$6$ & $4$ & $5$ \\
+		\midrule
+		\rowfont{\color{t_blue}}$7$ & $7$ & $7$ \\
+		\rowfont{\color{t_blue}}$7$ & $9$ & $9$ \\
+		\rowfont{\color{t_blue}}$8$ & $8$ & $8$ \\
+		\rowfont{\color{t_blue}}$8$ & $9$ & $9$ \\
+		\rowfont{\color{t_red}}$9$ & $7$ & $9$ \\
+		\rowfont{\color{t_red}}$9$ & $9$ & $8$
+	\end{tabu}%
+	}\caption{
+		Exemplary 2-\acs{wl} encoding of a batch of two small graphs.
+	}\label{fig:ltd:wl2-encoding}
+\end{figure}
+After encoding a graph dataset as 2-\acs{wl} matrices, convolutions can be computed efficiently on \acp{gpgpu} via the common \textit{gather-scatter} pattern from parallel programming~\cite{He2007}.
+The so-called $\mathit{gather}$ operator takes two inputs: A list $Z$ of $m$ row vectors and a list $R$ of $\gamma$ pointers into $Z$.
+It returns a list $X$ of $\gamma$ row vectors $X[i] = Z[R[i]]$ for $i \in [\gamma]$.
+The $\mathit{scatter}_{\Sigma}$ operator can be understood as the opposite of $\mathit{gather}$.
+$\mathit{scatter}_{\Sigma}$ takes a list $X$ of $\gamma$ row vectors and a list $R$ of $\gamma$ pointers from the range $[m]$.
+It returns a list $Z$ of $m$ row vectors $Z[i] = \sum_{j \in [\gamma] \land R[j] = i} X[j]$ for $i \in [m]$.
+
+Using the $\mathit{gather}$ and $\mathit{scatter}_{\Sigma}$ operator, the 2-\acs{wl} convolution operator from \cref{defn:ltd:wl2-conv-step} can be computed via the following algorithm:
+\begin{algorithm}[H]
+	\caption{Parallel Implementation of a 2-\acs{wl} Convolution Layer $S^{(t)}$}\label{algo:ltd:wl2-conv}
+	\begin{algorithmic}[1]
+		\Function{$S^{(t)}$}{$Z^{(t-1)} \in \mathbb{R}^{m \times d^{(t-1)}}, R \in {[m]}^{\gamma \times 3}$}
+			\State{$Z_{\mathrm{L}} \coloneqq Z^{(t-1)} W_{\mathrm{L}}^{(t)}$}
+			\Comment{Matrix multiply: $\mathbb{R}^{m \times d^{(t-1)}} \to \mathbb{R}^{m \times d^{(t)}}$}
+			\State{$Z_{\mathrm{F}} \coloneqq Z^{(t-1)} W_{\mathrm{F}}^{(t)}$}
+			\State{$Z_{\Gamma} \coloneqq Z^{(t-1)} W_{\Gamma}^{(t)}$}
+			\State{$X_{\Gamma, 1} \coloneqq \mathit{gather}(Z_{\Gamma}, R_{\Gamma, 1})$}
+			\Comment{Gather: $\mathbb{R}^{m \times d^{(t)}} \times {[m]}^{\gamma} \to \mathbb{R}^{\gamma \times d^{(t)}}$}
+			\State{$X_{\Gamma, 2} \coloneqq \mathit{gather}(Z_{\Gamma}, R_{\Gamma, 2})$}
+			\State{$X_{\Gamma} \coloneqq \sigma_{\Gamma}\left(X_{\Gamma, 1} + X_{\Gamma, 2}\right)$}
+			\Comment{Element-wise operations}
+			\State{$Z_{\Sigma\Gamma} \coloneqq \mathit{scatter}_{\Sigma}(X_{\Gamma}, R_{\mathrm{L}})$}
+			\Comment{Scatter: $\mathbb{R}^{\gamma \times d^{(t)}} \times {[m]}^{\gamma} \to \mathbb{R}^{m \times d^{(t)}}$}
+			\State{$Z^{(t)} \coloneqq \sigma\left(Z_{\mathrm{L}} + Z_{\mathrm{F}} \odot Z_{\Sigma\Gamma} \right)$}
+			\Comment{Element-wise operations}
+			\State{\Return{$Z^{(t)}$}}
+		\EndFunction{}
+	\end{algorithmic}
+\end{algorithm}
+All operations in this implementation scale well on parallel computing hardware and are supported by common \ac{ml} libraries like \citetitle{TF}~\cite{Abadi2015}\cite{TF} or \citetitle{PyT}~\cite{Paszke2019}\cite{PyT}.
+2-\acs{wl} convolutions can therefore be easily integrated into existing \ac{ml} pipelines.
+This concludes our description of 2-\acs{wl}-\acsp{gnn}.

@@ -152,11 +152,15 @@
 \acsetup{use-barriers}
 \acsetup{reset-at-barriers}
 
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+
 \usepackage{stmaryrd}
 \usepackage{multicol}
 \usepackage{pbox}
 \usepackage{longtable}
 \usepackage{booktabs}
+\usepackage{tabu}
 \usepackage{csvsimple}
 \usepackage{siunitx}
 \usepackage[nameinlink]{cleveref}
@@ -202,6 +206,10 @@
 \footnote[2]{#1}%
 \setcounter{footnote}{\value{daggerfootnote}}%
 \renewcommand*{\thefootnote}{\arabic{footnote}}}
+
+\preto\tabular{\setcounter{rownumbercount}{0}}
+\newcounter{rownumbercount}
+\newcommand\rownumber{\stepcounter{rownumbercount}\arabic{rownumbercount}}
 
 \DeclareMathOperator{\Tr}{Tr}
 \DeclareMathOperator{\mean}{mean}
