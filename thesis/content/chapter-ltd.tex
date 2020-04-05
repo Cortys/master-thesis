@@ -308,11 +308,11 @@ We begin by proving that 2-\acs{wl}-\acsp{gnn} are at least as powerful as 1-\ac
 	\Cref{thm:ltd:wl2-simulation} then follows if there is a function $\varphi$ s.t.\ $\forall v_i \in \mathcal{V}_G: \mathit{Conv}_1(G)[v_i] = \varphi(\mathit{Conv}_2(G)[e_{ii}])$ and $\forall e_{ij} \in \mathcal{E}_G: \varphi(\mathit{Conv}_2(G)[e_{ij}]) = \texttt{nil}$.
 	To guarantee that there is such a function $\varphi$ we now inductively prove the following three invariants which have to hold for all $t \in \{ 0, \dots, T \}$:
 	\begin{enumerate}[label={(P\arabic*)}]
-		\item\label{inv:ltd:wl2-simulation:indicator}
+		\item\label[inv]{inv:ltd:wl2-simulation:indicator}
 			${Z_G^{(t,2+K)}[e_{ij}]}_1 = \mathbbm{1}[i = j]$, i.e.\ the first component of each 2-\acs{wl} feature vector allows $\varphi$ to decide whether that vector should be mapped to \texttt{nil}.
-		\item\label{inv:ltd:wl2-simulation:feature}
+		\item\label[inv]{inv:ltd:wl2-simulation:feature}
 			${Z_G^{(t,2+K)}[e_{ii}]}_{2, \dots, (d^{(t)} + 1)} = Z_G^{(t)}[v_{i}]$, i.e.\ the second to $(1 + d^{(t)})$-th components of each self-loop feature vector in $h_2$ contain the corresponding convolved vertex feature vector at layer $t$ in $h_1$.
-		\item\label{inv:ltd:wl2-simulation:weight}
+		\item\label[inv]{inv:ltd:wl2-simulation:weight}
 			${Z_G^{(t,2+K)}[e_{ij}]}_{d^{(t)} + 2} = w_{ij}$, i.e.\ the weights for the vertex neighborhood sums are encoded in the edge and self-loop feature vectors.
 	\end{enumerate}
 	For $t = 0$ all three invariants hold by \cref{defn:ltd:wl2-conv-init}:
@@ -397,13 +397,13 @@ We begin by proving that 2-\acs{wl}-\acsp{gnn} are at least as powerful as 1-\ac
 	\end{gather*}
 	Using the two layers $S^{(t, 1)}$ and $S^{(t, 2)}$ that we just defined, the weighted vertex neighborhood sum for all $v_i \in \mathcal{V}_G$ is contained in $Z^{(t,2)}[e_{ii}]$.
 	Additionally for all $e_{ij} \in \mathcal{E}_{G^1}$ the indicators ${Z^{(t,2)}[e_{ij}]}_1 = \mathbbm{1}[i = j]$ and the weights ${Z^{(t,2)}[e_{ij}]}_{d^{(t)} + 2} = w_{ij}$ are preserved.
-	This means that the invariants~\ref{inv:ltd:wl2-simulation:indicator} and~\ref{inv:ltd:wl2-simulation:weight} are satisfied after $S^{(t, 2)}$.
+	This means that \cref{inv:ltd:wl2-simulation:indicator,inv:ltd:wl2-simulation:weight} are satisfied after $S^{(t, 2)}$.
 	To complete the induction step it now remains to show that all three invariants hold after applying the layers $S^{(t, 2+1)}, \dots, S^{(t, 2+K)}$.
 	As previously mentioned, a 2-\acs{wl} convolution layer is reduced to a fully connected layer if $W_{\mathrm{F}}^{(t)} = \mathbf{0}$.
-	Via the universal approximation theorem~\cite{Hornik1991} we can therefore use $S^{(t, 2+1)}, \dots, S^{(t, 2+K)}$ to simulate the $K$ layers of $\mathrm{\acs*{mlp}}^{(t)}$ without changing the first and last dimension of each feature vector to preserve the invariants~\ref{inv:ltd:wl2-simulation:indicator} and~\ref{inv:ltd:wl2-simulation:weight}.
+	Via the universal approximation theorem~\cite{Hornik1991} we can therefore use $S^{(t, 2+1)}, \dots, S^{(t, 2+K)}$ to simulate the $K$ layers of $\mathrm{\acs*{mlp}}^{(t)}$ without changing the first and last dimension of each feature vector to preserve \cref{inv:ltd:wl2-simulation:indicator,inv:ltd:wl2-simulation:weight}.
 	The resulting feature matrix $Z^{(t,2+K)}$ then satisfies all three invariants which completes the induction.
 
-	Using invariants~\ref{inv:ltd:wl2-simulation:indicator} and~\ref{inv:ltd:wl2-simulation:feature} for $t = T$ we can therefore set
+	Using \cref{inv:ltd:wl2-simulation:indicator,inv:ltd:wl2-simulation:feature} for $t = T$ we can therefore set
 	\begin{align*}
 		\varphi\left(Z_G^{(T,2+K)}[e_{ij}]\right) \coloneqq \begin{cases}
 			{Z_G^{(T,2+K)}[e_{ij}]}_{2, \dots, (d^{T} + 1)} & \text{if ${Z_G^{(T,2+K)}[e_{ij}]}_1 = 1$} \\
@@ -502,31 +502,31 @@ This encoding can also be used to represent graph batches by simply concatenatin
 	\end{tabu}\hspace{3em}{\tiny\begin{tabu}{c c c}
 		\rowfont{\footnotesize}$R_{\mathrm{L}}$ & $R_{\Gamma, 1}$ & $R_{\Gamma, 2}$ \\
 		\toprule
-		\rowfont{\color{t_blue}}$1$ & $1$ & $1$ \\
-		\rowfont{\color{t_blue}}$1$ & $4$ & $4$ \\
-		\rowfont{\color{t_blue}}$1$ & $5$ & $5$ \\
-		\rowfont{\color{t_blue}}$2$ & $2$ & $2$ \\
-		\rowfont{\color{t_blue}}$2$ & $4$ & $4$ \\
-		\rowfont{\color{t_blue}}$2$ & $6$ & $6$ \\
-		\rowfont{\color{t_blue}}$3$ & $3$ & $3$ \\
-		\rowfont{\color{t_blue}}$3$ & $5$ & $5$ \\
-		\rowfont{\color{t_blue}}$3$ & $6$ & $6$ \\
-		\rowfont{\color{t_red}}$4$ & $1$ & $4$ \\
-		\rowfont{\color{t_red}}$4$ & $4$ & $2$ \\
-		\rowfont{\color{t_red}}$4$ & $5$ & $6$ \\
-		\rowfont{\color{t_red}}$5$ & $1$ & $5$ \\
-		\rowfont{\color{t_red}}$5$ & $5$ & $3$ \\
-		\rowfont{\color{t_red}}$5$ & $4$ & $6$ \\
-		\rowfont{\color{t_red}}$6$ & $2$ & $6$ \\
-		\rowfont{\color{t_red}}$6$ & $6$ & $3$ \\
-		\rowfont{\color{t_red}}$6$ & $4$ & $5$ \\
+		\rowfont{\color{t_blue}}$(1,$ & $1,$ & $1)$ \\ % chktex 40
+		\rowfont{\color{t_blue}}$(1,$ & $4,$ & $4)$ \\ % chktex 40
+		\rowfont{\color{t_blue}}$(1,$ & $5,$ & $5)$ \\ % chktex 40
+		\rowfont{\color{t_blue}}$(2,$ & $2,$ & $2)$ \\ % chktex 40
+		\rowfont{\color{t_blue}}$(2,$ & $4,$ & $4)$ \\ % chktex 40
+		\rowfont{\color{t_blue}}$(2,$ & $6,$ & $6)$ \\ % chktex 40
+		\rowfont{\color{t_blue}}$(3,$ & $3,$ & $3)$ \\ % chktex 40
+		\rowfont{\color{t_blue}}$(3,$ & $5,$ & $5)$ \\ % chktex 40
+		\rowfont{\color{t_blue}}$(3,$ & $6,$ & $6)$ \\ % chktex 40
+		\rowfont{\color{t_red}}$(4,$ & $1,$ & $4)$ \\ % chktex 40
+		\rowfont{\color{t_red}}$(4,$ & $4,$ & $2)$ \\ % chktex 40
+		\rowfont{\color{t_red}}$(4,$ & $5,$ & $6)$ \\ % chktex 40
+		\rowfont{\color{t_red}}$(5,$ & $1,$ & $5)$ \\ % chktex 40
+		\rowfont{\color{t_red}}$(5,$ & $5,$ & $3)$ \\ % chktex 40
+		\rowfont{\color{t_red}}$(5,$ & $4,$ & $6)$ \\ % chktex 40
+		\rowfont{\color{t_red}}$(6,$ & $2,$ & $6)$ \\ % chktex 40
+		\rowfont{\color{t_red}}$(6,$ & $6,$ & $3)$ \\ % chktex 40
+		\rowfont{\color{t_red}}$(6,$ & $4,$ & $5)$ \\ % chktex 40
 		\midrule
-		\rowfont{\color{t_blue}}$7$ & $7$ & $7$ \\
-		\rowfont{\color{t_blue}}$7$ & $9$ & $9$ \\
-		\rowfont{\color{t_blue}}$8$ & $8$ & $8$ \\
-		\rowfont{\color{t_blue}}$8$ & $9$ & $9$ \\
-		\rowfont{\color{t_red}}$9$ & $7$ & $9$ \\
-		\rowfont{\color{t_red}}$9$ & $9$ & $8$
+		\rowfont{\color{t_blue}}$(7,$ & $7,$ & $7)$ \\ % chktex 40
+		\rowfont{\color{t_blue}}$(7,$ & $9,$ & $9)$ \\ % chktex 40
+		\rowfont{\color{t_blue}}$(8,$ & $8,$ & $8)$ \\ % chktex 40
+		\rowfont{\color{t_blue}}$(8,$ & $9,$ & $9)$ \\ % chktex 40
+		\rowfont{\color{t_red}}$(9,$ & $7,$ & $9)$ \\ % chktex 40
+		\rowfont{\color{t_red}}$(9,$ & $9,$ & $8)$ % chktex 40
 	\end{tabu}%
 	}\caption{
 		Exemplary 2-\acs{wl} encoding of a batch of two small graphs.
@@ -561,6 +561,6 @@ Using the $\mathit{gather}$ and $\mathit{scatter}_{\Sigma}$ operator, the 2-\acs
 		\EndFunction{}
 	\end{algorithmic}
 \end{algorithm}
-All operations in this implementation scale well on parallel computing hardware and are supported by common \ac{ml} libraries like \citetitle{TF}~\cite{Abadi2015}\cite{TF} or \citetitle{PyT}~\cite{Paszke2019}\cite{PyT}.
-2-\acs{wl} convolutions can therefore be easily integrated into existing \ac{ml} pipelines.
+All operations in this implementation scale well on parallel computing hardware, they are differentiable and are supported by common \ac{ml} libraries like \citetitle{TF}~\cite{Abadi2015}\cite{TF} and \citetitle{PyT}~\cite{Paszke2019}\cite{PyT}.
+2-\acs{wl} convolutions can therefore be easily integrated into existing \ac{ml} tooling and be optimized via well-known gradient-based methods like \textit{Adam}~\cite{Kingma2015}.
 This concludes our description of 2-\acs{wl}-\acsp{gnn}.

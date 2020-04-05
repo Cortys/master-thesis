@@ -3,6 +3,19 @@
 \chapter{Evaluation}%
 \label{sec:eval}
 
+We will now empirically evaluate the ideas presented in the previous chapters.
+In \cref{sec:ltag} the relation between \ac{lta} and existing \ac{gcr} approaches was formally analyzed.
+There we saw that the \acs{lta}-formulations of existing approaches mostly use static decomposition functions, e.g.\ \acs{bfs}-subtree decompositions.
+Motivated by the idea of dynamically learning decompositions via edge filters, we proposed the novel 2-\acs{wl}-\acs{gnn} in the last chapter.
+Note however that a 2-\acs{wl}-\acs{gnn} by itself is not more ``\acs{lta}-like'' than other \acp{gnn}.
+
+In order to empirically evaluate the theoretical results of this thesis, we therefore differentiate between two independent evaluation goals:
+\begin{enumerate}[label={\textbf{\arabic*.}}]
+	\item \textbf{Comparison of 2-\acs{wl}-\acsp{gnn} with other \ac{gnn} methods:}
+		Even though it was motivated by \ac{lta}, the 2-\acs{wl} convolution layer should be compared with other convolution approaches in a non-\acs{lta} configuration.
+	\item \textbf{Comparison of \acs{lta}-like \ac{gcr} methods with non-\acs{lta} methods:}
+\end{enumerate}
+
 \section{Experimental Setup}%
 \label{sec:eval:setup}
 
