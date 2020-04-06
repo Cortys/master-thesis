@@ -512,8 +512,9 @@ class GraphDatasetManager:
 
     return train_ds, val_ds
 
-  def draw(self, idx, with_features=False):
+  def draw(self, idx, with_features=False, label_colors=False):
     gs, ys = self.dataset
     g = gs[idx]
     y = ys[idx]
-    return ds_utils.draw_graph(g, y, with_features=with_features)
+    return ds_utils.draw_graph(
+      g, y, with_features=with_features, label_colors=label_colors)

@@ -10,6 +10,7 @@ import zipfile
 from pathlib import Path
 import pickle
 import numpy as np
+import networkx as nx
 
 from ltag.utils import NumpyEncoder
 from ltag.datasets.manager import GraphDatasetManager
@@ -232,6 +233,18 @@ class StoredGraphDatasetManager(GraphDatasetManager):
 
   def _download(self):
     raise NotImplementedError
+
+  def export_dot(self, idx):
+    dot_dir = self.root_dir / "dot"
+
+    if not dot_dir.exists():
+      os.makedirs(dot_dir)
+
+    gs, ys = self.dataset
+    g = gs[idx]
+    y = ys[idx]
+    name = f"g{idx}_{y}.dot"
+    nx.drawing.nx_pydot.write_dot(g, dot_dir / name)
 
 
 class TUDatasetManager(StoredGraphDatasetManager):

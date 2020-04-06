@@ -1,5 +1,6 @@
 scipy==1.4.1
 networkx==2.4
+pydot==1.4.1
 funcy==1.14
 scikit-learn==0.22.1
-grakel-dev==0.1a6
+grakel==0.1b7

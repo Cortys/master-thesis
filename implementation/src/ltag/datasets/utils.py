@@ -530,14 +530,15 @@ def vec_to_unit(feat):
 
   return u
 
-def draw_graph(g, y, with_features=False, with_feature_colors=True):
+def draw_graph(
+  g, y, with_features=False, with_colors=True, label_colors=False):
   plt.figure()
   plt.title('Label: {}'.format(y))
 
   cmap = plt.get_cmap("hsv")
   node_color = [
-    vec_to_unit(d.get("features", []))
-    for n, d in g.nodes(data=True)] if with_feature_colors else "#1f78b4"
+    vec_to_unit([d.get("label", 0)] if label_colors else d.get("features", []))
+    for n, d in g.nodes(data=True)] if with_colors else "#1f78b4"
 
   if with_features:
     labels = {
