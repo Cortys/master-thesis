@@ -104,7 +104,7 @@ The more ``\acs{lta}-like'' a given model is, the stronger its bias towards loca
 \citet{Gilpin2018} describe this trade-off between explainability and expressive power in more detail.
 However, when considering problem domains in which the true composition scores $y_G$ are accurately described by an \acs{lta}-like generative process, a less expressive \ac{lta}-like model could generalize better than a more expressive non-\ac{lta} model.
 This idea is captured by the so-called \textit{\ac{lta} assumption}.
-\begin{defn}
+\begin{defn}\label{defn:ltag:lta-assumption}
 	A problem domain $\mathcal{D}$ satisfies the \textit{\ac{lta} assumption} iff.\ there is an \ac{lta} method which produces models with an equal or lower out-of-sample error than the models produced by non-\acs{lta} methods for most training samples $\mathcal{D}_{\mathrm{train}} \subseteq \mathcal{D}$.
 \end{defn}
 Due to the fuzziness of the class of \ac{lta} methods, the \ac{lta} assumption is naturally also a fuzzy concept.
@@ -431,7 +431,7 @@ For simplicity we assume that the target score domain is $\mathcal{Y} = [0, 1]$.
 \end{enumerate}
 
 Since neither SortPooling nor \ac{sagpool} are compatible with \ac{lta}, we propose an associative weighted aggregation layer inspired by \ac{sagpool} which uses a softmax-based attention filter instead of a top-$p$ filter.
-\begin{defn}
+\begin{defn}\label{defn:ltag:sam-pool}
 	We define \ac{sampool} as
 	\[\mathrm{SAM}({\ldblbrace (y_i, w_i) \rdblbrace}_{i=1}^n) \coloneqq\frac{1}{\sum_{i=1}^n e^{w_i}} \sum_{i=1}^n e^{w_i} y_i \text{.}\]
 \end{defn}

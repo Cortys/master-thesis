@@ -3,24 +3,110 @@
 \chapter{Evaluation}%
 \label{sec:eval}
 
-We will now empirically evaluate the ideas presented in the previous chapters.
 In \cref{sec:ltag} the relation between \ac{lta} and existing \ac{gcr} approaches was formally analyzed.
-There we saw that the \acs{lta}-formulations of existing approaches mostly use static decomposition functions, e.g.\ \acs{bfs}-subtree decompositions.
-Motivated by the idea of dynamically learning decompositions via edge filters, we proposed the novel 2-\acs{wl}-\acs{gnn} in the last chapter.
-Note however that a 2-\acs{wl}-\acs{gnn} by itself is not more ``\acs{lta}-like'' than other \acp{gnn}.
-
-In order to empirically evaluate the theoretical results of this thesis, we therefore differentiate between two independent evaluation goals:
+There we saw that the \ac{lta} formulations of existing approaches mostly use static decomposition functions, e.g.\ \ac{bfs} subtree decompositions.
+Motivated by the idea of dynamically learning decompositions via edge filters, we then proposed the novel 2-\acs{wl}-\acs{gnn} in \cref{sec:ltd}.
+The ides presented in both chapters will now be empirically evaluated.
+Do to so we differentiate between two mostly independent evaluation aspects:
 \begin{enumerate}[label={\textbf{\arabic*.}}]
-	\item \textbf{Comparison of 2-\acs{wl}-\acsp{gnn} with other \ac{gnn} methods:}
-		Even though it was motivated by \ac{lta}, the 2-\acs{wl} convolution layer should be compared with other convolution approaches in a non-\acs{lta} configuration.
-	\item \textbf{Comparison of \acs{lta}-like \ac{gcr} methods with non-\acs{lta} methods:}
+	\item \textbf{Evaluation of 2-\acs{wl}-\acsp{gnn}:}
+		Even though it was motivated by \ac{lta}, a 2-\acs{wl}-\acs{gnn} is not generally more ``\acs{lta}-like'' than other approaches.
+		Nonetheless, due to the theoretical advantages described in \cref{sec:ltd:wl2gnn:properties} it is an interesting approach independently from its potential applications in \ac{lta} (see \cref{sec:ltd:edge-filter}).
+		Thus the first aspect of our evaluation is to compare 2-\acs{wl}-\acsp{gnn} with the other previously described \ac{gcr} methods in a general non-\acs{lta} fashion, i.e.\ with an added \ac{mlp} after the pooling layer since this is how \acp{gnn} are typically evaluated in other works.
+	\item \textbf{Evaluation of the \ac{lta} assumption:}
+		We previously described that a given domain problem satisfies the \ac{lta} assumption if its solutions can be described by an \ac{lta} formulation (see \cfullref{defn:ltag:lta-assumption}).
+		The inherent bias of an \acs{lta}-like model towards such \ac{lta} formulations could potentially increase its generalization performance compared to more general non-\acs{lta} models.
+		Therefore the second aspect of our evaluation is to compare the performance of the previously described \acs{lta}-like methods with that of non-\acs{lta} approaches on datasets from multiple problem domains.
 \end{enumerate}
+This chapter will tackle those two aspects in three steps:
+\begin{enumerate*}[label={\circled{\small\arabic*}}]
+	\item We begin by describing the experimental setup used to obtain the evaluation results in \cref{sec:eval:setup}.
+	\item We then present results on synthetically generated data in \cref{sec:eval:synthetic}.
+	 	There we will illustrate the higher expressive power of 2-\acs{wl}-\acsp{gnn} when compared to other \ac{gcr} approaches which confirms the theoretical results from \cref{sec:ltd:wl2gnn:properties}.
+	\item Finally the evaluation results on real-world datasets are described in \cref{sec:eval:real}.
+		There we will see how 2-\acs{wl}-\acsp{gnn} compare to other \acp{gnn} in practice as well as how \acs{lta}-like models compare to non-\acs{lta} models.
+\end{enumerate*}
 
 \section{Experimental Setup}%
 \label{sec:eval:setup}
 
-\section{Synthetic Datasets}%
+In our experimental evaluation we focus on two types of learners:
+\acp{svm} using graph kernels and \acp{gcnn}.
+We evaluate those learners by comparing their test accuracies on multiple binary classification problems.
+To obtain those accuracies we follow the graph classification benchmarking framework recently proposed by \citet{Errica2020}.
+Their benchmarking framework is motivated by the observation that most recent publications in the field of \acp{gnn} do not provide reproducible results.
+To tackle this issue they evaluated multiple state-of-the-art methods using a unified model selection procedure:\\
+{\setlength{\intextsep}{0pt}
+\begin{minipage}[t]{0.55\linewidth-1em}
+	\begin{algorithm}[H]
+		\caption{$k$-fold Model Assessment}\label{algo:eval:assessment}
+		\begin{algorithmic}[1]
+			\State{\textbf{Input:} Dataset $\mathcal{D}$, configurations $\Theta$}
+			\State{Split $\mathcal{D}$ into $k$ folds $F_1, \dots, F_{k}$}
+			\For{$i \leftarrow 1, \dots, k$}
+				\State{$\mathcal{D}_{\mathrm{train/val}}, \mathcal{D}_{\mathrm{test}} \leftarrow \left( \bigcup_{j \neq i} F_{j} \right), F_i$}
+				\State{$\theta_{\mathrm{best}} \leftarrow \Call{Select}{\mathcal{D}_{\mathrm{train/val}}, \Theta}$}
+				\For{$r \leftarrow 1, \dots, R$}
+					\State{$h_{i,r} \leftarrow \Call{Train}{\mathcal{D}_{\mathrm{train/val}}, \theta_{\mathrm{best}}}$}
+					\State{$\mathit{acc}_{i,r} \leftarrow \Call{Eval}{h_{i,r}, \mathcal{D}_{\mathrm{test}}}$}
+				\EndFor{}
+				\State{$\mathit{acc}_{i} \leftarrow \mean_{r \in [R]}{\mathit{acc}_{i,r}}$}
+			\EndFor{}
+			\State{\Return{$\mean_{i \in [k]} \mathit{acc}_i, \mathrm{stddev}_{i \in [k]}\, \mathit{acc}_i$}}
+		\end{algorithmic}
+	\end{algorithm}
+\end{minipage}\hspace*{1em}%
+\begin{minipage}[t]{0.45\linewidth}
+	\begin{algorithm}[H]
+		\caption{Model Selection}\label{algo:eval:selection}
+		\begin{algorithmic}[1]
+			\Function{Select}{$\mathcal{D}, \Theta$}
+			\State{Split $\mathcal{D}$ into $\mathcal{D}_{\mathrm{train}}, \mathcal{D}_{\mathrm{val}}$}
+			\ForAll{$\theta \in \Theta$}
+				\State{$h_{\theta} \leftarrow \Call{Train}{\mathcal{D}_{\mathrm{train}}, \theta}$}
+				\State{$\mathit{acc}_{\theta} \leftarrow \Call{Eval}{h_{\theta}, \mathcal{D}_{\mathrm{val}}}$}
+			\EndFor{}
+			\State{$\theta_{\mathrm{best}} \leftarrow \arg\max_{\theta \in \Theta}{\mathit{acc}_{\theta}}$}
+			\State{\Return{$\theta_{\mathrm{best}}$}}
+			\EndFunction{}
+		\end{algorithmic}
+	\end{algorithm}
+\end{minipage}}
+
+We use this assessment strategy with $k = 10$ folds and $r = 3$ repeats per fold to smooth out differences caused by random weight initializations.
+For each dataset the same folds are used across the evaluated models; class proportions are preserved within each fold by using stratified splits.
+To keep the total runtime of the experiments feasible, a single 90\%/10\% holdout split into training and validation data is used instead of cross-validation.
+In each experiment training is performed with an early stopping condition which cancels the optimization if there is no improvement to the validation loss for more than $p$ epochs.
+The patience period $p$ is part of the hyperparameter configurations $\theta \in \Theta$.
+
+Using this assessment strategy we evaluate \acp{svm} with the following graph kernels:
+\begin{enumerate}[label={\textbf{\arabic*.}},itemsep=2pt,parsep=2pt]
+	\item \textbf{\ac{wl} subtree kernel (\acs{wl}\textsubscript{ST})} with the iteration counts $T \in \{ 1, 2, 5 \}$ to evaluate the influence of the depth of \ac{bfs} subtrees which span \ac{lta} constituents.
+	\item \textbf{\ac{wl} shortest path kernel (\acs{wl}\textsubscript{SP})} with the iteration count $T = 5$.
+	\item \textbf{2-LWL kernel} with the iteration count $T = 3$.
+	\item \textbf{2-GWL kernel} with the iteration count $T = 3$.
+\end{enumerate}
+The gram matrices of the \acs{wl}\textsubscript{ST} and \acs{wl}\textsubscript{SP} kernels are computed via the \citetitle{GK} library~\cite{Siglidis2018}\cite{GK}.
+For the gram matrices of the two dimensional \ac{wl} kernels we use a modified version\footnote{\url{https://github.com/Cortys/glocalwl}} of the reference implementation provided by \citet{Morris2017}.
+To train \acp{svm} with those kernels \citetitle{SKL}~\cite{Pedregosa2011}\cite{SKL} is used.
+
+For the evaluation of \acp{gcnn} we selected the following methods:
+\begin{enumerate}[label={\textbf{\arabic*.}},itemsep=2pt,parsep=2pt]
+	\item \textbf{Structure unaware baseline:}
+		\citet{Errica2020} describe a simple model which simply applies a standard \ac{mlp} to each individual vertex feature vector, then sums up the resulting feature vectors and applies another \ac{mlp} to the vector sum.
+		This approach does not use any structural information and therefore serves as a baseline to detect whether a \ac{gnn} is able to exploit graph structure.
+	\item \textbf{\ac{gin}} is evaluated as described by \citet{Xu2018}, i.e.\ with a sum pooling layer and an appended \ac{mlp} to produce the final prediction.
+	\item \textbf{2-\acs{gnn}} is evaluated with both a static $\mean$ pooling layer and with \ac{sampool} (see \cfullref{defn:ltag:sam-pool}).
+		After the pooling layer a \ac{mlp} is used to produce the final prediction.
+	\item \textbf{2-\acs{wl}-\ac{gnn}} \textit{(our method)} is evaluated using the same configurations as 2-\acs{gnn}.
+		To test the \ac{lta} assumption we additionally evaluate it in \acs{lta}-like configurations, i.e.\ with a stack of 2-\acs{wl} convolutions that produce a local prediction $y_{ij} \in [0, 1]$ for each edge $e_{ij}$ and without the final \ac{mlp}.
+\end{enumerate}
+The baseline and \ac{gin} results are obtained using the PyTorch-based implementation provided by \citet{Errica2020}.
+For both 2-\acs{gnn} and 2-\acs{wl}-\ac{gnn} a custom TensorFlow-based implementation is used.
+The code for all conducted experiments as well as the used dataset splits can be found on GitHub\footnote{\url{https://github.com/Cortys/master-thesis}}.
+
+\section{Evaluation on Synthetic Data}%
 \label{sec:eval:synthetic}
 
-\section{Real-World Datasets}%
+\section{Evaluation on Real-World Data}%
 \label{sec:eval:real}
