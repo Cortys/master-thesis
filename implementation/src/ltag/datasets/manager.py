@@ -8,6 +8,7 @@ import tensorflow as tf
 import grakel as gk
 from sklearn.model_selection import train_test_split, StratifiedKFold
 
+import ltag.utils as utils
 import ltag.chaining.pipeline as cp
 import ltag.datasets.utils as ds_utils
 
@@ -518,3 +519,25 @@ class GraphDatasetManager:
     y = ys[idx]
     return ds_utils.draw_graph(
       g, y, with_features=with_features, label_colors=label_colors)
+
+  def stats(self):
+    gs, ys = self.dataset
+    node_counts = []
+    edge_counts = []
+    radii = []
+    diameters = []
+    degrees = []
+
+    for g in gs:
+      node_counts.append(g.order())
+      edge_counts.append(g.size())
+      degrees += [d for n, d in g.degree()]
+
+    return dict(
+      node_counts=utils.statistics(node_counts),
+      edge_counts=utils.statistics(edge_counts),
+      node_degrees=utils.statistics(degrees),
+      dim_node_features=self.dim_node_features,
+      dim_edge_features=self.dim_edge_features,
+      num_node_labels=self.num_node_labels,
+      num_edge_labels=self.num_edge_labels)

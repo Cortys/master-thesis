@@ -3,11 +3,11 @@ from __future__ import absolute_import, division, print_function,\
 
 import os
 import json
-from collections import defaultdict, Sized
+from collections import defaultdict
 import funcy as fy
 import numpy as np
 
-from ltag.utils import NumpyEncoder
+from ltag.utils import NumpyEncoder, statistics
 
 selection_metrics = {
   "accuracy": "max",
@@ -20,15 +20,6 @@ selection_metrics = {
 
 def dict_map(f, d):
   return {k: f(v) for k, v in d.items()}
-
-def statistics(vals):
-  return {
-    "mean": np.mean(vals),
-    "std": np.std(vals),
-    "min": np.min(vals),
-    "max": np.max(vals),
-    "count": len(vals) if isinstance(vals, Sized) else 1
-  }
 
 def summarize_evaluation(
   eval_dir, selection_metric="val_accuracy", ignore_worst=0):

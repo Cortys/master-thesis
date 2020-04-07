@@ -11,6 +11,7 @@ import numpy as np
 import sklearn as sk
 import grakel as gk
 import funcy as fy
+import json
 
 import ltag.models.gnn as gnn_models
 import ltag.models.kernel as kernel_models
@@ -18,7 +19,7 @@ import ltag.datasets.synthetic.datasets as synthetic
 import ltag.evaluation.datasets as eval_ds
 import ltag.evaluation.evaluate as evaluate
 import ltag.evaluate_datasets as eval_main
-from ltag.utils import cart, cart_merge, entry_duplicator
+from ltag.utils import cart, cart_merge, entry_duplicator, NumpyEncoder
 
 # -%% codecell
 
@@ -274,10 +275,34 @@ def kernel_experiment():
     print(i)
     print(evaluate.train(model, ds, ds_test, label=f"{dsm.name}_{model.name}").history)
 
+def ds_stats():
+  datasets = [
+    synthetic.balanced_triangle_classification_dataset(stored=True)(),
+    eval_ds.NCI1_8(), eval_ds.Proteins_5(), eval_ds.DD_2(),
+    eval_ds.RedditBinary_1(), eval_ds.IMDB_8()
+    ]
+  s = {}
+
+  for ds in datasets:
+    print(f"DS stats for {ds.name}:")
+    stats = ds.stats()
+    print(stats)
+    s[ds.name] = stats
+    print("-------------------------")
+
+  with open("/data/stats.json", "w") as f:
+    json.dump(s, f, cls=NumpyEncoder, indent="\t")
+  print("Done.")
 
 # wl2_power_experiment()
-synthetic_experiment2()
+# synthetic_experiment2()
 # imdb_experient()
+
+# synthetic.balanced_triangle_classification_dataset(stored=True)().draw(152, label_colors=True)
+# synthetic.balanced_triangle_classification_dataset(stored=True)().draw(153, label_colors=True)
+# synthetic.balanced_triangle_classification_dataset(stored=True)().export_dot(152)
+# synthetic.balanced_triangle_classification_dataset(stored=True)().export_dot(153)
+ds_stats()
 
 #
 # list(dsm.get_all(output_type="grakel")[0])

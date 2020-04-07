@@ -83,7 +83,8 @@ if __name__ == "__main__":
       ms = ["SagCWL2GCN_Binary_quick_max"]
     else:
       ms = [
-        "WL_st", "WL_st_1", "WL_st_2", "WL_sp", "LWL2", "GWL2",
+        "WL_st", "WL_st_1", "WL_st_2", "WL_st_3", "WL_st_4",
+        "WL_sp", "WL_sp_3", "LWL2", "GWL2",
         "AvgCWL2GCN_Binary", "SagCWL2GCN_Binary",
         "AvgK2GNN_Binary", "SagK2GNN_Binary"]
   else:

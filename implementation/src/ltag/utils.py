@@ -6,6 +6,7 @@ import itertools
 import contextlib
 import numpy as np
 import funcy as fy
+from collections import Sized
 
 class NumpyEncoder(json.JSONEncoder):
   def default(self, obj):
@@ -18,6 +19,15 @@ class NumpyEncoder(json.JSONEncoder):
       or isinstance(obj, np.int64)):
       return np.asscalar(obj)
     return json.JSONEncoder.default(self, obj)
+
+def statistics(vals, mask_invalid=False):
+  return {
+    "mean": np.mean(np.ma.masked_invalid(vals) if mask_invalid else vals),
+    "std": np.std(np.ma.masked_invalid(vals) if mask_invalid else vals),
+    "min": np.min(vals),
+    "max": np.max(vals),
+    "count": len(vals) if isinstance(vals, Sized) else 1
+  }
 
 @contextlib.contextmanager
 def local_seed(seed):

@@ -121,11 +121,15 @@ class StoredGraphDatasetManager(GraphDatasetManager):
 
     try:
       gram = super()._compute_gram_matrix(output_fn)
-    except MemoryError:
+    except MemoryError as err:
+      print("Memory error during gram matrix computation:", err)
       gram = "OOM"
 
     with open(gram_filename, "wb") as f:
       pickle.dump(gram, f)
+
+    if gram == "OOM":
+      return None
 
     return gram
 

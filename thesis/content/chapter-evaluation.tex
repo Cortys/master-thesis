@@ -23,7 +23,7 @@ This chapter will tackle those two aspects in three steps:
 	\item We begin by describing the experimental setup used to obtain the evaluation results in \cref{sec:eval:setup}.
 	\item We then present results on synthetically generated data in \cref{sec:eval:synthetic}.
 	 	There we will illustrate the higher expressive power of 2-\acs{wl}-\acsp{gnn} when compared to other \ac{gcr} approaches which confirms the theoretical results from \cref{sec:ltd:wl2gnn:properties}.
-	\item Finally the evaluation results on real-world datasets are described in \cref{sec:eval:real}.
+	\item Finally evaluation results on real-world datasets are described in \cref{sec:eval:real}.
 		There we will see how 2-\acs{wl}-\acsp{gnn} compare to other \acp{gnn} in practice as well as how \acs{lta}-like models compare to non-\acs{lta} models.
 \end{enumerate*}
 
@@ -45,9 +45,10 @@ To tackle this issue they evaluated multiple state-of-the-art methods using a un
 			\State{Split $\mathcal{D}$ into $k$ folds $F_1, \dots, F_{k}$}
 			\For{$i \leftarrow 1, \dots, k$}
 				\State{$\mathcal{D}_{\mathrm{train/val}}, \mathcal{D}_{\mathrm{test}} \leftarrow \left( \bigcup_{j \neq i} F_{j} \right), F_i$}
-				\State{$\theta_{\mathrm{best}} \leftarrow \Call{Select}{\mathcal{D}_{\mathrm{train/val}}, \Theta}$}
+				\State{Split $\mathcal{D}_{\mathrm{train/val}}$ into $\mathcal{D}_{\mathrm{train}}, \mathcal{D}_{\mathrm{val}}$}
+				\State{$\theta_{\mathrm{best}} \leftarrow \Call{Select}{\mathcal{D}_{\mathrm{train}}, \mathcal{D}_{\mathrm{val}}, \Theta}$}
 				\For{$r \leftarrow 1, \dots, R$}
-					\State{$h_{i,r} \leftarrow \Call{Train}{\mathcal{D}_{\mathrm{train/val}}, \theta_{\mathrm{best}}}$}
+					\State{$h_{i,r} \leftarrow \Call{Train}{\mathcal{D}_{\mathrm{train}}, \theta_{\mathrm{best}}}$}
 					\State{$\mathit{acc}_{i,r} \leftarrow \Call{Eval}{h_{i,r}, \mathcal{D}_{\mathrm{test}}}$}
 				\EndFor{}
 				\State{$\mathit{acc}_{i} \leftarrow \mean_{r \in [R]}{\mathit{acc}_{i,r}}$}
@@ -60,8 +61,7 @@ To tackle this issue they evaluated multiple state-of-the-art methods using a un
 	\begin{algorithm}[H]
 		\caption{Model Selection}\label{algo:eval:selection}
 		\begin{algorithmic}[1]
-			\Function{Select}{$\mathcal{D}, \Theta$}
-			\State{Split $\mathcal{D}$ into $\mathcal{D}_{\mathrm{train}}, \mathcal{D}_{\mathrm{val}}$}
+			\Function{Select}{$\mathcal{D}_{\mathrm{train}}, \mathcal{D}_{\mathrm{val}}, \Theta$}
 			\ForAll{$\theta \in \Theta$}
 				\State{$h_{\theta} \leftarrow \Call{Train}{\mathcal{D}_{\mathrm{train}}, \theta}$}
 				\State{$\mathit{acc}_{\theta} \leftarrow \Call{Eval}{h_{\theta}, \mathcal{D}_{\mathrm{val}}}$}
@@ -73,10 +73,10 @@ To tackle this issue they evaluated multiple state-of-the-art methods using a un
 	\end{algorithm}
 \end{minipage}}
 
-We use this assessment strategy with $k = 10$ folds and $r = 3$ repeats per fold to smooth out differences caused by random weight initializations.
+We base our evaluations on this assessment strategy with $k = 10$ folds and $r = 3$ repeats per fold to smooth out differences caused by random weight initializations.
 For each dataset the same folds are used across the evaluated models; class proportions are preserved within each fold by using stratified splits.
 To keep the total runtime of the experiments feasible, a single 90\%/10\% holdout split into training and validation data is used instead of cross-validation.
-In each experiment training is performed with an early stopping condition which cancels the optimization if there is no improvement to the validation loss for more than $p$ epochs.
+In each experiment, training is performed with an early stopping condition which cancels the optimization if there is no improvement to the validation loss for more than $p$ epochs.
 The patience period $p$ is part of the hyperparameter configurations $\theta \in \Theta$.
 
 Using this assessment strategy we evaluate \acp{svm} with the following graph kernels:
@@ -88,8 +88,7 @@ Using this assessment strategy we evaluate \acp{svm} with the following graph ke
 \end{enumerate}
 The gram matrices of the \acs{wl}\textsubscript{ST} and \acs{wl}\textsubscript{SP} kernels are computed via the \citetitle{GK} library~\cite{Siglidis2018}\cite{GK}.
 For the gram matrices of the two dimensional \ac{wl} kernels we use a modified version\footnote{\url{https://github.com/Cortys/glocalwl}} of the reference implementation provided by \citet{Morris2017}.
-To train \acp{svm} with those kernels \citetitle{SKL}~\cite{Pedregosa2011}\cite{SKL} is used.
-
+To train \acp{svm} with those kernels, \citetitle{SKL}~\cite{Pedregosa2011}\cite{SKL} is used.
 For the evaluation of \acp{gcnn} we selected the following methods:
 \begin{enumerate}[label={\textbf{\arabic*.}},itemsep=2pt,parsep=2pt]
 	\item \textbf{Structure unaware baseline:}
@@ -103,10 +102,28 @@ For the evaluation of \acp{gcnn} we selected the following methods:
 \end{enumerate}
 The baseline and \ac{gin} results are obtained using the PyTorch-based implementation provided by \citet{Errica2020}.
 For both 2-\acs{gnn} and 2-\acs{wl}-\ac{gnn} a custom TensorFlow-based implementation is used.
-The code for all conducted experiments as well as the used dataset splits can be found on GitHub\footnote{\url{https://github.com/Cortys/master-thesis}}.
+The code for all conducted experiments as well as the used dataset splits are available GitHub\footnote{\url{https://github.com/Cortys/master-thesis}}.
 
 \section{Evaluation on Synthetic Data}%
 \label{sec:eval:synthetic}
+
+We begin with an evaluation of graph kernels and \acp{gnn} on a synthetic binary classification dataset which demonstrates the potential advantages of a higher dimensional \ac{wl} method such as the proposed 2-\acs{wl}-\acs{gnn}.
+To determine the classes of the graphs in this dataset, a learner has to solve the so-called \textit{unicolored triangle detection} problem:
+Given a graph $G$ with vertices that are colored as either $l_G[v] = \colorlabel{t_blue}{A}$ or as $l_G[v] = \colorlabel{t_red}{B}$, the learner has to find the unique triangle $(v_i, v_j, v_k)$ in $G$ for which $l_G[v_i] = l_G[v_j] = l_G[v_k]$. % chktex 25
+The class of $G$ is then determined by the color of the vertices $(v_i, v_j, v_k)$.
+
+Based on this problem we generate a synthetic triangle detection dataset.
+It contains randomly generated graphs with varying vertex counts and vertex color proportions (see \cref{sec:appendix:ds-stats} for a more detailed description).
+This dataset allows us to test whether a learner is able to ignore varying amounts of noisy random structure and focus on relevant local substructures, in this case unicolored triangles.
+\Cref{fig:evaluation:triangle-problem} shows two graphs with different classes which both have the same size and equal vertex color proportions.
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=0.75\linewidth]{gfx/evaluation/triangle-problem.pdf}
+	\caption[Two example graphs from the triangle detection dataset.]{
+		Two examples from the triangle detection dataset.
+		The unique unicolored triangle which has to be detected by the learners is highlighted in both graphs.
+	}\label{fig:evaluation:triangle-problem}
+\end{figure}
 
 \section{Evaluation on Real-World Data}%
 \label{sec:eval:real}

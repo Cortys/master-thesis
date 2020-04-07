@@ -7,9 +7,12 @@ import ltag.models.gnn as gnn_models
 from ltag.utils import cart, cart_merge, entry_duplicator
 from ltag.evaluation.model_factories import binary_classifier
 from ltag.evaluation.kernel_models import (
-  WL_st, WL_st_1, WL_st_2, WL_sp, LWL2, GWL2)
+  WL_st, WL_st_1, WL_st_2, WL_st_3, WL_st_4, WL_sp, WL_sp_3, LWL2, GWL2)
 
-kernel_models = [WL_st, WL_st_1, WL_st_2, WL_sp, LWL2, GWL2]
+kernel_models = [
+  WL_st, WL_st_1, WL_st_2, WL_st_3, WL_st_4,
+  WL_sp, WL_sp_3,
+  LWL2, GWL2]
 
 @binary_classifier(gnn_models.AvgWL2GCN)
 def AvgWL2GCN_Binary(dsm):

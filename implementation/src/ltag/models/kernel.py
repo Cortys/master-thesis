@@ -84,7 +84,15 @@ WL_st_1 = kernel_model("WL_st_1", grakel_kernel(
   "WL_st_1", kernel=[{"name": "WL", "n_iter": 1}, "VH"]))
 WL_st_2 = kernel_model("WL_st_2", grakel_kernel(
   "WL_st_2", kernel=[{"name": "WL", "n_iter": 2}, "VH"]))
+WL_st_3 = kernel_model("WL_st_3", grakel_kernel(
+  "WL_st_3", kernel=[{"name": "WL", "n_iter": 3}, "VH"]))
+WL_st_4 = kernel_model("WL_st_4", grakel_kernel(
+  "WL_st_4", kernel=[{"name": "WL", "n_iter": 4}, "VH"]))
+
 WL_sp = kernel_model("WL_sp", grakel_kernel(
   "WL_sp", kernel=[{"name": "WL"}, "SP"]))
+WL_sp_3 = kernel_model("WL_sp_3", grakel_kernel(
+  "WL_sp_3", kernel=[{"name": "WL", "n_iter": 3}, "SP"]))
+
 LWL2 = kernel_model("LWL2", fs_kernel("LWL2"))
 GWL2 = kernel_model("GWL2", fs_kernel("GWL2"))
