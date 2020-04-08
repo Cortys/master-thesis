@@ -36,7 +36,7 @@ We evaluate those learners by comparing their test accuracies on multiple binary
 To obtain those accuracies we follow the graph classification benchmarking framework recently proposed by \citet{Errica2020}.
 Their benchmarking framework is motivated by the observation that most recent publications in the field of \acp{gnn} do not provide reproducible results.
 To tackle this issue they evaluated multiple state-of-the-art methods using a unified model selection procedure:\\
-{\setlength{\intextsep}{0pt}
+{\setlength{\intextsep}{0pt}%
 \begin{minipage}[t]{0.55\linewidth-1em}
 	\begin{algorithm}[H]
 		\caption{$k$-fold Model Assessment}\label{algo:eval:assessment}
@@ -76,7 +76,8 @@ To tackle this issue they evaluated multiple state-of-the-art methods using a un
 We base our evaluations on this assessment strategy with $k = 10$ folds and $r = 3$ repeats per fold to smooth out differences caused by random weight initializations.
 For each dataset the same folds are used across the evaluated models; class proportions are preserved within each fold by using stratified splits.
 To keep the total runtime of the experiments feasible, a single 90\%/10\% holdout split into training and validation data is used instead of cross-validation.
-In each experiment, training is performed with an early stopping condition which cancels the optimization if there is no improvement to the validation loss for more than $p$ epochs.
+To train models that require gradient-based optimization, we use the well-known Adam optimizer~\cite{Kingma2015}.
+In all experiments, training is performed with an early stopping condition which cancels the optimization if there is no improvement to the validation loss for more than $p$ epochs.
 The patience period $p$ is part of the hyperparameter configurations $\theta \in \Theta$.
 
 Using this assessment strategy we evaluate \acp{svm} with the following graph kernels:
@@ -97,8 +98,9 @@ For the evaluation of \acp{gcnn} we selected the following methods:
 	\item \textbf{\ac{gin}} is evaluated as described by \citet{Xu2018}, i.e.\ with a sum pooling layer and an appended \ac{mlp} to produce the final prediction.
 	\item \textbf{2-\acs{gnn}} is evaluated with both a static $\mean$ pooling layer and with \ac{sampool} (see \cfullref{defn:ltag:sam-pool}).
 		After the pooling layer a \ac{mlp} is used to produce the final prediction.
-	\item \textbf{2-\acs{wl}-\ac{gnn}} \textit{(our method)} is evaluated using the same configurations as 2-\acs{gnn}.
-		To test the \ac{lta} assumption we additionally evaluate it in \acs{lta}-like configurations, i.e.\ with a stack of 2-\acs{wl} convolutions that produce a local prediction $y_{ij} \in [0, 1]$ for each edge $e_{ij}$ and without the final \ac{mlp}.
+	\item \textbf{2-\acs{wl}-\ac{gnn}} \textit{(our method)} is also evaluated with $\mean$ pooling and \ac{sampool}, just like 2-\ac{gnn}.
+		To test the \ac{lta} assumption we evaluate 2-\acs{wl}-\acs{gnn} in an \acs{lta}-like configuration and in a non-\acs{lta} configuration.
+		The \acs{lta}-like configuration uses a stack of 2-\acs{wl} convolutions that produce a local prediction $y_{ij} \in [0, 1]$ for each edge $e_{ij}$ instead of a local feature vector $z_{ij} \in \mathbb{R}^{d^{(T)}}$ and it does not have an \ac{mlp} after the pooling/aggregation layer.
 \end{enumerate}
 The baseline and \ac{gin} results are obtained using the PyTorch-based implementation provided by \citet{Errica2020}.
 For both 2-\acs{gnn} and 2-\acs{wl}-\ac{gnn} a custom TensorFlow-based implementation is used.
@@ -127,12 +129,12 @@ We use this dataset to evaluate whether a learner is able to ignore varying amou
 		table foot=\bottomrule,
 		late after line=\ifthenelse{\equal{\id}{9}}{\\\midrule}{\\},
 		head to column names,
-		filter=\equal{\isDefault}{1}\or\equal{\id}{0}
+		filter=\equal{\isDefault}{1}
 	]{data/results.csv}{}{%
 		\ifthenelse{\equal{\id}{0}}{\multirow{5}{*}[0em]{\rotatebox[origin=c]{90}{\small\textsc{Kernel}}}}{}%
 		\ifthenelse{\equal{\id}{9}}{\multirow{8}{*}[0em]{\rotatebox[origin=c]{90}{\small\textsc{\ac{gnn}}}}}{} &%
-		\textbf{\model} ($\params$) & \ifthenelse{\equal{\isLta}{1}}{\badgeboxinline[t_green]{\scriptsize \acs*{lta}-like}}{} &%
-		$\condbold{\triangleBestTrain}{\triangleTrainMean} \pm \triangleTrainStd$ & $\condbold{\triangleBestTest}{\triangleTestMean} \pm \triangleTestStd$%
+		\textbf{\ifthenelse{\equal{\isLta}{1}}{\textcolor{t_darkgreen}{\model*}}{\model\ifthenelse{\equal{\model}{2-WL-GNN}}{\phantom{*}}{}}} ($\params$) & \ifthenelse{\equal{\isLta}{1}}{\badgeboxinline[t_green]{\scriptsize \acs*{lta}-like}}{} &%
+		\evalres{\triangleBestTrain}{\triangleTrainMean}{\triangleTrainStd} & \evalres{\triangleBestTest}{\triangleTestMean}{\triangleTestStd}%
 	}
 \end{table}
 \begin{figure}[t]
@@ -160,12 +162,54 @@ Even though both kernels embed graphs into a space with dimensions that indicate
 
 Looking at the 2-\acs{wl} inspired \acp{gnn} (2-\acs{gnn}, 2-\acs{wl}-\acs{gnn}), we find that the proposed 2-\acs{wl}-\acs{gnn} significantly outperforms all other evaluated methods which confirms our theoretical results from \cref{sec:ltd:wl2gnn:properties}.
 We evaluated 2-\acs{wl}-\acsp{gnn} in an \acs{lta}-like configuration without a final \ac{mlp} and in a non-\acs{lta} configuration with an \ac{mlp} after the pooling layer.
-Comparing both configurations we clearly see that the \acs{lta}-variant has a worse generalization performance despite the fact that the triangle detection problem fits well into the \ac{lta} framework:
-Find the unicolored triangle constituent, classify it locally then use that local class to classify the graph.
-Further investigations are required to determine to which extent the worse performance of the \acs{lta}-like configuration is caused by the static subtree-based constituents and whether a more dynamic solution to the \acf{ltd} problem could improve the performance (e.g.\ via the edge filters described in \cref{sec:ltd:edge-filter}).
+Comparing both configurations, we see that the \acs{lta}-variant has a worse generalization performance despite the fact that the triangle detection problem fits well into the \ac{lta} framework:
+\begin{enumerate*}[label={\circled{\small\arabic*}}]
+	\item Decomposition corresponds to finding a single unicolored triangle constituent,
+	\item local evaluation then corresponds to checking the color of the triangle constituent and
+	\item aggregation is trivial since there is only one constituent.
+\end{enumerate*}
 
-Finally, looking at the two evaluated \acs{lta}-compatible pooling layers, static $\mean$ pooling and \ac{sampool}, we see that the attention mechanism significantly improves the generalization performance of both 2-\acs{gnn} and 2-\acs{wl}-\acs{gnn}.
-This indicates that \ac{sampool} is successful at filtering out the randomly generated noisy parts of a given graph and put most attention to the relevant unicolored triangle.
+However, as we saw in the \ac{lta} formulation of \acp{gcnn} (see \cfullref{thm:ltag:gcnn-ltag-formulation}), a 2-\acs{wl}-\acs{gnn} does not actually learn to decompose a graph into unicolored triangle constituents but uses subtree constituents instead.
+Further investigations are required to determine to which extent the worse performance of the \acs{lta}-like configuration is caused by this static decomposition strategy and whether a more dynamic solution to the \acf{ltd} problem could improve the performance (e.g.\ via the edge filtering idea described in \cref{sec:ltd:edge-filter}).
+
+Finally, if we look at the two evaluated pooling layers, static $\mean$ pooling and \ac{sampool}, we see that the attention mechanism of the latter significantly improves the generalization performance of both 2-\acs{gnn} and 2-\acs{wl}-\acs{gnn}.
+This indicates that \ac{sampool} is successful at filtering out the randomly generated noisy parts of a given graph and putting most attention to the relevant unicolored triangle.
 
 \section{Evaluation on Real-World Data}%
 \label{sec:eval:real}
+
+Since the synthetic triangle detection problem was designed specifically to highlight the advantages of a higher dimensional \ac{wl} method such as 2-\ac{wl}-\acsp{gnn}, we now evaluate the approaches more fairly on five common graph classification benchmark datasets from three different real-world domains.
+
+\begin{table}[ht]
+	\caption[Mean test accuracies and standard deviations on real-world data.]{
+		Mean test accuracies and standard deviations on real-world data.
+		\hfill\textcolor{t_darkgreen}{*}\,\badgeboxinline[t_green]{\scriptsize\acs*{lta}-like}
+	}\label{tbl:eval:real}
+	\centering
+	\csvreader[
+		tabular={lrrrrr},
+		separator=semicolon,
+		table head={%
+			& %
+			\multicolumn{1}{c}{\textbf{NCI1}} &%
+			\multicolumn{1}{c}{\textbf{PROTEINS}} &%
+			\multicolumn{1}{c}{\textbf{D\&D}} &%
+			\multicolumn{1}{c}{\textbf{REDDIT}} &%
+			\multicolumn{1}{c}{\textbf{IMDB}}%
+			\\\toprule%
+		},
+		table foot=\bottomrule,
+		late after line=\ifthenelse{\equal{\id}{9}}{\\\midrule}{\\},
+		head to column names,
+		filter={\equal{\isDefault}{1}}
+	]{data/results.csv}{}{%
+		% \ifthenelse{\equal{\id}{0}}{\multirow{5}{*}[0em]{\rotatebox[origin=c]{90}{\small\textsc{Kernel}}}}{}%
+		% \ifthenelse{\equal{\id}{9}}{\multirow{8}{*}[0em]{\rotatebox[origin=c]{90}{\small\textsc{\ac{gnn}}}}}{} &%
+		\textbf{\ifthenelse{\equal{\isLta}{1}}{\textcolor{t_darkgreen}{\model*}}{\model\ifthenelse{\equal{\model}{2-WL-GNN}}{\phantom{*}}{}}} {\footnotesize($\params$)} &%
+		{\small\evalres{\nciBestTest}{\nciTestMean}{\nciTestStd}}&%
+		{\small\evalres{\proteinsBestTest}{\proteinsTestMean}{\proteinsTestStd}}&%
+		{\small\evalres{\ddBestTest}{\ddTestMean}{\ddTestStd}}&%
+		{\small\evalres{\redditBestTest}{\redditTestMean}{\redditTestStd}}&%
+		{\small\evalres{\imdbBestTest}{\imdbTestMean}{\imdbTestStd}}%
+	}
+\end{table}

@@ -22,6 +22,7 @@
 (def ds-colnames {"balanced_triangle_classification_dataset" "triangle"
                   "NCI1" "nci"
                   "PROTEINS_full" "proteins"
+                  "PROTEINS" "proteins"
                   "DD" "dd"
                   "REDDIT-BINARY" "reddit"
                   "IMDB-BINARY" "imdb"})
@@ -107,7 +108,7 @@
        :order [0 1 (or T 5) 0]
        :it (str "T=" (or T 5))
        :is-lta true
-       :is-default (nil? T)}
+       :is-default (or (= T 1) (nil? T))}
       "WL_sp"
       {:name "WL\\textsubscript{SP}"
        :order [0 2 (or T 5) 0]
@@ -159,7 +160,7 @@
         {comp-evals :out} (sh "ls" "./libs/gnn-comparison/RESULTS/")
         comp-evals (str/split comp-evals #"\n+")
         summaries (into summaries
-                        (comp (filter #(str/ends-with? % (str dataset "_assessment")))
+                        (comp (filter #(str/ends-with? % (str (if (= dataset "PROTEINS_full") "PROTEINS" dataset) "_assessment")))
                               (map (juxt identity #(try
                                                      (slurp (str "./libs/gnn-comparison/RESULTS/" % "/10_NESTED_CV/assessment_results.json"))
                                                      (catch Exception e (println e)))))
@@ -184,11 +185,13 @@
                                         :it (or (:it params) "")
                                         :params (str/join ", " (keep params [:pool :it]))}))))
                       summaries)
-        max-test (apply max (map :test-mean results))
-        max-train (apply max (map :train-mean results))
+        typed-max (fn ([] {}) ([x] x) ([max-dict [t v]] (update max-dict t (fnil max 0) v)))
+        max-grouper (juxt (comp first :order) :is-default)
+        max-test (transduce (map (juxt max-grouper :test-mean)) typed-max {} results)
+        max-train (transduce (map (juxt max-grouper :train-mean)) typed-max {} results)
         results (map (fn [res] (assoc res
-                                      :is-best-test (= max-test (:test-mean res))
-                                      :is-best-train (= max-train (:train-mean res))))
+                                      :is-best-test (= (max-test (max-grouper res)) (:test-mean res))
+                                      :is-best-train (= (max-train (max-grouper res)) (:train-mean res))))
                      results)]
       results))
 

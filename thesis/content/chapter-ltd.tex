@@ -401,7 +401,7 @@ We begin by proving that 2-\acs{wl}-\acsp{gnn} are at least as powerful as 1-\ac
 	To complete the induction step it now remains to show that all three invariants hold after applying the layers $S^{(t, 2+1)}, \dots, S^{(t, 2+K)}$.
 	As previously mentioned, a 2-\acs{wl} convolution layer is reduced to a fully connected layer if $W_{\mathrm{F}}^{(t)} = \mathbf{0}$.
 	Via the universal approximation theorem~\cite{Hornik1991} we can therefore use $S^{(t, 2+1)}, \dots, S^{(t, 2+K)}$ to simulate the $K$ layers of $\mathrm{\acs*{mlp}}^{(t)}$ without changing the first and last dimension of each feature vector to preserve \cref{inv:ltd:wl2-simulation:indicator,inv:ltd:wl2-simulation:weight}.
-	The resulting feature matrix $Z^{(t,2+K)}$ then satisfies all three invariants which completes the induction.
+	The resulting feature matrix $Z^{(t,2+K)}$ then satisfies all three invariants, which completes the induction.
 
 	Using \cref{inv:ltd:wl2-simulation:indicator,inv:ltd:wl2-simulation:feature} for $t = T$ we can therefore set
 	\begin{align*}
@@ -425,19 +425,19 @@ To complete our analysis of the expressive power of 2-\acs{wl}-\acsp{gnn} we now
 	There are $d$-regular graphs $G$ and $H$ of size $n$ which can be distinguished by 2-\acs{wl}-\acsp{gnn}.
 \end{prop}
 \begin{proof}
-	The proposition follows if we choose the six-cycle graph for $G$ and the two three-cycles graph for $H$, both of which should be well-known at this point.
+	The proposition follows if we choose the six-cycle graph for $G$ and the two three-cycles graph for $H$, both of which should be familiar at this point.
 	Let $h_2 = \mathit{Pool} \circ S$ be a 2-\acs{wl}-\acs{gnn} with the neighborhood radius $r = 1$ which consists of a single 2-\acs{wl} convolution layer $S: \mathbb{R}^{* \times 2} \to \mathbb{R}^{* \times 1}$ and the pooling layer $\mathit{Pool} = \min$.
 	In accordance with \cref{defn:ltd:wl2-conv-init} we set the initial feature vectors of the vertices $v_i$ of $G$ and $H$ to $Z^{(0)}[e_{ii}] \coloneqq (1, 0)$ and the initial feature vectors of their edges $e_{ij}$ to $Z^{(0)}[e_{ij}] \coloneqq (0, 1)$.
 	Let the weight matrices of $S$ be $W_{\mathrm{L}} \coloneqq \mathbf{0}$ and $W_{\mathrm{F}} = W_{\Gamma} \coloneqq \begin{pmatrix} 1\\1 \end{pmatrix}$.
 	For simplicity we choose the identity activation functions $\sigma = \sigma_{\Gamma} = \mathrm{id}$.
 
-	By \cref{defn:ltd:wl2-conv-step} all self-loops $e_{ii}$ of $G^1$ and $H^1$ have the three neighbors $\{ \textcolor{t_blue}{\ldblbrace e_{ii}, e_{ii} \rdblbrace},\allowbreak \textcolor{t_red}{\ldblbrace e_{ij}, e_{ji} \rdblbrace},\allowbreak \textcolor{t_darkgreen}{\ldblbrace e_{il}, e_{li} \rdblbrace} \}$, i.e.\ the length-two walk along $e_{ii}$ itself and the length-two walks to and from the two neighboring vertices $\Gamma(v_i) = \{ v_j, v_l \}$. % chktex 25
+	By \cref{defn:ltd:wl2-conv-step}, all self-loops $e_{ii}$ of $G^1$ and $H^1$ have the three neighbors $\{ \textcolor{t_blue}{\ldblbrace e_{ii}, e_{ii} \rdblbrace},\allowbreak \textcolor{t_red}{\ldblbrace e_{ij}, e_{ji} \rdblbrace},\allowbreak \textcolor{t_darkgreen}{\ldblbrace e_{il}, e_{li} \rdblbrace} \}$, i.e.\ the length-two walk along $e_{ii}$ itself and the length-two walks to and from the two neighboring vertices $\Gamma(v_i) = \{ v_j, v_l \}$. % chktex 25
 	Therefore the convolved feature vector of all self-loops are $Z^{(1)}[e_{ii}] = (1) \odot (\textcolor{t_blue}{(1 + 1)} + \textcolor{t_red}{(1 + 1)} + \textcolor{t_darkgreen}{(1 + 1)}) = 6$. % chktex 25
 	However for the non-self-loops of $G^1$ and $H^1$, i.e.\ the edges of $G$ and $H$, we get differing convolved feature vectors.
 	The 2-\acs{wl} neighbors of $e_{ij} \in \mathcal{E}_G$ are $\{ \ldblbrace e_{ii},  e_{ij} \rdblbrace,\allowbreak \ldblbrace e_{ij}, e_{jj} \rdblbrace \}$.
 	The 2-\acs{wl} neighbors of $e_{ij}' \in \mathcal{E}_H$ are $\{ \ldblbrace e_{ii}',  e_{ij}' \rdblbrace,\allowbreak \ldblbrace e_{ij}',  e_{jj}' \rdblbrace,\allowbreak \ldblbrace e_{il}',  e_{lj}' \rdblbrace \}$ where $v_l' \in \mathcal{V}_H$ is the common neighbor of $v_i'$ and $v_j'$.
 	The different neighborhood sizes of the edges of $G$ and $H$ imply that $\forall e_{ij} \in \mathcal{E}_G: Z^{(1)}[e_{ij}] = 4$ while $\forall e_{ij}' \in \mathcal{E}_H: Z^{(1)}[e_{ij}] = 6$.
-	Thus $h_2(G) = \min\{ 4, 6 \} \neq \min\{ 6, 6 \} = h_2(H)$ which concludes the proof. % chktex 21
+	Thus $h_2(G) = \min\{ 4, 6 \} \neq \min\{ 6, 6 \} = h_2(H)$, which concludes the proof. % chktex 21
 \end{proof}
 \begin{cor}\label{cor:ltd:wl2-gnn-more-wl1-power}
 	The discriminative power of 2-\acs{wl}-\acsp{gnn} is strictly greater than that of the 1-\acs{wl} algorithm.
@@ -539,7 +539,7 @@ The $\mathit{scatter}_{\Sigma}$ operator can be understood as the opposite of $\
 $\mathit{scatter}_{\Sigma}$ takes a list $X$ of $\gamma$ row vectors and a list $R$ of $\gamma$ pointers from the range $[m]$.
 It returns a list $Z$ of $m$ row vectors $Z[i] = \sum_{j \in [\gamma] \land R[j] = i} X[j]$ for $i \in [m]$.
 
-Using the $\mathit{gather}$ and $\mathit{scatter}_{\Sigma}$ operator, the 2-\acs{wl} convolution operator from \cref{defn:ltd:wl2-conv-step} can be computed via the following algorithm:
+Using the $\mathit{gather}$ and $\mathit{scatter}_{\Sigma}$ operators, the 2-\acs{wl} convolution operator from \cref{defn:ltd:wl2-conv-step} can be computed via the following algorithm:
 \begin{algorithm}[H]
 	\caption{Parallel Implementation of a 2-\acs{wl} Convolution Layer $S^{(t)}$}\label{algo:ltd:wl2-conv}
 	\begin{algorithmic}[1]
