@@ -95,4 +95,5 @@ WL_sp_3 = kernel_model("WL_sp_3", grakel_kernel(
   "WL_sp_3", kernel=[{"name": "WL", "n_iter": 3}, "SP"]))
 
 LWL2 = kernel_model("LWL2", fs_kernel("LWL2"))
+LWL2_1 = kernel_model("LWL2_1", fs_kernel("LWL2_1"))
 GWL2 = kernel_model("GWL2", fs_kernel("GWL2"))
