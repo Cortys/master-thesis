@@ -77,58 +77,69 @@
 (defn extract-pool
   [name]
   (let [pool (if (str/includes? name "Avg") "\\mean" "\\mathrm{SAM}")]
-    (if (str/ends-with? name "FC")
-      (str pool "+ MLP")
-      pool)))
+    pool
+    #_(if (str/ends-with? name "FC")
+        (str pool " + \\mathrm{MLP}")
+        pool)))
 
 (defn eval-name->params
-  [dataset name single-depth]
+  [dataset name]
   (let [[_ r n _ T] (re-find #"n?(\d?)_?(.+?)(_FC)?(_\d)?$" name)
+        ;_ (println "y" name dataset r n T)
         r (if (seq r) (Integer/parseInt r) (default-radii dataset))
         T (when (seq T) (Integer/parseInt (subs T 1)))
-        pool (extract-pool extract-pool)]
+        pool (extract-pool name)]
     (condp #(str/includes? %2 %1) n
       "CWL2GCN"
-      (when (or (not single-depth)
-                (= r (single-depth-radii dataset)))
-        {:name "2-WL-GNN"
-         :order 14
-         :radius (when (not single-depth) (str "r=" r))
-         :pool pool})
+      {:name "2-WL-GNN"
+       :order [1 4 (if (str/includes? pool "MLP") 0 1) r]
+       :radius (str "r=" r)
+       :is-default (= r (single-depth-radii dataset))
+       :is-lta (not (str/ends-with? name "FC"))
+       :pool pool}
       "K2GNN"
       {:name "2-GNN"
-       :order 13
+       :order [1 3 0 0]
+       :is-default true
        :pool pool}
       "WL_st"
-      (when (or (not single-depth) (nil? T))
-        {:name "WL\\textsubscript{ST}"
-         :order 1
-         :it (str "T=" (or T 5))})
+      {:name "WL\\textsubscript{ST}"
+       :order [0 1 (or T 5) 0]
+       :it (str "T=" (or T 5))
+       :is-lta true
+       :is-default (nil? T)}
       "WL_sp"
-      (when (or (not single-depth) (nil? T))
-        {:name "WL\\textsubscript{SP}"
-         :order 2
-         :it (str "T=" (or T 5))})
+      {:name "WL\\textsubscript{SP}"
+       :order [0 2 (or T 5) 0]
+       :it (str "T=" (or T 5))
+       :is-default (nil? T)}
       "LWL2"
-      (when (or (not single-depth) (nil? T))
-        {:name "2-LWL"
-         :order 3
-         :it (str "T=" (or T 3))})
+      {:name "2-LWL"
+       :order [0 3 (or T 3) 0]
+       :it (str "T=" (or T 3))
+       :is-lta true
+       :is-default (nil? T)}
       "GWL2"
-      (when (or (not single-depth) (nil? T))
-        {:name "2-GWL"
-         :order 4
-         :it (str "T=" (or T 3))})
+      {:name "2-GWL"
+       :order [0 4 (or T 3) 0]
+       :it (str "T=" (or T 3))
+       :is-default (nil? T)}
       "GIN"
-      {:name "GIN" :order 12}
+      {:name "GIN" :order [1 2 0 0]
+       :pool "\\mathrm{sum}"
+       :is-default true}
       "MolecularFingerprint"
-      {:name "Baseline" :order 11}
+      {:name "Baseline" :order [1 1 0 0]
+       :pool "\\mathrm{sum}"
+       :is-default true}
       "DeepMultisets"
-      {:name "Baseline" :order 11}
+      {:name "Baseline" :order [1 1 0 0]
+       :pool "\\mathrm{sum}"
+       :is-default true}
       nil)))
 
 (defn dataset-results
-  [dataset & {:keys [single-depth] :or {single-depth true}}]
+  [dataset & {:keys [only-default] :or {only-default true}}]
   (let [{evals :out} (sh "ls" "./evaluations/")
         evals (str/split evals #"\n+")
         summaries (into []
@@ -140,10 +151,10 @@
                                           {test :accuracy} :combined_test
                                           {train :accuracy} :combined_train}]
                                       {:name name
-                                       :test-mean (:mean test)
-                                       :test-std (:std test)
-                                       :train-mean (:mean train)
-                                       :train-std (:std train)})))
+                                       :test-mean (* 100 (or (:mean test) 0))
+                                       :test-std (* 100 (or (:std test) 0))
+                                       :train-mean (* 100 (or (:mean train) 0))
+                                       :train-std (* 100 (or (:std train) 0))})))
                         evals)
         {comp-evals :out} (sh "ls" "./libs/gnn-comparison/RESULTS/")
         comp-evals (str/split comp-evals #"\n+")
@@ -161,47 +172,66 @@
                                        :train-mean avg_TR_score
                                        :train-std std_TR_score})))
                         comp-evals)
-        summaries (keep (fn [{name :name :as sum}]
-                           (when-let [params (eval-name->params dataset name single-depth)]
-                             (merge sum {:model (params :name)
-                                         :order (params :order)
-                                         :dataset dataset
-                                         :params (str/join ", " (keep params [:pool :radius :it]))})))
-                        summaries)]
-      summaries))
+        results (keep (fn [{name :name :as sum}]
+                        (when-let [params (eval-name->params dataset name)]
+                          (when (or (not only-default) (:is-default params))
+                            (merge sum {:model (params :name)
+                                        :order (params :order)
+                                        :dataset dataset
+                                        :is-default (:is-default params)
+                                        :is-lta (:is-lta params)
+                                        :pool (or (:pool params) "")
+                                        :it (or (:it params) "")
+                                        :params (str/join ", " (keep params [:pool :it]))}))))
+                      summaries)
+        max-test (apply max (map :test-mean results))
+        max-train (apply max (map :train-mean results))
+        results (map (fn [res] (assoc res
+                                      :is-best-test (= max-test (:test-mean res))
+                                      :is-best-train (= max-train (:train-mean res))))
+                     results)]
+      results))
 
 (defn dataset-result-head
   [dataset]
   (let [pre (ds-colnames dataset)]
-    (str pre "TestMean;" pre "TestStd;" pre "TrainMean;" pre "TrainStd")))
+    (str pre "TestMean;" pre "TestStd;" pre "TrainMean;" pre "TrainStd;" pre "BestTest;" pre "BestTrain")))
 
 (defn dataset-result-row
-  [datasets results [model params]]
+  [datasets results idx [model params is-default is-lta]]
   (let [results (into {}
-                      (comp (filter #(and (= (:model %) model) (= (:params %) params)))
+                      (comp (filter #(and (= (:model %) model)
+                                          (= (:params %) params)
+                                          (= (:is-default %) is-default)
+                                          (= (:is-lta %) is-lta)))
                             (map (juxt :dataset identity)))
                       results)]
-    (str model ";" params ";"
+    (str idx ";" model ";" (when (seq params) (str params)) ";"
+         (if is-default "1" "0") ";" (if is-lta "1" "0") ";"
          (str/join ";" (map (fn [ds]
                               (if-let [res (results ds)]
-                                (str/join ";" (->> [:test-mean :test-std :train-mean :train-std]
-                                                   (map res)))
-                                                   ; (map #(* 100 %))))
-                                "-;-;-;-"))
+                                (str (str/join ";" (->> [:test-mean :test-std :train-mean :train-std]
+                                                        (map res)
+                                                        (map #(format "%.1f" (double %)))))
+                                     ";" (if (:is-best-test res) "1" "0")
+                                     ";" (if (:is-best-train res) "1" "0"))
+                                "-;-;-;-;0;0"))
                             datasets)))))
 
 (defn eval-results->csv
-  [{:keys [single-depth]} & args]
-  (let [results (sort-by :order (mapcat #(dataset-results % :single-depth single-depth) (if (empty? args) datasets args)))
-        models-with-params (distinct (map (juxt :model :params) results))
-        head (str "model;params;" (str/join ";" (map dataset-result-head datasets)))
-        rows (into [] (map (partial dataset-result-row datasets results)) models-with-params)
+  [{:keys [only-default]} file & args]
+  (let [datasets (if (empty? args) datasets args)
+        results (sort-by :order (mapcat #(dataset-results % :only-default only-default) datasets))
+        models-with-params (distinct (map (juxt :model :params :is-default :is-lta) results))
+        head (str "id;model;params;isDefault;isLta;" (str/join ";" (map dataset-result-head datasets)))
+        rows (into [] (map-indexed (partial dataset-result-row datasets results)) models-with-params)
         csv (str head "\n" (str/join "\n" rows))]
+    (spit (str "../thesis/data/" file ".csv") csv)
     (println csv)))
 
 (def actions {"ds_stats" ds-stats->csv
-              "eval_res_full" (partial eval-results->csv {:single-depth false})
-              "eval_res" (partial eval-results->csv {:single-depth true})})
+              "eval_res_full" (partial eval-results->csv {:only-default false})
+              "eval_res" (partial eval-results->csv {:only-default true})})
 
 (println "LTAG Results Postprocessor.")
 (if-let [action (actions (first *command-line-args*))]

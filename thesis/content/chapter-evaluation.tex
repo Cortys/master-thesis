@@ -81,7 +81,7 @@ The patience period $p$ is part of the hyperparameter configurations $\theta \in
 
 Using this assessment strategy we evaluate \acp{svm} with the following graph kernels:
 \begin{enumerate}[label={\textbf{\arabic*.}},itemsep=2pt,parsep=2pt]
-	\item \textbf{\ac{wl} subtree kernel (\acs{wl}\textsubscript{ST})} with the iteration counts $T \in \{ 1, 2, 5 \}$ to evaluate the influence of the depth of \ac{bfs} subtrees which span \ac{lta} constituents.
+	\item \textbf{\ac{wl} subtree kernel (\acs{wl}\textsubscript{ST})} with the iteration counts $T \in [5]$ to evaluate the influence of the depth of \ac{bfs} subtrees which span \ac{lta} constituents.
 	\item \textbf{\ac{wl} shortest path kernel (\acs{wl}\textsubscript{SP})} with the iteration count $T = 5$.
 	\item \textbf{2-LWL kernel} with the iteration count $T = 3$.
 	\item \textbf{2-GWL kernel} with the iteration count $T = 3$.
@@ -112,18 +112,60 @@ To determine the classes of the graphs in this dataset, a learner has to solve t
 Given a graph $G$ with vertices that are colored as either $l_G[v] = \colorlabel{t_blue}{A}$ or as $l_G[v] = \colorlabel{t_red}{B}$, the learner has to find the unique triangle $(v_i, v_j, v_k)$ in $G$ for which $l_G[v_i] = l_G[v_j] = l_G[v_k]$. % chktex 25
 The class of $G$ is then determined by the color of the vertices $(v_i, v_j, v_k)$.
 
-Based on this problem we generate a synthetic triangle detection dataset.
+Based on this problem we generated a synthetic triangle detection dataset.
 It contains randomly generated graphs with varying vertex counts and vertex color proportions (see \cref{sec:appendix:ds-stats} for a more detailed description).
-This dataset allows us to test whether a learner is able to ignore varying amounts of noisy random structure and focus on relevant local substructures, in this case unicolored triangles.
-\Cref{fig:evaluation:triangle-problem} shows two graphs with different classes which both have the same size and equal vertex color proportions.
-\begin{figure}[ht]
+We use this dataset to evaluate whether a learner is able to ignore varying amounts of noisy random structure and focus on relevant local substructures, in this case unicolored triangles.
+\begin{table}[t]
+	\caption{Mean accuracies and standard deviations on the triangle detection dataset.}\label{tbl:eval:synthetic}
 	\centering
-	\includegraphics[width=0.75\linewidth]{gfx/evaluation/triangle-problem.pdf}
+	\csvreader[
+		tabular={clrrr},
+		separator=semicolon,
+		table head={%
+			& \multicolumn{2}{l}{Model (Iterations/Pooling)} & \multicolumn{1}{c}{Train} & \multicolumn{1}{c}{Test} \\\toprule%
+		},
+		table foot=\bottomrule,
+		late after line=\ifthenelse{\equal{\id}{9}}{\\\midrule}{\\},
+		head to column names,
+		filter=\equal{\isDefault}{1}\or\equal{\id}{0}
+	]{data/results.csv}{}{%
+		\ifthenelse{\equal{\id}{0}}{\multirow{5}{*}[0em]{\rotatebox[origin=c]{90}{\small\textsc{Kernel}}}}{}%
+		\ifthenelse{\equal{\id}{9}}{\multirow{8}{*}[0em]{\rotatebox[origin=c]{90}{\small\textsc{\ac{gnn}}}}}{} &%
+		\textbf{\model} ($\params$) & \ifthenelse{\equal{\isLta}{1}}{\badgeboxinline[t_green]{\scriptsize \acs*{lta}-like}}{} &%
+		$\condbold{\triangleBestTrain}{\triangleTrainMean} \pm \triangleTrainStd$ & $\condbold{\triangleBestTest}{\triangleTestMean} \pm \triangleTestStd$%
+	}
+\end{table}
+\begin{figure}[t]
+	\centering
+	\includegraphics[width=0.7\linewidth]{gfx/evaluation/triangle-problem.pdf}
 	\caption[Two example graphs from the triangle detection dataset.]{
 		Two examples from the triangle detection dataset.
 		The unique unicolored triangle which has to be detected by the learners is highlighted in both graphs.
 	}\label{fig:evaluation:triangle-problem}
 \end{figure}
+Looking at the results in \cref{tbl:eval:synthetic}, it can be seen that the structure unaware baseline method is completely unable to do so, as expected.
+The structure aware learners on the other hand all perform better than random guessing and are in fact mostly able to fit the training data perfectly.
+This shows that all generated graphs are 1-\acs{wl} distinguishable; the \ac{wl} subtree kernel for example can simply memorize the training graphs via their unique 1-\acs{wl} color distribution after $T = 5$ refinement steps.
+
+However, the ability to distinguish training graphs is not sufficient to also classify previously unseen graphs correctly.
+Since 1-\acs{wl} cannot detect triangles, all 1-\acs{wl} bounded approaches (\acs{wl}\textsubscript{ST}, \acs{wl}\textsubscript{SP}, Baseline, \acs{gin}) are therefore unable to generalize, as can be seen in their test accuracies.
+The fact that they perform better than random guessing can be explained by the following proxy indicator:
+The presence of an \colorlabel{t_blue}{A}-colored triangle in a graph $G$ implies that there is a local region with a slightly higher density of \colorlabel{t_blue}{A}-colored vertices than in a \colorlabel{t_red}{B}-colored graph $H$ with the same vertex color proportions.
+This local color density difference is already detectable in the depth-1 \acs{bfs} subtrees used by 1-\acs{wl} after a single refinement step; this explains why \acs{wl}\textsubscript{ST} performs similarly for $T = 1$ and $T = 5$.
+
+Let us now take a look at the 2-\acs{wl} inspired kernels: 2-LWL and 2-GWL.\@
+Interestingly both kernels do not appear to generalize better the 1-\acs{wl} bounded methods;
+we explain this by the fairly small size of the triangle detection dataset (228 graphs).
+Even though both kernels embed graphs into a space with dimensions that indicate the presence of a unicolored triangle (see \cfullref{prop:related:wl2-cycle-count}), there are many of those triangle-indicating embedding dimensions s.t.\ the indicating dimensions found in a given training split might not overlap with those in the test split.
+
+Looking at the 2-\acs{wl} inspired \acp{gnn} (2-\acs{gnn}, 2-\acs{wl}-\acs{gnn}), we find that the proposed 2-\acs{wl}-\acs{gnn} significantly outperforms all other evaluated methods which confirms our theoretical results from \cref{sec:ltd:wl2gnn:properties}.
+We evaluated 2-\acs{wl}-\acsp{gnn} in an \acs{lta}-like configuration without a final \ac{mlp} and in a non-\acs{lta} configuration with an \ac{mlp} after the pooling layer.
+Comparing both configurations we clearly see that the \acs{lta}-variant has a worse generalization performance despite the fact that the triangle detection problem fits well into the \ac{lta} framework:
+Find the unicolored triangle constituent, classify it locally then use that local class to classify the graph.
+Further investigations are required to determine to which extent the worse performance of the \acs{lta}-like configuration is caused by the static subtree-based constituents and whether a more dynamic solution to the \acf{ltd} problem could improve the performance (e.g.\ via the edge filters described in \cref{sec:ltd:edge-filter}).
+
+Finally, looking at the two evaluated \acs{lta}-compatible pooling layers, static $\mean$ pooling and \ac{sampool}, we see that the attention mechanism significantly improves the generalization performance of both 2-\acs{gnn} and 2-\acs{wl}-\acs{gnn}.
+This indicates that \ac{sampool} is successful at filtering out the randomly generated noisy parts of a given graph and put most attention to the relevant unicolored triangle.
 
 \section{Evaluation on Real-World Data}%
 \label{sec:eval:real}

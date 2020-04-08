@@ -197,6 +197,7 @@
 \providecommand\rightarrowRHD{\mathrel{\relbar\mathrel{\mkern-8mu\RHD}}}
 \newcommand*\linksym{\includegraphics[height=1.4ex]{gfx/link.pdf}\mkern1mu}
 \newcommand*{\colorlabel}[2]{\textsf{\textbf{\small\textcolor{#1}{#2}}}}
+\newcommand*{\condbold}[2]{\ifthenelse{\equal{#1}{1}}{\mathbf{#2}}{#2}}
 
 \newcommand{\sourceinline}[2][source]{{\scriptsize\textsc{#1:~\cite{#2}}}}
 \newcommand{\source}[2][source]{\hspace*{\fill}\sourceinline[#1]{#2}}

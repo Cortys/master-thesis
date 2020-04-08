@@ -653,7 +653,7 @@ Looking back at the 1-\acs{wl} indistinguishable ``six-cycle''/``two-triangles''
 Instead of incorporating shortest path information to increase the power of the \ac{wl} kernel, one can alternatively just increase the \acs{wl}-dimension $k$.
 A na{\"\i}ve generalization of the 1-\acs{wl} subtree kernel would simply use \cref{eq:related:wl-subtree-kernel} but with the k-\acs{wl} colorings $\chi_{G,k}^{(t)}$ instead of $\chi_{G,1}^{(t)}$.
 The problem with this approach is that the runtime of \ac{wl} increases exponentially with $k$;
-even for $k = 2$ the cost often becomes infeasibly high when working with large graphs.
+even for $k = 2$ the cost can become infeasibly high when working with large graphs.
 To tackle this problem \citet{Morris2017} proposed a combination of two optimizations:
 \begin{enumerate}[label=\textbf{\arabic*.}]
 	\item \textbf{$k$-multisets:}
