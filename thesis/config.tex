@@ -199,8 +199,8 @@
 \newcommand*{\colorlabel}[2]{\textsf{\textbf{\small\textcolor{#1}{#2}}}}
 \newcommand*{\condbold}[2]{\ifthenelse{\equal{#1}{1}}{\mathbf{#2}}{#2}}
 \newcommand*{\evalres}[3]{%
-	\ifthenelse{\equal{#2}{0.0}}{\acs*{oom}}%
-	{\ifthenelse{\equal{#2}{-}}{\acs*{oot}}{$\condbold{#1}{#2} \pm #3$}}%
+	\ifthenelse{\equal{#2}{m}}{\acs*{oom}}{%
+	\ifthenelse{\equal{#2}{t}}{\acs*{oot}}{$\condbold{#1}{#2} \pm #3$}}%
 }
 
 \newcommand{\sourceinline}[2][source]{{\scriptsize\textsc{#1:~\cite{#2}}}}

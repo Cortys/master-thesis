@@ -28,6 +28,7 @@
                   "IMDB-BINARY" "imdb"})
 (def datasets ["balanced_triangle_classification_dataset"
                "NCI1" "PROTEINS_full" "DD" "REDDIT-BINARY" "IMDB-BINARY"])
+(def models-with-potential-oom #{"WL\\textsubscript{SP}"})
 
 (defn round
   ([num] (round num 0))
@@ -38,6 +39,12 @@
        (int (Math/round num))
        (let [p (Math/pow 10 prec)]
          (/ (Math/round (* num p)) p))))))
+
+(defn dim-str
+  [feat lab]
+  (if (zero? (+ feat lab))
+    "0 + 1"
+    (str feat " + " lab)))
 
 (defn stats-dict->csv-line
   [[name {:strs [node_counts
@@ -56,8 +63,8 @@
              (round (get edge_counts "min"))
              (round (get edge_counts "mean"))
              (round (get edge_counts "max"))
-             (+ dim_node_features num_node_labels)
-             (+ dim_edge_features num_edge_labels)
+             (dim-str dim_node_features num_node_labels)
+             (dim-str dim_edge_features num_edge_labels)
              (round (get node_degrees "min"))
              (round (get node_degrees "mean"))
              (round (get node_degrees "max"))]))
@@ -139,6 +146,10 @@
        :is-default true}
       nil)))
 
+(defn to-proc
+  [x]
+  (* 100 (or x 0)))
+
 (defn dataset-results
   [dataset & {:keys [only-default] :or {only-default true}}]
   (let [{evals :out} (sh "ls" "./evaluations/")
@@ -149,29 +160,44 @@
                               (keep (fn [[name s]] (when s (assoc (json/parse-string s true)
                                                                   :name (subs name (inc (count dataset)))))))
                               (keep (fn [{name :name
+                                          folds :folds
                                           {test :accuracy} :combined_test
                                           {train :accuracy} :combined_train}]
-                                      {:name name
-                                       :test-mean (* 100 (or (:mean test) 0))
-                                       :test-std (* 100 (or (:std test) 0))
-                                       :train-mean (* 100 (or (:mean train) 0))
-                                       :train-std (* 100 (or (:std train) 0))})))
+                                      (when (= (:count test) 10) ; only include evaluations of all 10-folds
+                                        {:name name
+                                         :test-mean (to-proc (:mean test))
+                                         :test-std (to-proc (:std test))
+                                         :train-mean (to-proc (:mean train))
+                                         :train-std (to-proc (:std train))
+                                         :folds (map (fn [{{test :accuracy} :test}]
+                                                       {:test-mean (to-proc (:mean test))})
+                                                     folds)}))))
                         evals)
         {comp-evals :out} (sh "ls" "./libs/gnn-comparison/RESULTS/")
         comp-evals (str/split comp-evals #"\n+")
         summaries (into summaries
                         (comp (filter #(str/ends-with? % (str (if (= dataset "PROTEINS_full") "PROTEINS" dataset) "_assessment")))
-                              (map (juxt identity #(try
-                                                     (slurp (str "./libs/gnn-comparison/RESULTS/" % "/10_NESTED_CV/assessment_results.json"))
-                                                     (catch Exception e (println e)))))
-                              (keep (fn [[name s]] (when s (assoc (json/parse-string s true)
-                                                                  :name name))))
-                              (keep (fn [{:keys [name avg_TR_score std_TR_score avg_TS_score std_TS_score]}]
+                              (map (juxt identity
+                                         (fn [dir]
+                                           (try
+                                             {:folds (mapv #(slurp (str "./libs/gnn-comparison/RESULTS/" dir "/10_NESTED_CV/"
+                                                                        "OUTER_FOLD_" % "/outer_results.json"))
+                                                          (range 1 11))
+                                              :res (slurp (str "./libs/gnn-comparison/RESULTS/" dir "/10_NESTED_CV/assessment_results.json"))}
+                                             (catch Exception e (println e))))))
+                              (keep (fn [[name {:keys [folds res] :or {folds nil res nil}}]]
+                                      (when res
+                                        (assoc (json/parse-string res true)
+                                               :name name
+                                               :folds (map #(json/parse-string % true) folds)))))
+                              (keep (fn [{:keys [name folds avg_TR_score std_TR_score avg_TS_score std_TS_score]}]
                                       {:name name
                                        :test-mean avg_TS_score
                                        :test-std std_TS_score
                                        :train-mean avg_TR_score
-                                       :train-std std_TR_score})))
+                                       :train-std std_TR_score
+                                       :folds (map (fn [{:keys [OUTER_TS]}] {:test-mean OUTER_TS})
+                                                   folds)})))
                         comp-evals)
         results (keep (fn [{name :name :as sum}]
                         (when-let [params (eval-name->params dataset name)]
@@ -218,7 +244,7 @@
                                                         (map #(format "%.1f" (double %)))))
                                      ";" (if (:is-best-test res) "1" "0")
                                      ";" (if (:is-best-train res) "1" "0"))
-                                "-;-;-;-;0;0"))
+                                (if (models-with-potential-oom model) "m;m;m;m;0;0" "t;t;t;t;0;0")))
                             datasets)))))
 
 (defn eval-results->csv
@@ -228,13 +254,66 @@
         models-with-params (distinct (map (juxt :model :params :is-default :is-lta) results))
         head (str "id;model;params;isDefault;isLta;" (str/join ";" (map dataset-result-head datasets)))
         rows (into [] (map-indexed (partial dataset-result-row datasets results)) models-with-params)
-        csv (str head "\n" (str/join "\n" rows))]
+        csv (str head "\n" (str/join "\n" rows) "\n")]
+    (spit (str "../thesis/data/" file ".csv") csv)
+    (println csv)))
+
+(defn res->full-name
+  [{name :model params :params is-lta :is-lta}]
+  (str "\\textbf{"
+       (if is-lta
+         (str "\\textcolor{t_darkgreen}{" name "*}")
+         name)
+       "} ($" params "$)"))
+
+(defn mean
+  [vals]
+  (/ (apply + vals) (count vals)))
+
+(defn std
+  [vals]
+  (let [m (mean vals)]
+    [m (Math/sqrt
+         (/ (apply + (map (comp #(* % %) #(- % m))
+                          vals))
+            (count vals)))]))
+
+(defn fold-differences->csv
+  [{:keys [only-default]} file dataset]
+  (let [results (sort-by :order (dataset-results dataset :only-default only-default))
+        diffs
+        (for [{folds_a :folds} results
+              {folds_b :folds} results
+              :let [test_a (map :test-mean folds_a)
+                    test_b (map :test-mean folds_b)
+                    test_diffs (map - test_a test_b)
+                    [test_diff_mean test_diff_std] (std test_diffs)
+                     d (format "$%.1f \\pm %.1f$"
+                               (double test_diff_mean)
+                               (double test_diff_std))]]
+          (cond
+            (pos? test_diff_mean)
+            (str "\\textcolor{t_darkgreen}{" d "}")
+            (neg? test_diff_mean)
+            (str "\\textcolor{t_red}{" d "}")
+            (zero? test_diff_std) ""
+            :else d))
+        diffs (partition (count results) diffs)
+        head (str ";" (str/join ";" (map (comp #(str "\\rotatebox[origin=c]{90}{" % "}")
+                                               res->full-name)
+                                         results)))
+        rows (map (fn [res diffs]
+                    (str (res->full-name res) ";"
+                         (str/join ";" diffs)))
+                  results diffs)
+        csv (str head "\n" (str/join "\n" rows) "\n")]
     (spit (str "../thesis/data/" file ".csv") csv)
     (println csv)))
 
 (def actions {"ds_stats" ds-stats->csv
               "eval_res_full" (partial eval-results->csv {:only-default false})
-              "eval_res" (partial eval-results->csv {:only-default true})})
+              "eval_res" (partial eval-results->csv {:only-default true})
+              "fold_diff" (partial fold-differences->csv {:only-default true})})
 
 (println "LTAG Results Postprocessor.")
 (if-let [action (actions (first *command-line-args*))]

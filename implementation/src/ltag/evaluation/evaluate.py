@@ -121,7 +121,7 @@ def evaluate(
   outer_k=None, repeat=1, winner_repeat=3, epochs=1000,
   patience=100, stopping_min_delta=0.0001,
   restore_best=False, hp_args=None, label=None,
-  eval_dir=None, verbose=2, dry=False, ignore_worst=0):
+  eval_dir=None, verbose=2, dry=False, ignore_worst=0, single_hp=None):
   outer_k = outer_k or ds_manager.outer_k
   inner_k = None
 
@@ -190,6 +190,10 @@ def evaluate(
   i_start = -1
   print(t, f"- Evaluating {ds_name} using {mf_name}...")
 
+  if single_hp is not None:
+    print(f"!!! USING SINGLE HP MODE FOR HYPERPARAM {single_hp} !!!")
+    print("The resulting mean accuracy might be negatively affected.")
+
   if resume and pos_file.exists():
     pos = pos_file.read_text().split(",")
     if len(pos) == 3:
@@ -235,6 +239,11 @@ def evaluate(
       for hp_i, hp in enumerate(hps):
         hp_str = f"{hp_i+1}/{hpc}"
         curr_i_start = 0
+
+        if single_hp != hp_i:
+          print(f"Skipping {fold_str} with hp {hp_str} due to single hp mode.")
+          continue
+
         if k == k_start:
           if hp_i < hp_start:
             print(f"Already evaluated {fold_str} with hyperparams {hp_str}.")
@@ -252,19 +261,21 @@ def evaluate(
             model_ctr, train_ds, val_ds, test_ds, k, hp_i, i, hp,
             res_dir, fold_str, hp_str, verbose, log_dir_base,
             **config)
-          pos_file.write_text(f"{k},{hp_i},{i}")
+          if single_hp is None:
+            pos_file.write_text(f"{k},{hp_i},{i}")
 
       t_end_fold = timer()
       dur_fold = t_end_fold - t_start_fold
+      summ = summary.summarize_evaluation(
+        eval_dir, ignore_worst=ignore_worst)
       print(time_str(), f"- Evaluated hps of fold {fold_str} in {dur_fold}s.")
 
       if winner_repeat > repeat:
-        if hp_start == hpc and i_start + 1 == winner_repeat:
+        if single_hp is not None:
+          print(f"No repeats because of single hp mode for hp={single_hp}.")
+        elif hp_start == hpc and i_start + 1 == winner_repeat:
           print(f"Already did winner evaluations of fold {fold_str}.")
         else:
-          summ = summary.summarize_evaluation(
-            eval_dir, ignore_worst=ignore_worst)
-
           best_hp_i = summ["folds"][k]["hp_i"]
           best_hp = hps[best_hp_i]
           hp_str = f"{best_hp_i+1}/{hpc}"
@@ -279,7 +290,10 @@ def evaluate(
               model_ctr, train_ds, val_ds, test_ds, k, best_hp_i, i, best_hp,
               res_dir, fold_str, hp_str, verbose, log_dir_base,
               **config)
-            pos_file.write_text(f"{k},{hpc},{i}")
+            if single_hp is None:
+              pos_file.write_text(f"{k},{hpc},{i}")
+
+          summary.summarize_evaluation(eval_dir, ignore_worst=ignore_worst)
           print(
             time_str(),
             f"- Completed additional {add_rep} evals of fold {fold_str}",

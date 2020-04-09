@@ -30,7 +30,7 @@ def resume(mf, dsm, **kwargs):
 
   return evaluate.resume_evaluation(mf, dsm, **kwargs)
 
-def summarize(mf, dsm):
+def summarize(mf, dsm, **kwargs):
   if dsm.evaluation_args is not None:
     kwargs = fy.project(dsm.evaluation_args, ["ignore_worst"])
   else:
@@ -86,7 +86,8 @@ if __name__ == "__main__":
         "WL_st", "WL_st_1", "WL_st_2", "WL_st_3", "WL_st_4",
         "WL_sp", "WL_sp_3", "LWL2", "GWL2",
         "AvgCWL2GCN_Binary", "SagCWL2GCN_Binary",
-        "AvgK2GNN_Binary", "SagK2GNN_Binary"]
+        "AvgCWL2GCN_FC_Binary", "SagCWL2GCN_FC_Binary",
+        "AvgK2GNN_FC_Binary", "SagK2GNN_FC_Binary"]
   else:
     ms = args.model
 
@@ -117,10 +118,19 @@ if __name__ == "__main__":
   print("----------------------------------------------------------\n")
 
   for m in ms:
+    split_m = m.split("?", 1)
+
+    if len(split_m) == 2:
+      m, hp_i = split_m
+      hp_i = int(hp_i)  # Evaluate only a single hp.
+    else:
+      hp_i = None  # Evaluate all hps.
+
     model = getattr(models, m)
     for d in ds:
       dsm = getattr(datasets, d)
-      f(model, dsm())
+      print(f"- Model: {m}, Dataset: {d}. -")
+      f(model, dsm(), single_hp=hp_i)
       print("\n----------------------------------------------------------\n")
 
   print(f"Grid evaluation (# datasets = {dsl}, # models = {msl}) completed.")

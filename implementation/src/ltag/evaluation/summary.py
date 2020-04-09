@@ -23,7 +23,9 @@ def dict_map(f, d):
 
 def summarize_evaluation(
   eval_dir, selection_metric="val_accuracy", ignore_worst=0):
-  assert eval_dir.exists(), f"No evalutation '{eval_dir}' found."
+  if not eval_dir.exists():
+    print(f"No evalutation '{eval_dir}' found.")
+    return
 
   with open(eval_dir / "config.json") as f:
     config = json.load(f)
@@ -52,11 +54,15 @@ def summarize_evaluation(
   best_goal = selection_metrics[selection_metric]
 
   results = []
+  all_hps = True
 
   for fold_i, param_files in folds:
     best_res = None
+    param_file_items = list(param_files.items())
 
-    for hp_i, files in param_files.items():
+    all_hps = all_hps and len(param_files) == len(hps)
+
+    for hp_i, files in param_file_items:
       hp_train_results = defaultdict(list)
       hp_test_results = defaultdict(list)
       selection_vals = []
@@ -126,7 +132,8 @@ def summarize_evaluation(
     "combined_test": combined_test,
     "args": {
       "ignore_worst": ignore_worst
-    }
+    },
+    "done": all_hps and len(folds) == 10
   }
 
   with open(summary_dir / "results.json", "w") as f:

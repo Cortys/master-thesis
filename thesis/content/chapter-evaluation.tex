@@ -76,13 +76,13 @@ To tackle this issue they evaluated multiple state-of-the-art methods using a un
 We base our evaluations on this assessment strategy with $k = 10$ folds and $r = 3$ repeats per fold to smooth out differences caused by random weight initializations.
 For each dataset the same folds are used across the evaluated models; class proportions are preserved within each fold by using stratified splits.
 To keep the total runtime of the experiments feasible, a single 90\%/10\% holdout split into training and validation data is used instead of cross-validation.
-To train models that require gradient-based optimization, we use the well-known Adam optimizer~\cite{Kingma2015}.
+To train models that require gradient-based optimization, we use the well-known Adam optimizer~\cite{Kingma2015} and the standard binary crossentropy loss.
 In all experiments, training is performed with an early stopping condition which cancels the optimization if there is no improvement to the validation loss for more than $p$ epochs.
 The patience period $p$ is part of the hyperparameter configurations $\theta \in \Theta$.
 
 Using this assessment strategy we evaluate \acp{svm} with the following graph kernels:
 \begin{enumerate}[label={\textbf{\arabic*.}},itemsep=2pt,parsep=2pt]
-	\item \textbf{\ac{wl} subtree kernel (\acs{wl}\textsubscript{ST})} with the iteration counts $T \in [5]$ to evaluate the influence of the depth of \ac{bfs} subtrees which span \ac{lta} constituents.
+	\item \textbf{\ac{wl} subtree kernel (\acs{wl}\textsubscript{ST})} with the iteration counts $T \in \{ 1,2,3,4,5 \}$ to evaluate the influence of the depth of \ac{bfs} subtrees which span \ac{lta} constituents.
 	\item \textbf{\ac{wl} shortest path kernel (\acs{wl}\textsubscript{SP})} with the iteration count $T = 5$.
 	\item \textbf{2-LWL kernel} with the iteration count $T = 3$.
 	\item \textbf{2-GWL kernel} with the iteration count $T = 3$.
@@ -99,12 +99,13 @@ For the evaluation of \acp{gcnn} we selected the following methods:
 	\item \textbf{2-\acs{gnn}} is evaluated with both a static $\mean$ pooling layer and with \ac{sampool} (see \cfullref{defn:ltag:sam-pool}).
 		After the pooling layer a \ac{mlp} is used to produce the final prediction.
 	\item \textbf{2-\acs{wl}-\ac{gnn}} \textit{(our method)} is also evaluated with $\mean$ pooling and \ac{sampool}, just like 2-\ac{gnn}.
-		To test the \ac{lta} assumption we evaluate 2-\acs{wl}-\acs{gnn} in an \acs{lta}-like configuration and in a non-\acs{lta} configuration.
+		To test the \ac{lta} assumption we evaluate 2-\acs{wl}-\acs{gnn} in an \acs{lta}-like configuration and in the standard non-\acs{lta} configuration.
 		The \acs{lta}-like configuration uses a stack of 2-\acs{wl} convolutions that produce a local prediction $y_{ij} \in [0, 1]$ for each edge $e_{ij}$ instead of a local feature vector $z_{ij} \in \mathbb{R}^{d^{(T)}}$ and it does not have an \ac{mlp} after the pooling/aggregation layer.
 \end{enumerate}
 The baseline and \ac{gin} results are obtained using the PyTorch-based implementation provided by \citet{Errica2020}.
 For both 2-\acs{gnn} and 2-\acs{wl}-\ac{gnn} a custom TensorFlow-based implementation is used.
 The code for all conducted experiments as well as the used dataset splits are available GitHub\footnote{\url{https://github.com/Cortys/master-thesis}}.
+The evaluated hyperparameter configurations $\Theta$ are described in \cref{sec:appendix:config-grid}.
 
 \section{Evaluation on Synthetic Data}%
 \label{sec:eval:synthetic}
@@ -117,6 +118,7 @@ The class of $G$ is then determined by the color of the vertices $(v_i, v_j, v_k
 Based on this problem we generated a synthetic triangle detection dataset.
 It contains randomly generated graphs with varying vertex counts and vertex color proportions (see \cref{sec:appendix:ds-stats} for a more detailed description).
 We use this dataset to evaluate whether a learner is able to ignore varying amounts of noisy random structure and focus on relevant local substructures, in this case unicolored triangles.
+For the evaluation of 2-\acs{wl}-\acsp{gnn}, the neighborhood radius $r = 2$ is used.
 \begin{table}[t]
 	\caption{Mean accuracies and standard deviations on the triangle detection dataset.}\label{tbl:eval:synthetic}
 	\centering
@@ -142,12 +144,13 @@ We use this dataset to evaluate whether a learner is able to ignore varying amou
 	\includegraphics[width=0.7\linewidth]{gfx/evaluation/triangle-problem.pdf}
 	\caption[Two example graphs from the triangle detection dataset.]{
 		Two examples from the triangle detection dataset.
-		The unique unicolored triangle which has to be detected by the learners is highlighted in both graphs.
+		The unique unicolored triangle, which has to be detected by the learners, is highlighted in both graphs.
 	}\label{fig:evaluation:triangle-problem}
 \end{figure}
-Looking at the results in \cref{tbl:eval:synthetic}, it can be seen that the structure unaware baseline method is completely unable to do so, as expected.
+
+Looking at the results in \cref{tbl:eval:synthetic}, it can be seen that the structure unaware baseline method is completely unable to detect triangles, as expected.
 The structure aware learners on the other hand all perform better than random guessing and are in fact mostly able to fit the training data perfectly.
-This shows that all generated graphs are 1-\acs{wl} distinguishable; the \ac{wl} subtree kernel for example can simply memorize the training graphs via their unique 1-\acs{wl} color distribution after $T = 5$ refinement steps.
+This shows that all generated graphs are 1-\acs{wl} distinguishable; the \ac{wl} subtree kernel, for example, can simply memorize the training graphs via their unique 1-\acs{wl} color distribution after $T = 5$ refinement steps.
 
 However, the ability to distinguish training graphs is not sufficient to also classify previously unseen graphs correctly.
 Since 1-\acs{wl} cannot detect triangles, all 1-\acs{wl} bounded approaches (\acs{wl}\textsubscript{ST}, \acs{wl}\textsubscript{SP}, Baseline, \acs{gin}) are therefore unable to generalize, as can be seen in their test accuracies.
@@ -172,13 +175,11 @@ Comparing both configurations, we see that the \acs{lta}-variant has a worse gen
 However, as we saw in the \ac{lta} formulation of \acp{gcnn} (see \cfullref{thm:ltag:gcnn-ltag-formulation}), a 2-\acs{wl}-\acs{gnn} does not actually learn to decompose a graph into unicolored triangle constituents but uses subtree constituents instead.
 Further investigations are required to determine to which extent the worse performance of the \acs{lta}-like configuration is caused by this static decomposition strategy and whether a more dynamic solution to the \acf{ltd} problem could improve the performance (e.g.\ via the edge filtering idea described in \cref{sec:ltd:edge-filter}).
 
-Finally, if we look at the two evaluated pooling layers, static $\mean$ pooling and \ac{sampool}, we see that the attention mechanism of the latter significantly improves the generalization performance of both 2-\acs{gnn} and 2-\acs{wl}-\acs{gnn}.
+Finally, if we look at the two evaluated pooling layers, static $\mean$ pooling and \ac{sampool}, we see that the attention mechanism of the latter significantly improves the generalization performance of both 2-\acsp{gnn} and 2-\acs{wl}-\acsp{gnn}.
 This indicates that \ac{sampool} is successful at filtering out the randomly generated noisy parts of a given graph and putting most attention to the relevant unicolored triangle.
 
 \section{Evaluation on Real-World Data}%
 \label{sec:eval:real}
-
-Since the synthetic triangle detection problem was designed specifically to highlight the advantages of a higher dimensional \ac{wl} method such as 2-\ac{wl}-\acsp{gnn}, we now evaluate the approaches more fairly on five common graph classification benchmark datasets from three different real-world domains.
 
 \begin{table}[ht]
 	\caption[Mean test accuracies and standard deviations on real-world data.]{
@@ -213,3 +214,28 @@ Since the synthetic triangle detection problem was designed specifically to high
 		{\small\evalres{\imdbBestTest}{\imdbTestMean}{\imdbTestStd}}%
 	}
 \end{table}
+Since the synthetic triangle detection problem was designed specifically to highlight the advantages of a higher dimensional \ac{wl} method such as 2-\ac{wl}-\acsp{gnn}, we now evaluate the approaches more fairly on five common graph classification benchmark datasets from two different real-world domains:
+\begin{enumerate}[label={\textbf{\arabic*.}}]
+	\item \textbf{Bioinformatics:}
+		The NCI1~\cite{Shervashidze2011}, PROTEINS~\cite{Borgwardt2005a} and D\&D~\cite{Dobson2003} datasets all contain molecular graphs.
+		For NCI1 the goal is to predict whether a molecule is effective against certain types of cancer.
+		For PROTEINS and D\&D, a learner has to determine whether a given protein molecule is an enzyme.
+	\item \textbf{Social networks:}
+		The REDDIT and IMDB datasets~\cite{Yanardag2015} contain graphs representing the relations between users in online discussions and movie actors respectively.
+		For REDDIT the type of a discussion thread has to be predicted; for IMDB the goal is to determine movie genres.
+\end{enumerate}
+A more detailed description of the evaluated datasets can be found in \cref{sec:appendix:ds-stats}.
+\Cref{tbl:eval:real} shows our evaluation results\footnote{
+	Note that, for the NCI1, PROTEINS and D\&D datasets we used different training/test splits than those originally used by \citet{Errica2020}.
+	The reason for this is that the original splits were only published after our evaluations of those datasets had already been completed.
+	For REDDIT and IMDB however, we used the same splits.
+}.
+For the evaluation of 2-\acs{wl}-\acsp{gnn}, different neighborhood radii were used for each dataset.
+In the order of the columns in the table above, the results were obtained with the radii $r = 8$, $5$, $2$, $1$ and $4$ respectively.
+
+If we compare the real-world results with those for the synthetic triangle detection dataset, we do no longer observe the clear advantage of 2-\acs{wl}-\acsp{gnn} over the other approaches.
+This indicates that the theoretical advantages of 2-\acs{wl} over 1-\acs{wl} are not necessarily relevant for the five evaluated problems.
+Nonetheless, the test performance of 2-\acs{wl}-\acsp{gnn} is generally comparable to that of the other state-of-the-art learners with the exception of NCI1.
+If we look at the enzyme detection problem (PROTEINS and D\&D), we observe that all evaluated approaches appear to be unable to leverage structural information for a significant improvement over the baseline learner.
+In the social network datasets (REDDIT and IMDB) on the other hand, the structure aware methods clearly outperform the baseline.
+This confirms the very similar results of \citet{Errica2020}.

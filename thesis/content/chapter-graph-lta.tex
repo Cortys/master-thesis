@@ -297,7 +297,7 @@ This intuition is now formalized.
 \label{sec:ltag:formulation:gcnn:conv}
 
 To define an \ac{lta} formulation for \acp{gcnn}, we define two functions that are entirely based on the stack of convolution layers ($\mathit{Conv}$):
-\begin{enumerate*}
+\begin{enumerate*}[label={\circled{\small\arabic*}}]
 	\item The decomposition function $\psi: \mathcal{G} \to \mathcal{P}(\mathcal{G})$.
 	\item The so-called \textit{multi-score evaluation function} $f^{*}: \mathcal{G} \to {(\mathcal{Y} \times \mathbb{R}_{\geq 0})}^{*}$ which is similar to a regular \ac{lta} evaluation function $f$ but assigns a multiset of weighted scores to each constituent instead of just a single one.
 \end{enumerate*}
@@ -416,17 +416,17 @@ For simplicity we assume that the target score domain is $\mathcal{Y} = [0, 1]$.
 		If the last convolution layer has a single output dimension and an activation function with the signature $\sigma: \mathbb{R} \to [0,1]$ (e.g.\ the logistic function), the simple unweighted pooling layers $\mean$, $\min$ and $\max$ trivially satisfy \cref{defn:ltag:assoc-aggregation-pooling} due to their associativity.
 	\item \textbf{SortPooling \& \ac{sagpool}:}
 		Apart from such unweighted pooling layers we also looked at two state-of-the-art graph pooling layers:
-		\begin{enumerate*}[label={\arabic*.}]
-			\item SortPooling~\cite{Zhang2018} works by aggregating the top-$p$ convolved vectors $z_i \in \mathbb{R}^{d^{(T)}}$ based on a lexicographic ordering $\prec$,
-			\item \ac{sagpool}~\cite{Lee2019} also aggregates the top-$p$ vectors $z_i$ but determines their ordering $\prec$ based on attention weights which are encoded as one component of each $z_i$
+		\begin{enumerate*}[label={\circled{\small\arabic*}}]
+			\item \textit{SortPooling}~\cite{Zhang2018} works by aggregating the top-$p$ convolved vectors $z_i \in \mathbb{R}^{d^{(T)}}$ based on a lexicographic ordering $\prec$,
+			\item \textit{\ac{sagpool}}~\cite{Lee2019} also aggregates the top-$p$ vectors $z_i$ but determines their ordering $\prec$ based on attention weights which are encoded as one component of each $z_i$
 		\end{enumerate*}.
 		Both of those pooling approaches are not compatible with the \ac{lta} formulation from \cref{thm:ltag:gcnn-ltag-formulation} because top-$p$ aggregation is generally not associative.
 		This is shown by the fact that there is no $\rho: \mathbb{R}^{* \times d^{(T)}} \to \mathbb{R}^{ d^{(T)}}$ s.t.\ for all aggregation functions $\mathcal{A}$ and vectors $z_1 \prec z_2$ with $\mathcal{A}(\ldblbrace z_2, z_2 \rdblbrace) = z_2$ (see \cref{defn:ltag:weighted-agg}) it holds that
 		\begin{alignat*}{3}
 			&& \mathcal{A}(\mathit{top}_{2}(\ldblbrace z_1, z_2, z_2 \rdblbrace)) &= \mathcal{A}(\mathit{top}_{2}(\ldblbrace z_1, \rho(\ldblbrace z_2, z_2 \rdblbrace) \rdblbrace))&& \\
-			\Leftrightarrow&& z_2 &= \mathcal{A}(\ldblbrace z_1, \rho(\ldblbrace z_2, z_2 \rdblbrace) \rdblbrace)&&\lightning\text{ if $\mathcal{A} \neq \max$.}
+			\Leftrightarrow&& z_2 &= \mathcal{A}(\ldblbrace z_1, \rho(\ldblbrace z_2, z_2 \rdblbrace) \rdblbrace)&&\lightning\text{ for $\mathcal{A} = \min$.}
 		\end{alignat*}
-		From the \ac{lta} perspective the non-associativity of SortPooling and \ac{sagpool} implies that, if they were used in a \ac{gcnn}, it could happen that some subtree evaluations $(y_i, w_i) \in f^{*}(c)$ of a single constituent $c$ are considered by the aggregation function $\mathcal{A}$ while some are ignored depending on the subtree evaluations of other constituents, i.e.\ the constituent evaluation $f(c)$ could then depend on other constituents.
+		From an \ac{lta} perspective the non-associativity of SortPooling and \ac{sagpool} implies that, if they were used in a \ac{gcnn}, it could happen that some subtree evaluations $(y_i, w_i) \in f^{*}(c)$ of a single constituent $c$ are considered by the aggregation function $\mathcal{A}$ while some are ignored depending on the subtree evaluations of other constituents, i.e.\ the constituent evaluation $f(c)$ could then depend on other constituents.
 		This is forbidden in our definition of \ac{lta}.
 \end{enumerate}
 

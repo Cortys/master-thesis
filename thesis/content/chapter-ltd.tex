@@ -396,9 +396,9 @@ We begin by proving that 2-\acs{wl}-\acsp{gnn} are at least as powerful as 1-\ac
 		\text{.}
 	\end{gather*}
 	Using the two layers $S^{(t, 1)}$ and $S^{(t, 2)}$ that we just defined, the weighted vertex neighborhood sum for all $v_i \in \mathcal{V}_G$ is contained in $Z^{(t,2)}[e_{ii}]$.
-	Additionally for all $e_{ij} \in \mathcal{E}_{G^1}$ the indicators ${Z^{(t,2)}[e_{ij}]}_1 = \mathbbm{1}[i = j]$ and the weights ${Z^{(t,2)}[e_{ij}]}_{d^{(t)} + 2} = w_{ij}$ are preserved.
+	Additionally for all $e_{ij} \in \mathcal{E}_{G^1}$, the indicators ${Z^{(t,2)}[e_{ij}]}_1 = \mathbbm{1}[i = j]$ and the weights ${Z^{(t,2)}[e_{ij}]}_{d^{(t)} + 2} = w_{ij}$ are preserved.
 	This means that \cref{inv:ltd:wl2-simulation:indicator,inv:ltd:wl2-simulation:weight} are satisfied after $S^{(t, 2)}$.
-	To complete the induction step it now remains to show that all three invariants hold after applying the layers $S^{(t, 2+1)}, \dots, S^{(t, 2+K)}$.
+	To complete the induction step, it now remains to show that all three invariants hold after applying the layers $S^{(t, 2+1)}, \dots, S^{(t, 2+K)}$.
 	As previously mentioned, a 2-\acs{wl} convolution layer is reduced to a fully connected layer if $W_{\mathrm{F}}^{(t)} = \mathbf{0}$.
 	Via the universal approximation theorem~\cite{Hornik1991} we can therefore use $S^{(t, 2+1)}, \dots, S^{(t, 2+K)}$ to simulate the $K$ layers of $\mathrm{\acs*{mlp}}^{(t)}$ without changing the first and last dimension of each feature vector to preserve \cref{inv:ltd:wl2-simulation:indicator,inv:ltd:wl2-simulation:weight}.
 	The resulting feature matrix $Z^{(t,2+K)}$ then satisfies all three invariants, which completes the induction.
