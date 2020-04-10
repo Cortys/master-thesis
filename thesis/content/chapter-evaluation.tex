@@ -235,7 +235,36 @@ In the order of the columns in the table above, the results were obtained with t
 
 If we compare the real-world results with those for the synthetic triangle detection dataset, we do no longer observe the clear advantage of 2-\acs{wl}-\acsp{gnn} over the other approaches.
 This indicates that the theoretical advantages of 2-\acs{wl} over 1-\acs{wl} are not necessarily relevant for the five evaluated problems.
-Nonetheless, the test performance of 2-\acs{wl}-\acsp{gnn} is generally comparable to that of the other state-of-the-art learners with the exception of NCI1.
-If we look at the enzyme detection problem (PROTEINS and D\&D), we observe that all evaluated approaches appear to be unable to leverage structural information for a significant improvement over the baseline learner.
-In the social network datasets (REDDIT and IMDB) on the other hand, the structure aware methods clearly outperform the baseline.
+Nonetheless, the test performance of 2-\acs{wl}-\acsp{gnn} is generally comparable to that of the other state-of-the-art learners with the exception of NCI1,
+where by comparable we mean that the performance of the evaluated 2-\acs{wl}-\acs{gnn} models is within the $2\sigma$ confidence interval of the best evaluated model even when compared fold-by-fold (see \cref{sec:appendix:fold-diffs}).
+
+If we look at the enzyme detection problem (PROTEINS and D\&D), we observe that all evaluated approaches appear to be unable to leverage structural information for a significant improvement over the baseline learner (see \cref{tbl:appendix:diff-proteins,{tbl:appendix:diff-dd}}).
+In the social network datasets (REDDIT and IMDB) on the other hand, the structure aware methods clearly outperform the baseline (see \cref{tbl:appendix:diff-imdb}).
 This confirms the very similar results of \citet{Errica2020}.
+
+\begin{figure}[ht]
+	\centering
+	\begin{tikzpicture}
+		\begin{axis}[
+			width=0.33\linewidth,
+			height=0.3\linewidth,
+			try min ticks=6,
+			xmin=1, xmax=5,
+			ymin=70, ymax=100,
+			label style={font=\tiny},
+			tick label style={font=\tiny},
+			ymajorgrids,
+			ytick style={draw=none},
+			axis line style={gray},
+			mark size={1.5pt}
+		]
+			\addplot [color=t_blue, only marks, mark=*]
+			plot[error bars/.cd, y dir=both, y explicit]
+			table [x=T, y=nciTrainMean, y error=nciTrainStd, col sep=semicolon] {data/wlst_depths.csv};
+			\addplot [color=t_red, only marks, mark=square*]
+			plot[error bars/.cd, y dir=both, y explicit]
+			table [x=T, y=nciTestMean, y error=nciTestStd, col sep=semicolon] {data/wlst_depths.csv};
+		\end{axis}
+	\end{tikzpicture}
+	\caption{test}\label{fig:eval:wlst-depths}
+\end{figure}

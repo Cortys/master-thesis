@@ -7,6 +7,34 @@
 \section{Evaluated Hyperparameter Grids}%
 \label{sec:appendix:config-grid}
 
+To tune the hyperparameters of the evaluated models, we used a regular grid search.
+Depending on the type of model, different sets of hyperparameter configurations $\Theta$ were used.
+
+\paragraph{Graph Kernels}
+As described in \cref{sec:eval:setup}, we used the \ac{svm} classifier from \citetitle{SKL} to evaluate the graph kernel approaches.
+We tuned only the regularization parameter \texttt{C} of this classifier;
+the evaluated values are $\mathtt{C} \in \{ 1, \num{1e-1},\allowbreak \num{1e-2},\allowbreak \num{1e-3},\allowbreak \num{1e-4} \}$.
+All other parameters were left at the default setting (using \texttt{scikit-learn 0.22.1}).
+
+\paragraph{Baseline and \ac{gin}}
+For the evaluation of the structure unaware baseline learner and \ac{gin}, we used the same hyperparameter configurations as \citet{Errica2020}.
+We therefore refer to their work for a complete list of the tuned hyperparameters for those models.
+
+\paragraph{2-\acs{gnn} and 2-\acs{wl}-\acs{gnn}}
+We evaluated our implementations of 2-\acsp{gnn} as well as 2-\acs{wl}-\acsp{gnn} on the grid spanned by the following hyperparameter values:
+\begin{itemize}[itemsep=2pt,parsep=2pt]
+	\item \textbf{Number of convolutional layers $T \in \{ 3, 5 \}$:}
+		This parameter describes only the depth of the stack of convolutional layers.
+		The \ac{mlp} after the pooling layer is always configured with a single hidden layer.
+	\item \textbf{Layer width $d \in \{ 32, 64 \}$:}
+		This parameter describes the output dimensionalities $d = d^{(1)} = \cdots = d^{(T)}$ of the convolutional layers and (if applicable) also the hidden layer width of the final \ac{mlp} after the pooling layer.
+	\item \textbf{Jumping knowledge $\mathrm{JK} \in \{ \mathtt{true}, \mathtt{false} \}$:}
+		\citet{Xu2018a} have demonstrated that it can be advantageous for graph classification to pass the outputs of convolutional layers to their successors.
+		We incorporate this idea by passing the input feature vectors not only to the first convolution layer but to all convolution layers through concatenation iff.\ $\mathrm{JK} = \mathtt{true}$.
+	\item \textbf{Learning rate $\eta \in \{ \num{1e-2}, \num{1e-3}, \num{1e-4} \}$} of the Adam optimizer.
+	\item \textbf{Activation functions $\sigma$ and $\sigma_{\Gamma}$} are set to the standard logistic function.
+\end{itemize}
+
 \section{Dataset Statistics and Descriptions}%
 \label{sec:appendix:ds-stats}
 
@@ -48,11 +76,11 @@ In each molecule graph, vertices correspond to atoms and edges to bonds between 
 The binary classes in this dataset describe whether a molecule is able to suppress or inhibit the growth of certain lung cancer and ovarian cancer cell lines in humans.
 
 \paragraph{PROTEINS and D\&D}
-The graphs in the PROTEINS dataset represent proteins~\cite{Borgwardt2005a}.
+The graphs in both the PROTEINS dataset~\cite{Borgwardt2005a} as well as the D\&D dataset~\cite{Dobson2003} represent proteins.
 Each vertex corresponds to a so-called \ac{sse}, i.e.\ a certain molecular substructure.
 An edge encodes either that two \acp{sse} are neighbors in the protein's amino-acid sequence or that those \acp{sse} are close to each other in 3D space.
 Each protein graph is classified by whether it is an enzyme or not.
-Very similarly, the D\&D dataset~\cite{Dobson2003} is also about classifying proteins as enzymes or non-enzymes but it uses a different selection of vertex features.
+The main difference between the two datasets is their selection of vertex features/labels.
 
 \paragraph{REDDIT}
 This balanced dataset contains graphs that represent online discussion threads on the website Reddit~\cite{Yanardag2015}.
@@ -69,3 +97,45 @@ The classification goal for each graph is to predict the movie genre it was deri
 
 \section{Fold-wise Accuracy Deltas}%
 \label{sec:appendix:fold-diffs}
+
+Due to the relatively small sizes of the evaluated benchmark datasets, the variance of the test accuracies across different folds is quite large.
+When directly comparing the mean accuracies of two learners, it is therefore often impossible to tell whether one consistently outperforms the other.
+We therefore now list the mean and standard deviations of the fold-wise test accuracy differences of all pairs of learners for all datasets.
+This effectively removes the variance introduced by ``easy'' and ``hard'' folds on which all learners might tend to perform consistently better/worse.
+
+In the following \crefrange{tbl:appendix:diff-triangle}{tbl:appendix:diff-imdb} (see \cpagerefrange{tbl:appendix:diff-triangle}{tbl:appendix:diff-imdb}), the differences are computed as $\textit{row accuracy} - \textit{column accuracy}$.
+For each row $i$ and column $j$ we highlight the corresponding cell $(i,j)$ in \textcolor{t_red}{red} or \textcolor{t_darkgreen}{green} iff.\ the learner~$i$ performs consistently \textcolor{t_red}{worse} (or \textcolor{t_darkgreen}{better} respectively) than $j$ with a significance level of $2\sigma$.
+To compute the deltas for 2-\acs{wl}-\acsp{gnn}, we use the same neighborhood radii as in \cref{tbl:eval:synthetic,tbl:eval:real}, i.e.\ $r = 2$ for the synthetic triangle detection dataset and $r = 8$, $5$, $2$, $1$ and $4$ for NCI1, PROTEINS, D\&D, REDDIT and IMDB respectively.
+
+{\captionsetup[table]{name=Matrix}%
+\begin{table}[ht]
+	\caption{Fold-wise accuracy delta means and standard deviations on the triangle dataset.}\label[mat]{tbl:appendix:diff-triangle}
+	\centering
+	\input{data/diffs/triangle.tex}
+\end{table}
+\begin{table}[ht]
+	\caption{Fold-wise accuracy delta means and standard deviations on NCI1.}\label[mat]{tbl:appendix:diff-nci}
+	\centering
+	\input{data/diffs/nci.tex}
+\end{table}
+\begin{table}[ht]
+	\caption{Fold-wise accuracy delta means and standard deviations on PROTEINS.}\label[mat]{tbl:appendix:diff-proteins}
+	\centering
+	\input{data/diffs/proteins.tex}
+\end{table}
+\begin{table}[ht]
+	\caption{Fold-wise accuracy delta means and standard deviations on D\&D.}\label[mat]{tbl:appendix:diff-dd}
+	\centering
+	\input{data/diffs/dd.tex}
+\end{table}
+\begin{table}[ht]
+	\caption{Fold-wise accuracy delta means and standard deviations on REDDIT.}\label[mat]{tbl:appendix:diff-reddit}
+	\centering
+	\input{data/diffs/reddit.tex}
+\end{table}
+\begin{table}[ht]
+	\caption{Fold-wise accuracy delta means and standard deviations on IMDB.}\label[mat]{tbl:appendix:diff-imdb}
+	\centering
+	\input{data/diffs/imdb.tex}
+\end{table}%
+}

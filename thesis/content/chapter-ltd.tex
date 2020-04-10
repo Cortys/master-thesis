@@ -123,14 +123,14 @@ In the first step we show that the discriminative power of 2-\acsp{gnn} on all g
 	The remaining $\frac{nd}{2}$ edge neighborhood vertices correspond to the edges of $G$ and $H$, we will refer to them as \textit{edge vertices} $E_G$/$E_H$.
 
 	W.l.o.g.\ we define the initial colors of the loop vertices as $\chi^{(0)}(v) = \colorlabel{t_blue}{A}$ for all $v \in L_G \cup L_H$. % chktex 25
-	The initial colors of the edge vertices are defined as $\chi^{(0)}(e) = \textcolor{t_red}{\texttt{B}}$ for all $e \in E_G \cup E_H$. % chktex 25
+	The initial colors of the edge vertices are defined as $\chi^{(0)}(e) = \colorlabel{t_red}{B}$ for all $e \in E_G \cup E_H$. % chktex 25
 	Note that each loop vertex $\ldblbrace v_i, v_i \rdblbrace$ with $v_i \in \mathcal{V}_G \cup \mathcal{V}_H$ has $d$ neighbors, the edges incident to $v_i$.
 	Similarly each edge vertex $\ldblbrace v_i, v_j \rdblbrace$ has $2d$ neighbors, two of which are the loop vertices $\ldblbrace v_i, v_i \rdblbrace$ and $\ldblbrace v_j, v_j \rdblbrace$ with the remaining $2d - 2$ neighbors corresponding to the edges that are incident to $e_{ij}$.
 	This is illustrated in \cref{fig:ltd:edge-neighborhood}.
 
-	After one color refinement step we get $\chi^{(1)}(v) = h(\colorlabel{t_blue}{A}, \ldblbrace \underbrace{\textcolor{t_red}{\texttt{B}}, \dots, \textcolor{t_red}{\texttt{B}}}_{d\text{ times}} \rdblbrace) \eqqcolon \textcolor{t_blue}{\texttt{C}}$ for all loop vertices $v \in  L_G \cup L_H$ and $\chi^{(1)}(e) = h(\textcolor{t_red}{\texttt{B}}, \ldblbrace \colorlabel{t_blue}{A}, \colorlabel{t_blue}{A}, \underbrace{\textcolor{t_red}{\texttt{B}}, \dots, \textcolor{t_red}{\texttt{B}}}_{\mathclap{2d - 2 \text{ times}}} \rdblbrace) \eqqcolon \textcolor{t_red}{\texttt{D}}$. % chktex 25
-	This means that $\chi^{(0)}$ and $\chi^{(1)}$ are identical up to the color substitutions $\colorlabel{t_blue}{A} \to \textcolor{t_blue}{\texttt{C}}$ and $\textcolor{t_red}{\texttt{B}} \to \textcolor{t_red}{\texttt{D}}$, i.e.\ $\chi^{(0)} \equiv \chi^{(1)}$, which in turn implies that 1-\ac{wl} terminates after one iteration. % chktex 25
-	\Cref{lem:ltd:wl1-regular-edge-neighbor-limit} then directly follows since both $G^{\mathcal{E}}$ and $H^{\mathcal{E}}$ have $n$ vertices with the final color $\textcolor{t_blue}{\texttt{C}}$ and $\frac{nd}{2}$ vertices with the final color $\textcolor{t_red}{\texttt{D}}$, i.e.\ $G^{\mathcal{E}} \mathrel{\simeq_1} H^{\mathcal{E}}$. % chktex 25
+	After one color refinement step we get $\chi^{(1)}(v) = h(\colorlabel{t_blue}{A}, \ldblbrace \underbrace{\colorlabel{t_red}{B}, \dots, \colorlabel{t_red}{B}}_{d\text{ times}} \rdblbrace) \eqqcolon \colorlabel{t_blue}{C}$ for all loop vertices $v \in  L_G \cup L_H$ and $\chi^{(1)}(e) = h(\colorlabel{t_red}{B}, \ldblbrace \colorlabel{t_blue}{A}, \colorlabel{t_blue}{A}, \underbrace{\colorlabel{t_red}{B}, \dots, \colorlabel{t_red}{B}}_{\mathclap{2d - 2 \text{ times}}} \rdblbrace) \eqqcolon \colorlabel{t_red}{D}$. % chktex 25
+	This means that $\chi^{(0)}$ and $\chi^{(1)}$ are identical up to the color substitutions $\colorlabel{t_blue}{A} \to \colorlabel{t_blue}{C}$ and $\colorlabel{t_red}{B} \to \colorlabel{t_red}{D}$, i.e.\ $\chi^{(0)} \equiv \chi^{(1)}$, which in turn implies that 1-\ac{wl} terminates after one iteration. % chktex 25
+	\Cref{lem:ltd:wl1-regular-edge-neighbor-limit} then directly follows since both $G^{\mathcal{E}}$ and $H^{\mathcal{E}}$ have $n$ vertices with the final color $\colorlabel{t_blue}{C}$ and $\frac{nd}{2}$ vertices with the final color $\colorlabel{t_red}{D}$, i.e.\ $G^{\mathcal{E}} \mathrel{\simeq_1} H^{\mathcal{E}}$. % chktex 25
 \end{proof}
 \begin{figure}[ht]
 	\centering
@@ -303,9 +303,9 @@ We begin by proving that 2-\acs{wl}-\acsp{gnn} are at least as powerful as 1-\ac
 		}\label{fig:ltd:wl2-simulation}
 	\end{figure}
 
-	Let $\varphi: \mathbb{R}^{d^{(T, 2 + K)}} \to \mathbb{R}^{d^{(T)}} \cup \{ \texttt{nil} \}$ be a function which maps the final 2-\acs{wl} feature vectors produced by $\mathit{Conv}_2$ to the output space of $\mathit{Conv}_1$ or the constant \texttt{nil}.
-	Let $\mathit{Pool}_2\left(Z_G^{(T,2+K)}\right) \coloneqq \mathit{Pool}_1(\ldblbrace z_{ij}\, |\, z_{ij} = \varphi\left(Z_G^{(T,2+K)}[e_{ij}]\right) \land e_{ij} \in \mathcal{E}_{G^1} \land z_{ij} \neq \texttt{nil} \rdblbrace)$.
-	\Cref{thm:ltd:wl2-simulation} then follows if there is a function $\varphi$ s.t.\ $\forall v_i \in \mathcal{V}_G: \mathit{Conv}_1(G)[v_i] = \varphi(\mathit{Conv}_2(G)[e_{ii}])$ and $\forall e_{ij} \in \mathcal{E}_G: \varphi(\mathit{Conv}_2(G)[e_{ij}]) = \texttt{nil}$.
+	Let $\varphi: \mathbb{R}^{d^{(T, 2 + K)}} \to \mathbb{R}^{d^{(T)}} \cup \{ \mathtt{nil} \}$ be a function which maps the final 2-\acs{wl} feature vectors produced by $\mathit{Conv}_2$ to the output space of $\mathit{Conv}_1$ or the constant \texttt{nil}.
+	Let $\mathit{Pool}_2\left(Z_G^{(T,2+K)}\right) \coloneqq \mathit{Pool}_1(\ldblbrace z_{ij}\, |\, z_{ij} = \varphi\left(Z_G^{(T,2+K)}[e_{ij}]\right) \land e_{ij} \in \mathcal{E}_{G^1} \land z_{ij} \neq \mathtt{nil} \rdblbrace)$.
+	\Cref{thm:ltd:wl2-simulation} then follows if there is a function $\varphi$ s.t.\ $\forall v_i \in \mathcal{V}_G: \mathit{Conv}_1(G)[v_i] = \varphi(\mathit{Conv}_2(G)[e_{ii}])$ and $\forall e_{ij} \in \mathcal{E}_G: \varphi(\mathit{Conv}_2(G)[e_{ij}]) = \mathtt{nil}$.
 	To guarantee that there is such a function $\varphi$ we now inductively prove the following three invariants which have to hold for all $t \in \{ 0, \dots, T \}$:
 	\begin{enumerate}[label={(P\arabic*)}]
 		\item\label[inv]{inv:ltd:wl2-simulation:indicator}
@@ -407,7 +407,7 @@ We begin by proving that 2-\acs{wl}-\acsp{gnn} are at least as powerful as 1-\ac
 	\begin{align*}
 		\varphi\left(Z_G^{(T,2+K)}[e_{ij}]\right) \coloneqq \begin{cases}
 			{Z_G^{(T,2+K)}[e_{ij}]}_{2, \dots, (d^{T} + 1)} & \text{if ${Z_G^{(T,2+K)}[e_{ij}]}_1 = 1$} \\
-			\texttt{nil} & \text{else}
+			\mathtt{nil} & \text{else}
 		\end{cases}
 		\text{.}
 	\end{align*}

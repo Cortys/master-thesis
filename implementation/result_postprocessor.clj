@@ -28,7 +28,9 @@
                   "IMDB-BINARY" "imdb"})
 (def datasets ["balanced_triangle_classification_dataset"
                "NCI1" "PROTEINS_full" "DD" "REDDIT-BINARY" "IMDB-BINARY"])
-(def models-with-potential-oom #{"WL\\textsubscript{SP}"})
+(def wlst-model "WL\\textsubscript{ST}")
+(def wlsp-model "WL\\textsubscript{SP}")
+(def models-with-potential-oom #{wlst-model wlsp-model})
 
 (defn round
   ([num] (round num 0))
@@ -37,8 +39,11 @@
      num
      (if (zero? prec)
        (int (Math/round num))
-       (let [p (Math/pow 10 prec)]
-         (/ (Math/round (* num p)) p))))))
+       (let [p (Math/pow 10 prec)
+             rounded (/ (Math/round (* num p)) p)]
+         (if (pos? prec)
+           rounded
+           (int rounded)))))))
 
 (defn dim-str
   [feat lab]
@@ -111,13 +116,14 @@
        :is-default true
        :pool pool}
       "WL_st"
-      {:name "WL\\textsubscript{ST}"
+      {:name wlst-model
        :order [0 1 (or T 5) 0]
        :it (str "T=" (or T 5))
+       :T (or T 5)
        :is-lta true
        :is-default (or (= T 1) (nil? T))}
       "WL_sp"
-      {:name "WL\\textsubscript{SP}"
+      {:name wlsp-model
        :order [0 2 (or T 5) 0]
        :it (str "T=" (or T 5))
        :is-default (nil? T)}
@@ -180,8 +186,10 @@
                               (map (juxt identity
                                          (fn [dir]
                                            (try
-                                             {:folds (mapv #(slurp (str "./libs/gnn-comparison/RESULTS/" dir "/10_NESTED_CV/"
-                                                                        "OUTER_FOLD_" % "/outer_results.json"))
+                                             {:folds (mapv #(try
+                                                              (slurp (str "./libs/gnn-comparison/RESULTS/" dir "/10_NESTED_CV/"
+                                                                          "OUTER_FOLD_" % "/outer_results.json"))
+                                                              (catch Exception _))
                                                           (range 1 11))
                                               :res (slurp (str "./libs/gnn-comparison/RESULTS/" dir "/10_NESTED_CV/assessment_results.json"))}
                                              (catch Exception e (println e))))))
@@ -209,6 +217,7 @@
                                         :is-lta (:is-lta params)
                                         :pool (or (:pool params) "")
                                         :it (or (:it params) "")
+                                        :T (:T params)
                                         :params (str/join ", " (keep params [:pool :it]))}))))
                       summaries)
         typed-max (fn ([] {}) ([x] x) ([max-dict [t v]] (update max-dict t (fnil max 0) v)))
@@ -222,9 +231,11 @@
       results))
 
 (defn dataset-result-head
-  [dataset]
+  [dataset & {with-best :with-best :or {with-best true}}]
   (let [pre (ds-colnames dataset)]
-    (str pre "TestMean;" pre "TestStd;" pre "TrainMean;" pre "TrainStd;" pre "BestTest;" pre "BestTrain")))
+    (if with-best
+      (str pre "TestMean;" pre "TestStd;" pre "TrainMean;" pre "TrainStd;" pre "BestTest;" pre "BestTrain")
+      (str pre "TestMean;" pre "TestStd;" pre "TrainMean;" pre "TrainStd"))))
 
 (defn dataset-result-row
   [datasets results idx [model params is-default is-lta]]
@@ -261,9 +272,10 @@
 (defn res->full-name
   [{name :model params :params is-lta :is-lta}]
   (str "\\textbf{"
-       (if is-lta
-         (str "\\textcolor{t_darkgreen}{" name "*}")
-         name)
+       (cond
+         is-lta (str "\\textcolor{t_darkgreen}{" name "*}")
+         (= name "2-WL-GNN") (str name "\\phantom{*}")
+         :else name)
        "} ($" params "$)"))
 
 (defn mean
@@ -278,42 +290,97 @@
                           vals))
             (count vals)))]))
 
-(defn fold-differences->csv
+(defn fold-compare
+  [folds-a folds-b]
+  (let [test-a (map :test-mean folds-a)
+        test-b (map :test-mean folds-b)
+        test_diffs (map - test-a test-b)]
+    (std test_diffs)))
+
+(defn fold-differences->tex
   [{:keys [only-default]} file dataset]
   (let [results (sort-by :order (dataset-results dataset :only-default only-default))
         diffs
-        (for [{folds_a :folds} results
-              {folds_b :folds} results
-              :let [test_a (map :test-mean folds_a)
-                    test_b (map :test-mean folds_b)
-                    test_diffs (map - test_a test_b)
-                    [test_diff_mean test_diff_std] (std test_diffs)
-                     d (format "$%.1f \\pm %.1f$"
-                               (double test_diff_mean)
-                               (double test_diff_std))]]
+        (for [{folds-a :folds test-a-mean :test-mean test-a-std :test-std} results
+              {folds-b :folds test-b-mean :test-mean test-b-std :test-std} results
+              :let [[test-diff-mean test-diff-std]
+                    (if (and (not-any? (comp nil? :test-mean) folds-a)
+                             (not-any? (comp nil? :test-mean) folds-b))
+                      (fold-compare folds-a folds-b)
+                      [(- test-a-mean test-b-mean)
+                       (if (not= test-a-std test-b-std)
+                         (+ test-a-std test-b-std) ; assuming some fold-based dependence if data missing
+                         0)])
+                    test-diff-mean-str (cond
+                                         (>= test-diff-mean 10) (str "+" (round test-diff-mean 0))
+                                         (<= test-diff-mean -10) (str "-" (- (round test-diff-mean 0)))
+                                         :else (format "%+.1f" (double test-diff-mean)))
+                    test-diff-std-str (if (>= test-diff-std 10)
+                                        (str "\\pm " (round test-diff-std 0))
+                                        (format "\\pm %.1f" (double test-diff-std)))
+                    d (format "{\\tiny\\Vectorstack{%s\\\\ %s}}"
+                              test-diff-mean-str test-diff-std-str)]]
           (cond
-            (pos? test_diff_mean)
-            (str "\\textcolor{t_darkgreen}{" d "}")
-            (neg? test_diff_mean)
-            (str "\\textcolor{t_red}{" d "}")
-            (zero? test_diff_std) ""
+            (and (pos? test-diff-mean) (pos? (- test-diff-mean (* 2 test-diff-std))))
+            (str "\\cellcolor{t_green!25}\\textcolor{t_darkgreen}{" d "}")
+            (and (neg? test-diff-mean) (neg? (+ test-diff-mean (* 2 test-diff-std))))
+            (str "\\cellcolor{t_red!25}\\textcolor{t_darkred}{" d "}")
+            (and (zero? test-diff-mean) (zero? test-diff-std)) ""
             :else d))
         diffs (partition (count results) diffs)
-        head (str ";" (str/join ";" (map (comp #(str "\\rotatebox[origin=c]{90}{" % "}")
-                                               res->full-name)
-                                         results)))
+        head (str "& " (str/join " & " (map (comp #(str "\\rotatebox[origin=l]{90}{" % "}")
+                                                  res->full-name)
+                                            results)))
         rows (map (fn [res diffs]
-                    (str (res->full-name res) ";"
-                         (str/join ";" diffs)))
+                    (str (res->full-name res) "&"
+                         (str/join " & " diffs)))
                   results diffs)
+        tex (str "% This file was generated by the LTAG results postprocessor. Do not edit manually.\n"
+                 "{\\setlength\\tabcolsep{2.5pt}\\setlength{\\extrarowheight}{2pt}%\n"
+                 "\\begin{tabular}{l" (str/join "" (repeat (count rows) "c")) "}\n"
+                 head " \\\\\n" (str/join " \\\\[2pt]\n" rows) "\n"
+                 "\\end{tabular}}\n")]
+    (spit (str "../thesis/data/" file ".tex") tex)
+    (println tex)))
+
+(defn all-fold-differences->tex
+  []
+  (doseq [dataset datasets
+          :let [fname (ds-colnames dataset)]]
+    (fold-differences->tex {:only-default true}
+                           (str "diffs/" fname) dataset)))
+
+(defn wlst-depth-compare
+  [file]
+  (let [results (sort-by :order (mapcat #(dataset-results % :only-default false) datasets))
+        results (group-by :T (filter #(= wlst-model (:model %)) results))
+        Ts (sort (keys results))
+        head (str "T;" (str/join ";" (map #(dataset-result-head % :with-best false) datasets)))
+        rows (map (fn [T]
+                    (let [T-results (results T)
+                          vals (mapcat #((juxt :test-mean :test-std :train-mean :train-std)
+                                         (first (filter (comp (partial = %) :dataset) T-results)))
+                                       datasets)]
+                      (str T ";" (str/join ";" vals))))
+                  Ts)
         csv (str head "\n" (str/join "\n" rows) "\n")]
     (spit (str "../thesis/data/" file ".csv") csv)
     (println csv)))
 
+(defn default-action
+  []
+  (ds-stats->csv)
+  (eval-results->csv {:only-default false} "results")
+  (all-fold-differences->tex)
+  (wlst-depth-compare "wlst_depths"))
+
 (def actions {"ds_stats" ds-stats->csv
               "eval_res_full" (partial eval-results->csv {:only-default false})
               "eval_res" (partial eval-results->csv {:only-default true})
-              "fold_diff" (partial fold-differences->csv {:only-default true})})
+              "fold_diff" (partial fold-differences->tex {:only-default true})
+              "fold_diffs" all-fold-differences->tex
+              "wlst_compare" wlst-depth-compare
+              nil default-action})
 
 (println "LTAG Results Postprocessor.")
 (if-let [action (actions (first *command-line-args*))]

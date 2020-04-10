@@ -56,8 +56,11 @@
 \definecolor{t_yellow}{HTML}{b39735}
 \definecolor{t_darkblue}{HTML}{1e3666}
 \definecolor{t_darkgreen}{HTML}{22661e}
+\definecolor{t_darkred}{HTML}{661e1e}
 \definecolor{t_darkyellow}{HTML}{66571e}
 \definecolor{t_lightblue}{HTML}{8ea7d7}
+\definecolor{t_lightred}{HTML}{dc8989}
+\definecolor{t_lightgreen}{HTML}{8ddc89}
 
 % Code snippets:
 \usepackage{minted}
@@ -91,6 +94,7 @@
 }{cleanthesis}
 \usepackage{cleanthesis}
 
+\usepackage[nottoc]{tocbibind}
 \usepackage{mathtools}
 \usepackage{amssymb}
 \usepackage{amsthm}
@@ -163,10 +167,13 @@
 \usepackage{booktabs}
 \usepackage{tabu}
 \usepackage{csvsimple}
+\usepackage{array}
+\usepackage[usestackEOL]{stackengine}
 \usepackage{siunitx}
 \usepackage[nameinlink]{cleveref}
 \crefname{inv}{invariant}{invariants}
 \crefname{quest}{question}{questions}
+\crefname{mat}{matrix}{matrices}
 
 \hypersetup{% setup the hyperref-package options
     pdftitle={\thesisTitle},    %   - title (PDF meta)
@@ -182,6 +189,7 @@
 }
 
 % Custom commands:
+\renewcommand{\labelitemi}{\raisebox{.4\height}{\textcolor{t_darkblue}{\scriptsize$\blacktriangleright$}}}
 \newcommand{\tikzmark}[1]{\tikz[overlay,remember picture] \node (#1) {};} % chktex 1
 \newcommand{\dac}[3]{\DeclareAcronym{#1}{short = #2, long = #3}}
 \newcommand*\circled[2][1pt]{\tikz[baseline=(char.base)]{ % chktex 36
@@ -225,6 +233,7 @@
 \DeclareMathOperator{\wmaj}{wmaj}
 \DeclareMathOperator{\sgn}{sgn}
 \DeclareMathOperator{\set}{set}
+\DeclareMathSymbol{\shortminus}{\mathbin}{AMSa}{"39} % chktex 18
 
 \theoremstyle{plain}
 \newtheorem{thm}{Theorem}[chapter]
