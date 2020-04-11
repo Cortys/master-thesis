@@ -525,13 +525,16 @@ class GraphDatasetManager:
     node_counts = []
     edge_counts = []
     radii = []
-    diameters = []
     degrees = []
 
     for g in gs:
       node_counts.append(g.order())
       edge_counts.append(g.size())
       degrees += [d for n, d in g.degree()]
+      try:
+        radii.append(nx.algorithms.distance_measures.radius(g))
+      except Exception:
+        radii.append(np.inf)
 
     return dict(
       node_counts=utils.statistics(node_counts),
@@ -540,4 +543,5 @@ class GraphDatasetManager:
       dim_node_features=self.dim_node_features,
       dim_edge_features=self.dim_edge_features,
       num_node_labels=self.num_node_labels,
-      num_edge_labels=self.num_edge_labels)
+      num_edge_labels=self.num_edge_labels,
+      radii=utils.statistics(radii, mask_invalid=True))

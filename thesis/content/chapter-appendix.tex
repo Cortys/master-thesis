@@ -26,13 +26,16 @@ We evaluated our implementations of 2-\acsp{gnn} as well as 2-\acs{wl}-\acsp{gnn
 	\item \textbf{Number of convolutional layers $T \in \{ 3, 5 \}$:}
 		This parameter describes only the depth of the stack of convolutional layers.
 		The \ac{mlp} after the pooling layer is always configured with a single hidden layer.
+		The \acs{lta}-like configurations of 2-\acs{wl}-\acsp{gnn} are evaluated with the depths $T \in \{ 4, 5 \}$ to compensate for the missing \ac{mlp} after the pooling layer.
 	\item \textbf{Layer width $d \in \{ 32, 64 \}$:}
 		This parameter describes the output dimensionalities $d = d^{(1)} = \cdots = d^{(T)}$ of the convolutional layers and (if applicable) also the hidden layer width of the final \ac{mlp} after the pooling layer.
+		The \acs{lta}-like configurations of 2-\acs{wl}-\acsp{gnn} are evaluated with the same widths but use $d^{(T)} = 1$ in the final layer.
 	\item \textbf{Jumping knowledge $\mathrm{JK} \in \{ \mathtt{true}, \mathtt{false} \}$:}
 		\citet{Xu2018a} have demonstrated that it can be advantageous for graph classification to pass the outputs of convolutional layers to their successors.
 		We incorporate this idea by passing the input feature vectors not only to the first convolution layer but to all convolution layers through concatenation iff.\ $\mathrm{JK} = \mathtt{true}$.
 	\item \textbf{Learning rate $\eta \in \{ \num{1e-2}, \num{1e-3}, \num{1e-4} \}$} of the Adam optimizer.
 	\item \textbf{Activation functions $\sigma$ and $\sigma_{\Gamma}$} are set to the standard logistic function.
+	\item \textbf{Number of epochs $E$ and early stopping patience $p$} are set to $E = 1000$ and $p = 100$, except for the evaluation of the synthetic TRIANGLE dataset for which we used $E = 5000$ and $p = 1000$ to ensure model convergence.
 \end{itemize}
 
 \section{Dataset Statistics and Descriptions}%
@@ -40,13 +43,14 @@ We evaluated our implementations of 2-\acsp{gnn} as well as 2-\acs{wl}-\acsp{gnn
 
 \begin{table}[ht]
 	\caption{Sizes of the evaluated binary classification datasets and their graphs.}\label{tbl:appendix:ds-stats}
-	\centering
+	\centering\small
 	\csvreader[
-		tabular={lrrrrrrrr},
+		tabular={lrrrrrrrrr},
 		separator=comma,
+		before reading=\setlength{\tabcolsep}{5pt},
 		table head={%
-			\multicolumn{1}{c}{} & \multicolumn{1}{c}{} & &\multicolumn{3}{c}{vertex count $\left|\mathcal{V}_G\right|$} & \multicolumn{3}{c}{edge count $\left|\mathcal{E}_G\right|$} \\%
-			& \multirow{-2}{*}[-0.2em]{\shortstack[c]{no.\ of\\ graphs}} & \multirow{-2}{*}[-0.2em]{\shortstack[c]{vertex data\\(feat.\ + lab.)}} & $\min$ & $\mean$ & $\max$ & $\min$ & $\mean$ & $\max$ \\\toprule%
+			\multicolumn{1}{c}{} & \multicolumn{1}{c}{} & &\multicolumn{3}{c}{vertex count $\left|\mathcal{V}_G\right|$} & \multicolumn{3}{c}{edge count $\left|\mathcal{E}_G\right|$} & \multicolumn{1}{c}{radius} \\%
+			& \multirow{-2}{*}[-0.2em]{\shortstack[c]{no.\ of\\ graphs}} & \multirow{-2}{*}[-0.2em]{\shortstack[c]{vertex data\\{\scriptsize (feat.\ + lab.)}}} & $\min$ & $\mean$ & $\max$ & $\min$ & $\mean$ & $\max$ & $\mean \pm\, \sigma$ \\\toprule% chktex 21
 		},
 		table foot=\bottomrule,
 		late after line=\\
@@ -55,13 +59,13 @@ We evaluated our implementations of 2-\acsp{gnn} as well as 2-\acs{wl}-\acsp{gnn
 	node_count_min=\ncountmin,node_count_mean=\ncountmean,node_count_max=\ncountmax,%
 	edge_count_min=\ecountmin,edge_count_mean=\ecountmean,edge_count_max=\ecountmax,%
 	node_degree_min=\ndegmin,node_degree_mean=\ndegmean,node_degree_max=\ndegmax,%
-	dim_node_features=\nfdim,dim_edge_features=\efdim%
+	dim_node_features=\nfdim,dim_edge_features=\efdim, radius_mean=\radiusmean, radius_std=\radiusstd%
 	}%
 	{\textbf{\name}&%
 	$\gcount$&%
 	$\nfdim$&%
 	$\ncountmin$&$\ncountmean$&$\ncountmax$&%
-	$\ecountmin$&$\ecountmean$&$\ecountmax$%
+	$\ecountmin$&$\ecountmean$&$\ecountmax$&$\radiusmean \pm \radiusstd$%
 	}
 \end{table}
 
@@ -103,7 +107,7 @@ When directly comparing the mean accuracies of two learners, it is therefore oft
 We therefore now list the mean and standard deviations of the fold-wise test accuracy differences of all pairs of learners for all datasets.
 This effectively removes the variance introduced by ``easy'' and ``hard'' folds on which all learners might tend to perform consistently better/worse.
 
-In the following \crefrange{tbl:appendix:diff-triangle}{tbl:appendix:diff-imdb} (see \cpagerefrange{tbl:appendix:diff-triangle}{tbl:appendix:diff-imdb}), the differences are computed as $\textit{row accuracy} - \textit{column accuracy}$.
+In the following \crefrange{tbl:appendix:diff-triangle}{tbl:appendix:diff-imdb} (\cpagerefrange{tbl:appendix:diff-triangle}{tbl:appendix:diff-imdb}), the differences are computed as $\textit{row accuracy} - \textit{column accuracy}$.
 For each row $i$ and column $j$ we highlight the corresponding cell $(i,j)$ in \textcolor{t_red}{red} or \textcolor{t_darkgreen}{green} iff.\ the learner~$i$ performs consistently \textcolor{t_red}{worse} (or \textcolor{t_darkgreen}{better} respectively) than $j$ with a significance level of $2\sigma$.
 To compute the deltas for 2-\acs{wl}-\acsp{gnn}, we use the same neighborhood radii as in \cref{tbl:eval:synthetic,tbl:eval:real}, i.e.\ $r = 2$ for the synthetic triangle detection dataset and $r = 8$, $5$, $2$, $1$ and $4$ for NCI1, PROTEINS, D\&D, REDDIT and IMDB respectively.
 

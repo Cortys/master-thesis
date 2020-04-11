@@ -58,21 +58,24 @@
                  dim_edge_features
                  num_node_labels
                  num_edge_labels
-                 node_degrees]}]]
+                 node_degrees
+                 radii]}]]
   (str/join ","
             [(ds-rename name name)
              (get node_counts "count") ; graph count
              (round (get node_counts "min"))
-             (round (get node_counts "mean"))
+             (round (get node_counts "mean") 1)
              (round (get node_counts "max"))
              (round (get edge_counts "min"))
-             (round (get edge_counts "mean"))
+             (round (get edge_counts "mean") 1)
              (round (get edge_counts "max"))
              (dim-str dim_node_features num_node_labels)
              (dim-str dim_edge_features num_edge_labels)
              (round (get node_degrees "min"))
-             (round (get node_degrees "mean"))
-             (round (get node_degrees "max"))]))
+             (round (get node_degrees "mean") 1)
+             (round (get node_degrees "max"))
+             (round (get radii "mean") 1)
+             (round (get radii "std") 1)]))
 
 (defn ds-stats->csv
   []
@@ -82,7 +85,8 @@
                   "node_count_min,node_count_mean,node_count_max,"
                   "edge_count_min,edge_count_mean,edge_count_max,"
                   "dim_node_features,dim_edge_features,",
-                  "node_degree_min,node_degree_mean,node_degree_max")
+                  "node_degree_min,node_degree_mean,node_degree_max,"
+                  "radius_mean,radius_std")
         stats (str head "\n" (str/join "\n" (map stats-dict->csv-line stats)) "\n")]
     (spit "../thesis/data/ds_stats.csv" stats)
     (println stats)))
@@ -121,12 +125,13 @@
        :it (str "T=" (or T 5))
        :T (or T 5)
        :is-lta true
-       :is-default (or (= T 1) (nil? T))}
+       :is-default (or (= T 1) (= T 3))
+       :hide-diff (= T 1)}
       "WL_sp"
       {:name wlsp-model
        :order [0 2 (or T 5) 0]
        :it (str "T=" (or T 5))
-       :is-default (nil? T)}
+       :is-default (= T 3)}
       "LWL2"
       {:name "2-LWL"
        :order [0 3 (or T 3) 0]
@@ -214,6 +219,7 @@
                                         :order (params :order)
                                         :dataset dataset
                                         :is-default (:is-default params)
+                                        :hide-diff (:hide-diff params)
                                         :is-lta (:is-lta params)
                                         :pool (or (:pool params) "")
                                         :it (or (:it params) "")
@@ -300,6 +306,9 @@
 (defn fold-differences->tex
   [{:keys [only-default]} file dataset]
   (let [results (sort-by :order (dataset-results dataset :only-default only-default))
+        results (if (> (count results) 12)
+                  (remove :hide-diff results)
+                  results)
         diffs
         (for [{folds-a :folds test-a-mean :test-mean test-a-std :test-std} results
               {folds-b :folds test-b-mean :test-mean test-b-std :test-std} results

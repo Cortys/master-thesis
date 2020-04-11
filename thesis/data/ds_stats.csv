@@ -1,7 +1,7 @@
-name,graph_count,node_count_min,node_count_mean,node_count_max,edge_count_min,edge_count_mean,edge_count_max,dim_node_features,dim_edge_features,node_degree_min,node_degree_mean,node_degree_max
-TRIANGLE,228,6,18,32,5,52,164,0 + 2,0 + 1,0,6,19
-NCI1,4110,3,30,111,2,32,119,0 + 37,0 + 1,0,2,4
-PROTEINS,1113,4,39,620,5,73,1049,29 + 3,0 + 1,0,4,25
-D\&D,1178,30,284,5748,63,716,14267,0 + 89,0 + 1,1,5,19
-REDDIT,2000,6,430,3782,4,498,4071,0 + 1,0 + 1,0,2,3062
-IMDB,1000,12,20,136,26,97,1249,0 + 1,0 + 1,1,10,135
+name,graph_count,node_count_min,node_count_mean,node_count_max,edge_count_min,edge_count_mean,edge_count_max,dim_node_features,dim_edge_features,node_degree_min,node_degree_mean,node_degree_max,radius_mean,radius_std
+TRIANGLE,228,6,18.3,32,5,52.1,164,0 + 2,0 + 1,0,5.7,19,2.3,0.5
+NCI1,4110,3,29.9,111,2,32.3,119,0 + 37,0 + 1,0,2.2,4,7.0,2.8
+PROTEINS,1113,4,39.1,620,5,72.8,1049,29 + 3,0 + 1,0,3.7,25,6.1,4.0
+D\&D,1178,30,284.3,5748,63,715.7,14267,0 + 89,0 + 1,1,5.0,19,10.8,3.8
+REDDIT,2000,6,429.6,3782,4,497.8,4071,0 + 1,0 + 1,0,2.3,3062,4.6,1.6
+IMDB,1000,12,19.8,136,26,96.5,1249,0 + 1,0 + 1,1,9.8,135,1.0,0.0

@@ -21,13 +21,26 @@ class NumpyEncoder(json.JSONEncoder):
     return json.JSONEncoder.default(self, obj)
 
 def statistics(vals, mask_invalid=False):
-  return {
-    "mean": np.mean(np.ma.masked_invalid(vals) if mask_invalid else vals),
-    "std": np.std(np.ma.masked_invalid(vals) if mask_invalid else vals),
-    "min": np.min(vals),
-    "max": np.max(vals),
-    "count": len(vals) if isinstance(vals, Sized) else 1
-  }
+  if mask_invalid:
+    vals_masked = np.ma.masked_invalid(vals)
+    return {
+      "mean": np.mean(vals_masked),
+      "std": np.std(vals_masked),
+      "min": np.min(vals),
+      "max": np.max(vals),
+      "max_masked": np.max(vals_masked),
+      "min_masked": np.min(vals_masked),
+      "count": len(vals),
+      "count_masked": vals_masked.count()
+    }
+  else:
+    return {
+      "mean": np.mean(vals),
+      "std": np.std(vals),
+      "min": np.min(vals),
+      "max": np.max(vals),
+      "count": len(vals) if isinstance(vals, Sized) else 1
+    }
 
 @contextlib.contextmanager
 def local_seed(seed):
