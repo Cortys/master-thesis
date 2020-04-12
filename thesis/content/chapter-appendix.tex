@@ -107,9 +107,9 @@ When directly comparing the mean accuracies of two learners, it is therefore oft
 We therefore now list the mean and standard deviations of the fold-wise test accuracy differences of all pairs of learners for all datasets.
 This effectively removes the variance introduced by ``easy'' and ``hard'' folds on which all learners might tend to perform consistently better/worse.
 
-In the following \crefrange{tbl:appendix:diff-triangle}{tbl:appendix:diff-imdb} (\cpagerefrange{tbl:appendix:diff-triangle}{tbl:appendix:diff-imdb}), the differences are computed as $\textit{row accuracy} - \textit{column accuracy}$.
-For each row $i$ and column $j$ we highlight the corresponding cell $(i,j)$ in \textcolor{t_red}{red} or \textcolor{t_darkgreen}{green} iff.\ the learner~$i$ performs consistently \textcolor{t_red}{worse} (or \textcolor{t_darkgreen}{better} respectively) than $j$ with a significance level of $2\sigma$.
-To compute the deltas for 2-\acs{wl}-\acsp{gnn}, we use the same neighborhood radii as in \cref{tbl:eval:synthetic,tbl:eval:real}, i.e.\ $r = 2$ for the synthetic triangle detection dataset and $r = 8$, $5$, $2$, $1$ and $4$ for NCI1, PROTEINS, D\&D, REDDIT and IMDB respectively.
+In the following \crefrange{tbl:appendix:diff-triangle}{tbl:appendix:diff-imdb} (\cpagerefrange{tbl:appendix:diff-triangle}{tbl:appendix:diff-imdb}), we show accuracy differences as $\textit{row accuracy} - \textit{column accuracy}$.
+For each row $i$ and column $j$ the corresponding cell $(i,j)$ is highlighted in \textcolor{t_red}{red} or \textcolor{t_darkgreen}{green} iff.\ the learner~$i$ performs consistently \textcolor{t_red}{worse} (or \textcolor{t_darkgreen}{better} respectively) than $j$ with a significance level of $2\sigma$.
+To compute the deltas for 2-\acs{wl}-\acsp{gnn}, the same neighborhood radii as in \cref{tbl:eval:synthetic,tbl:eval:real} are used, i.e.\ $r = 2$ for the synthetic triangle detection dataset and $r = 8$, $5$, $2$, $1$ and $4$ for NCI1, PROTEINS, D\&D, REDDIT and IMDB respectively.
 
 {\captionsetup[table]{name=Matrix}%
 \begin{table}[ht]

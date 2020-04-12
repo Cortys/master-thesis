@@ -30,7 +30,11 @@
                "NCI1" "PROTEINS_full" "DD" "REDDIT-BINARY" "IMDB-BINARY"])
 (def wlst-model "WL\\textsubscript{ST}")
 (def wlsp-model "WL\\textsubscript{SP}")
-(def models-with-potential-oom #{wlst-model wlsp-model})
+(def k2gnn-model "2-GNN")
+(def wl2-gnn-model "2-WL-GNN")
+(def mean-pool "\\mean")
+(def sam-pool "\\mathrm{SAM}")
+(def models-with-potential-oom #{wlst-model wlsp-model k2gnn-model})
 
 (defn round
   ([num] (round num 0))
@@ -93,7 +97,7 @@
 
 (defn extract-pool
   [name]
-  (let [pool (if (str/includes? name "Avg") "\\mean" "\\mathrm{SAM}")]
+  (let [pool (if (str/includes? name "Avg") mean-pool sam-pool)]
     pool
     #_(if (str/ends-with? name "FC")
         (str pool " + \\mathrm{MLP}")
@@ -110,14 +114,14 @@
       "CWL2GCN"
       {:name "2-WL-GNN"
        :order [1 4 (if (str/includes? pool "MLP") 0 1) r]
-       :radius (str "r=" r)
+       :r r
        :is-default (= r (single-depth-radii dataset))
        :is-lta (not (str/ends-with? name "FC"))
        :pool pool}
       "K2GNN"
       {:name "2-GNN"
        :order [1 3 0 0]
-       :is-default true
+       :is-default (= r (default-radii dataset))
        :pool pool}
       "WL_st"
       {:name wlst-model
@@ -136,12 +140,14 @@
       {:name "2-LWL"
        :order [0 3 (or T 3) 0]
        :it (str "T=" (or T 3))
+       :T (or T 3)
        :is-lta true
        :is-default (nil? T)}
       "GWL2"
       {:name "2-GWL"
        :order [0 4 (or T 3) 0]
        :it (str "T=" (or T 3))
+       :T (or T 3)
        :is-default (nil? T)}
       "GIN"
       {:name "GIN" :order [1 2 0 0]
@@ -167,15 +173,23 @@
         evals (str/split evals #"\n+")
         summaries (into []
                         (comp (filter #(and (str/starts-with? % dataset) (not (str/ends-with? % "quick"))))
-                              (map (juxt identity #(try (slurp (str "./evaluations/" % "/summary/results.json")) (catch Exception _))))
-                              (keep (fn [[name s]] (when s (assoc (json/parse-string s true)
-                                                                  :name (subs name (inc (count dataset)))))))
+                              (map (juxt identity #(try
+                                                     [(slurp (str "./evaluations/" % "/summary/results.json"))
+                                                      (slurp (str "./evaluations/" % "/config.json"))]
+                                                     (catch Exception _))))
+                              (keep (fn [[name [s c]]]
+                                      (when (and c s)
+                                        (assoc (json/parse-string s true)
+                                               :name (subs name (inc (count dataset)))
+                                               :config (json/parse-string c true)))))
                               (keep (fn [{name :name
+                                          config :config
                                           folds :folds
                                           {test :accuracy} :combined_test
                                           {train :accuracy} :combined_train}]
                                       (when (= (:count test) 10) ; only include evaluations of all 10-folds
                                         {:name name
+                                         :config config
                                          :test-mean (to-proc (:mean test))
                                          :test-std (to-proc (:std test))
                                          :train-mean (to-proc (:mean train))
@@ -224,6 +238,7 @@
                                         :pool (or (:pool params) "")
                                         :it (or (:it params) "")
                                         :T (:T params)
+                                        :r (:r params)
                                         :params (str/join ", " (keep params [:pool :it]))}))))
                       summaries)
         typed-max (fn ([] {}) ([x] x) ([max-dict [t v]] (update max-dict t (fnil max 0) v)))
@@ -359,16 +374,21 @@
     (fold-differences->tex {:only-default true}
                            (str "diffs/" fname) dataset)))
 
-(defn wlst-depth-compare
-  [file]
-  (let [results (sort-by :order (mapcat #(dataset-results % :only-default false) datasets))
-        results (group-by :T (filter #(= wlst-model (:model %)) results))
+(defn wl-depth-compare
+  [{:keys [use-gnn pool] :or {use-gnn false pool sam-pool}} file]
+  (let [model-filter (if use-gnn
+                       #(and (= wl2-gnn-model (:model %)) (= pool (:pool %)))
+                       #(= wlst-model (:model %)))
+        depth-key (if use-gnn :r :T)
+        results (sort-by :order (mapcat #(dataset-results % :only-default false) datasets))
+        results (group-by depth-key (filter model-filter results))
         Ts (sort (keys results))
-        head (str "T;" (str/join ";" (map #(dataset-result-head % :with-best false) datasets)))
+        head (str (name depth-key) ";" (str/join ";" (map #(dataset-result-head % :with-best false) datasets)))
         rows (map (fn [T]
                     (let [T-results (results T)
                           vals (mapcat #((juxt :test-mean :test-std :train-mean :train-std)
-                                         (first (filter (comp (partial = %) :dataset) T-results)))
+                                         (or (first (filter (comp (partial = %) :dataset) T-results))
+                                             {:test-mean "nan" :test-std "nan" :train-mean "nan" :train-std "nan"}))
                                        datasets)]
                       (str T ";" (str/join ";" vals))))
                   Ts)
@@ -376,19 +396,69 @@
     (spit (str "../thesis/data/" file ".csv") csv)
     (println csv)))
 
+(defn wl2-single-radius->csv
+  [r res]
+  (let [head (str "ds;"
+                  "samTestMean;" "samTestStd;" "samTrainMean;" "samTrainStd;"
+                  "meanTestMean;" "meanTestStd;" "meanTrainMean;" "meanTrainStd")
+        datasets (distinct (map :dataset res))
+        results (group-by :pool res)
+        rows (for [ds datasets
+                   :let [mean-res (first (filter #(= ds (:dataset %)) (results mean-pool)))
+                         sam-res (first (filter #(= ds (:dataset %)) (results sam-pool)))
+                         selector (juxt :test-mean :test-std :train-mean :train-std)]]
+               (str (ds-rename ds ds) ";" (str/join ";" (concat (selector sam-res) (selector mean-res)))))
+        csv (str head "\n" (str/join "\n" rows) "\n")]
+    (println r csv)
+    (spit (str "../thesis/data/wl2_radii/r_" r ".csv") csv)))
+
+(defn wl2-radius-compare
+  []
+  (let [results (into []
+                      (comp (remove #{"REDDIT-BINARY"})
+                            (mapcat #(dataset-results % :only-default false))
+                            (filter #(and (= (:model %) "2-WL-GNN") (:is-lta %))))
+                      datasets)
+        results (sort-by :order results)
+        results (group-by :r results)
+        radii (sort (keys results))]
+    (doseq [r radii] (wl2-single-radius->csv r (results r)))))
+
+(defn durations
+  []
+  (let [results (sort-by :order (mapcat #(dataset-results % :only-default true) datasets))
+        results (->> results
+                     (filter :config)
+                     (remove :T)
+                     (filter (comp #{"NCI1"}
+                                   :dataset))
+                     ;(filter #(= (:model %) "2-WL-GNN"))
+                     (map #(update-in % [:config :duration] / (* 60 60 24))))
+        durs (map (comp :duration :config) results)
+        min-dur (apply min durs)
+        max-dur (apply max durs)]
+    (println "Min:" min-dur "Max:" max-dur "Mean/std:" (std durs))
+    (doseq [res results]
+      (println "Duration for " (:model res) "-" (:dataset res) "-" (:params res) "-" (:duration (:config res))))))
+
 (defn default-action
   []
   (ds-stats->csv)
   (eval-results->csv {:only-default false} "results")
   (all-fold-differences->tex)
-  (wlst-depth-compare "wlst_depths"))
+  (wl-depth-compare {:use-gnn false} "wlst_depths")
+  (wl-depth-compare {:use-gnn true :pool sam-pool} "wl2_radii_sam")
+  (wl-depth-compare {:use-gnn true :pool mean-pool} "wl2_radii_mean"))
 
 (def actions {"ds_stats" ds-stats->csv
               "eval_res_full" (partial eval-results->csv {:only-default false})
               "eval_res" (partial eval-results->csv {:only-default true})
               "fold_diff" (partial fold-differences->tex {:only-default true})
               "fold_diffs" all-fold-differences->tex
-              "wlst_compare" wlst-depth-compare
+              "wlst_compare" (partial wl-depth-compare {:use-gnn false})
+              "wl2_compare_sam" (partial wl-depth-compare {:use-gnn true :pool sam-pool})
+              "wl2_compare_mean" (partial wl-depth-compare {:use-gnn true :pool mean-pool})
+              "durations" durations
               nil default-action})
 
 (println "LTAG Results Postprocessor.")

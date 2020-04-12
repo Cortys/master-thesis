@@ -152,7 +152,7 @@ For the evaluation of 2-\acs{wl}-\acsp{gnn}, the neighborhood radius $r = 2$ is 
 
 Looking at the results in \cref{tbl:eval:synthetic}, it can be seen that the structure unaware baseline method is completely unable to detect triangles, as expected.
 The structure aware learners on the other hand all perform better than random guessing and are in fact mostly able to fit the training data perfectly.
-This shows that all generated graphs are 1-\acs{wl} distinguishable; the \ac{wl} subtree kernel, for example, can simply memorize the training graphs via their unique 1-\acs{wl} color distribution after $T = 5$ refinement steps.
+This shows that all generated graphs are 1-\acs{wl} distinguishable; the \ac{wl} subtree kernel \ac{svm}, for example, can simply ``memorize'' the training graphs via their unique 1-\acs{wl} color distribution after $T = 5$ refinement steps.
 
 However, the ability to distinguish training graphs is not sufficient to also classify previously unseen graphs correctly.
 Since 1-\acs{wl} cannot detect triangles, all 1-\acs{wl} bounded approaches (\acs{wl}\textsubscript{ST}, \acs{wl}\textsubscript{SP}, Baseline, \acs{gin}) are therefore unable to generalize, as can be seen in their test accuracies.
@@ -177,7 +177,7 @@ Comparing both configurations, we see that the \acs{lta}-variant has a worse gen
 However, as we saw in the \ac{lta} formulation of \acp{gcnn} (see \cfullref{thm:ltag:gcnn-ltag-formulation}), a 2-\acs{wl}-\acs{gnn} does not actually learn to decompose a graph into unicolored triangle constituents but uses subtree constituents instead.
 Further investigations are required to determine to which extent the worse performance of the \acs{lta}-like configuration is caused by this static decomposition strategy and whether a more dynamic solution to the \acf{ltd} problem could improve the performance (e.g.\ via the edge filtering idea described in \cref{sec:ltd:edge-filter}).
 
-Finally, if we look at the two evaluated pooling layers, static $\mean$ pooling and \ac{sampool}, we see that the attention mechanism of the latter significantly improves the generalization performance of both 2-\acsp{gnn} and 2-\acs{wl}-\acsp{gnn}.
+Finally, if we look at the two evaluated pooling layers, static $\mean$ pooling and \ac{sampool}, we see that the attention mechanism of the latter tends to improve the generalization performance of both 2-\acsp{gnn} and 2-\acs{wl}-\acsp{gnn}.
 This indicates that \ac{sampool} is successful at filtering out the randomly generated noisy parts of a given graph and putting most attention to the relevant unicolored triangle.
 
 \section{Evaluation on Real-World Data}%
@@ -231,6 +231,9 @@ A more detailed description of the evaluated datasets can be found in \cref{sec:
 	Note that, for the NCI1, PROTEINS and D\&D datasets we used different training/test splits than those originally used by \citet{Errica2020}.
 	The reason for this is that the original splits were only published after our evaluations of those datasets had already been completed.
 	For REDDIT and IMDB however, we used the same splits.
+	Also note that some values are missing because of \acf{oom} errors;
+	the resource use for all evaluations was limited to \SI{64}{\giga\byte} main memory and \SI{11}{\giga\byte} GPU memory.
+	On average, each \ac{gnn} assessment (see \cref{algo:eval:assessment}) took about three days on an AMD 1800X 16-thread CPU and an Nvidia 1080~Ti GPU.% chktex 29
 }.
 For the evaluation of 2-\acs{wl}-\acsp{gnn}, different neighborhood radii were used for each dataset.
 In the order of the columns in the table above, the results were obtained with the radii $r = 8$, $5$, $2$, $1$ and $4$ respectively.
@@ -328,3 +331,69 @@ when $r$ is increased, the \ac{bfs} subtrees can span larger constituents due to
 
 In addition to its influence on constituent sizes, a higher neighborhood radius also introduces additional feature vectors into the convolved feature matrices $Z^{(t)} \in \mathbb{R}^{\left|\mathcal{E}_{G^r}\right| \times d^{(t)}}$.
 As we saw in the proof sketch of 2-\acs{wl}'s cycle counting ability (see \cfullref{prop:related:wl2-cycle-count}), those additional features/colors can carry important structural information about a graph.
+\newcommand{\wlRadiusPlot}[4][width=0.22\linewidth]{%
+\begin{tikzpicture}
+	\begin{axis}[
+		height=0.3\linewidth,
+		#1,
+		label style={font=\tiny},
+		tick label style={font=\tiny},
+		ymajorgrids,
+		ytick style={draw=none},
+		ylabel shift=-6pt,
+		xlabel shift=-5pt,
+		axis line style={gray},
+		mark size={1.5pt},
+		title style={yshift=-0.3em},
+		#3
+	]
+		\addplot [color=t_blue, only marks, mark=*]
+		plot[error bars/.cd, y dir=both, y explicit]
+		table [x=r, y=#2TrainMean, y error=#2TrainStd, col sep=semicolon] {data/wl2_radii_#4.csv};
+		\label{pgfplots:eval:wl-radius:#4-#2-train}
+		\addplot [color=t_red, only marks, mark=square*]
+		plot[error bars/.cd, y dir=both, y explicit]
+		table [x=r, y=#2TestMean, y error=#2TestStd, col sep=semicolon] {data/wl2_radii_#4.csv};
+		\label{pgfplots:eval:wl-radius:#4-#2-test}
+	\end{axis}
+\end{tikzpicture}} % chktex 31
+\begin{figure}[t]
+	\centering
+	\setlength{\tabcolsep}{1pt}
+	\begin{tabular}{m{1em}cccccc}
+		\raisebox{0.27\height}[0pt][0pt]{\rotatebox{90}{\small\textsc{$\mean$~pooling}}} &
+		\wlRadiusPlot{triangle}{title={\small TRIANGLE},ylabel={accuracy},xtick={1,2},xmin=0,xmax=3,ymin=80,ymax=100,try min ticks=4}{mean} &
+		\wlRadiusPlot{nci}{title={\small NCI1},xtick={1,8},xmin=-6,xmax=15,ymin=60,ymax=80,try min ticks=4}{mean} &
+		\wlRadiusPlot{proteins}{title={\small PROTEINS},xtick={1,5},xmin=-3,xmax=9,ymin=65,ymax=85,try min ticks=4}{mean} &
+		\wlRadiusPlot{dd}{title={\small D\&D},xtick={1,2},xmin=0,xmax=3,ymin=65,ymax=85,try min ticks=4}{mean} &
+		\wlRadiusPlot[width=0.33\linewidth]{imdb}{title={\small IMDB},xtick={1,2,4,6,8},ymin=60,ymax=80,try min ticks=4}{mean} &
+		\multirow{2}{*}[1.5em]{\hspace{8pt}\rotatebox[origin=c]{90}{\scriptsize%
+			\ref{pgfplots:eval:wl-radius:mean-triangle-test}~Test\quad % chktex 2
+			\ref{pgfplots:eval:wl-radius:mean-triangle-train}~Train % chktex 2
+		}} \\
+		\raisebox{0.33\height}[0pt][0pt]{\rotatebox{90}{\small\textsc{$\mathrm{SAM}$~pooling}}} &
+		\wlRadiusPlot{triangle}{ylabel={accuracy},xtick={1,2},xmin=0,xmax=3,ymin=80,ymax=100,try min ticks=4, xlabel={radius $r$}}{sam} &
+		\wlRadiusPlot{nci}{xtick={1,8},xmin=-6,xmax=15,ymin=60,ymax=80,try min ticks=4, xlabel={radius $r$}}{sam} &
+		\wlRadiusPlot{proteins}{xtick={1,5},xmin=-3,xmax=9,ymin=65,ymax=85,try min ticks=4, xlabel={radius $r$}}{sam} &
+		\wlRadiusPlot{dd}{xtick={1,2},xmin=0,xmax=3,ymin=65,ymax=85,try min ticks=4, xlabel={radius $r$}}{sam} &
+		\wlRadiusPlot[width=0.33\linewidth]{imdb}{xtick={1,2,4,6,8},ymin=60,ymax=80,try min ticks=4, xlabel={radius $r$}}{sam} &
+	\end{tabular}
+	\caption[Accuracy of the \ac{lta}-like 2-\acs{wl}-\acs{gnn} configurations for varying neighborhood radii.]{
+		Accuracy of the \ac{lta}-like 2-\acs{wl}-\acs{gnn} configurations for varying neighborhood radii $r$.
+		All datasets were evaluated on $r = 1$ and the highest radius for which the 2-\acs{wl} graph encodings would still fit into memory;
+		on the REDDIT dataset all radii larger than $1$ produced \ac{oom} errors, therefore it is not shown here.
+	}\label{fig:eval:wl2-gnn-radius}
+\end{figure}
+\Cref{fig:eval:wl2-gnn-radius} shows that adding this information via a neighborhood radius $r > 1$ does correlate with a higher training and test accuracy on the NCI1 and D\&D datasets; on the IMDB and PROTEINS datasets this is not the case.
+This difference is interesting because NCI1 (molecular structures) and D\&D (protein sequences) contain more cyclic graphs while IMDB (ego-network structures) and PROTEINS (protein sequences) consist of more tree- or list-like graphs (see \cref{sec:appendix:ds-stats}).
+Even though the PROTEINS and D\&D datasets both contain protein sequences, we find that the protein sequences in the PROTEINS dataset are very ``list-like'' with much fewer large cycles than in the proteins structures of the D\&D dataset (compare the vertex and edge count statistics of both datasets in \cref{tbl:appendix:ds-stats}).
+\Cref{fig:evaluation:proteins-dd-diff} illustrates this difference.
+This leads us the the hypothesis that 2-\acs{wl}-\acsp{gnn} with a neighborhood radius of $r > 1$ are able to improve their real-world performance over that achieved with $r = 1$ by detecting cyclic constituents in graphs.
+Due to the limited number of evaluation results, further investigations are required to verify this hypothesis.
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.8\linewidth]{gfx/evaluation/proteins-dd-diff.pdf}
+	\caption{
+		Two samples illustrating the difference between the PROTEINS and D\&D datasets.
+	}\label{fig:evaluation:proteins-dd-diff}
+\end{figure}

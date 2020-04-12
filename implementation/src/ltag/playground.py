@@ -302,8 +302,13 @@ def ds_stats():
 # synthetic.balanced_triangle_classification_dataset(stored=True)().draw(153, label_colors=True)
 # synthetic.balanced_triangle_classification_dataset(stored=True)().export_dot(152)
 # synthetic.balanced_triangle_classification_dataset(stored=True)().export_dot(153)
-ds_stats()
-
+# ds_stats()
+# p = eval_ds.Proteins_5()
+# d = eval_ds.DD_2()
+# p.draw(402)
+# d.draw(2)
+# p.export_dot(402)
+# d.export_dot(2)
 #
 # list(dsm.get_all(output_type="grakel")[0])
 #
