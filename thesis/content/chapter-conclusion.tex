@@ -3,8 +3,42 @@
 \chapter{Conclusion}%
 \label{sec:conclusion}
 
+To conclude the thesis, we now look back on the three research questions described in \cref{sec:intro:questions} and summarize the answers we gave to them in the previous chapters.
+Afterwards, a brief overview of future research directions based on our findings will be given.
+
 \section{Review}%
 \label{sec:conclusion:review}
+
+\paragraph{\circled{1}\; What constitutes an \ac{lta} method?}
+We began with a general definition of \ac{lta} in \cref{sec:ltag:definition}.
+There we proposed that its defining characteristic should be the \textit{localized explainability} of its predictions.
+This characteristic was formalized via the notion of \textit{\ac{lta} formulations} (see \cfullref{defn:ltag:formulation}) which requires that a model is expressible in terms of a decomposition function $\psi: \mathcal{G} \to \mathcal{P}(\mathcal{G})$, a local evaluation function $f: \mathcal{G} \to \mathcal{Y} \times \mathcal{R}$ and a weighted aggregation function $\mathcal{A}: {(\mathcal{Y} \times \mathcal{R}_{\geq 0})}^* \to \mathcal{Y}$.
+An ideal \ac{lta} method has such a formulation with a decomposition function $\psi$ that splits graphs into ``meaningful'' constituents in some domain-specific sense of the word.
+Since this ideal notion of \ac{lta} is generally quite fuzzy, we only distinguished between \acs{lta}-like and non-\acs{lta} methods in this thesis;
+a method was called non-\acs{lta} if it uses a trivial decomposition function that just splits a graph $G$ into the single ``constituent'' $G$.
+
+\paragraph{\circled{2}\; How do existing \ac{gcr} methods relate to \ac{lta}?}
+In \cref{sec:ltag:formulation:svm,sec:ltag:formulation:gcnn} we used our definition of \ac{lta} to check which of the existing \ac{gcr} approaches are compatible with it.
+For the case of an \ac{svm} using a graph kernel/embedding we found that it is an \acs{lta}-like method if the kernel is a so-called nontrivial \acf{sce} (see \cfullref{defn:ltag:substruct-embedding,thm:ltag:svm-ltag-formulation}).
+This \ac{sce} condition is satisfied by fingerprint embeddings, the \ac{wl} subtree kernel and the 2-LWL kernel which makes them \acs{lta}-like.
+However, \texttt{graph2vec} embeddings, the \ac{wl} shortest-path kernel and the 2-GWL kernel were found to be trivial or only partly nontrivial \acp{sce}, i.e.\ they are non-\acs{lta} methods.
+After considering those embedding approaches we looked at \ac{gcnn} and showed that they also have an \ac{lta} formulation under certain conditions (see \cfullref{thm:ltag:gcnn-ltag-formulation}).
+More specifically, we saw that the constituents used by a \ac{gcnn} are spanned by the \ac{bfs} subtrees of its input graph.
+
+\paragraph{\circled{3}\; What are limitations of existing graph \ac{lta} methods and how can they be overcome?}
+\Cref{sec:ltd:edge-filter} described that the subtree constituents are their primary limitation of \acp{gcnn} and that more flexible decompositions can be learned via an edge filtering strategy.
+To realize edge filtering, we proposed that informative edge feature vectors could be used as the input to a filtering classifier.
+To produce such feature vectors we first looked at 2-\acsp{gnn} and found that they have various theoretical limitations, i.e.\ the inability to distinguish regular graphs and to detect cycles (see \cfullref{prop:ltd:2gnn-regular-limit,prop:ltd:2gnn-cycle-limit}).
+We therefore proposed the 2-\acs{wl}-\acs{gnn} which does not have those limitations (see \cfullref{cor:ltd:wl2-gnn-regular}).
+
+\paragraph{Evaluation results}
+For the evaluation of our results we considered two aspects:
+Firstly, we looked at how 2-\acs{wl}-\acsp{gnn} compare to other \acp{gnn}.
+Secondly, we evaluated how \acs{lta}-like methods compare to non-\acs{lta} methods.
+Regarding the first aspect, we showed that the theoretical advantages of 2-\acs{wl}-\acsp{gnn} are clearly observable on the synthetic triangle detection dataset while on the evaluated real-world datasets we got results which are generally comparable with the best state-of-the-art approaches but not significantly better.
+Regarding the second aspect, we observed no general advantage or disadvantage of \acs{lta}-like methods.
+While the \acs{lta}-like configurations of 2-\acs{wl}-\acsp{gnn} generally performed worse than their non-\ac{lta} counterparts, the \acs{lta}-like \ac{wl} subtree kernel generally performed quite well.
+This shows that \ac{lta} is in principle suitable for graph classification tasks if the right decomposition, evaluation and aggregation functions are chosen.
 
 \section{Future Directions}%
 \label{sec:conclusion:todo}

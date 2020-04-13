@@ -4,11 +4,11 @@
 \label{sec:ltag}
 
 In the previous chapter an introduction to two separate fields of research was given:
-\begin{enumerate*}
-	\item \Acf{lta},
-	\item \Acf{gcr}
-\end{enumerate*}.
-In this chapter we will combine them and define an extension of \ac{lta} to the \ac{gcr} problem.
+\begin{enumerate*}[label={\circled{\small\arabic*}}]
+	\item \Acf{lta}.
+	\item \Acf{gcr}.
+\end{enumerate*}
+In this chapter we combine them and define an extension of \ac{lta} to the \ac{gcr} problem.
 This will be done in three steps:
 \begin{enumerate}
 	\item We begin with a formal definition of what actually constitutes an \ac{lta} method as opposed to non-\acs{lta} methods.
@@ -80,7 +80,7 @@ Such a model must satisfy three criteria:
 	}\label{fig:ltag:ltag-overview}
 \end{figure}
 Based on the notion of decomposition, local evaluation and aggregation we can now define the concept of \textit{\ac{lta} formulations}.
-\begin{defn}
+\begin{defn}\label{defn:ltag:formulation}
 	A model $h: \mathcal{G} \to \mathcal{Y}$ is in an \textit{\ac{lta} formulation} iff.\ it is expressed as
 	\begin{align*}
 		h(G) \coloneqq \mathcal{A}(\ldblbrace f(c_{G,i})\, |\, c_{G,i} \in \psi(G) \rdblbrace) \quad\text{with $\psi$, $f$ and $\mathcal{A}$ as defined above.}

@@ -6,7 +6,7 @@
 In \cref{sec:ltag} the relation between \ac{lta} and existing \ac{gcr} approaches was formally analyzed.
 There we saw that the \ac{lta} formulations of existing approaches mostly use static decomposition functions, e.g.\ \ac{bfs} subtree decompositions.
 Motivated by the idea of dynamically learning decompositions via edge filters, we then proposed the novel 2-\acs{wl}-\acs{gnn} in \cref{sec:ltd}.
-The ides presented in both chapters will now be empirically evaluated.
+The ideas presented in both chapters will now be empirically evaluated.
 Do to so we differentiate between two mostly independent evaluation aspects:
 \begin{enumerate}[label={\textbf{\arabic*.}}]
 	\item \textbf{Evaluation of 2-\acs{wl}-\acsp{gnn}:}
@@ -24,7 +24,7 @@ This chapter will tackle those two aspects in four steps:
 	\item We then present results on synthetically generated data in \cref{sec:eval:synthetic}.
 	 	There we will illustrate the higher expressive power of 2-\acs{wl}-\acsp{gnn} when compared to other \ac{gcr} approaches which confirms the theoretical results from \cref{sec:ltd:wl2gnn:properties}.
 	\item Then evaluation results on real-world datasets are described in \cref{sec:eval:real}.
-		There we will see how 2-\acs{wl}-\acsp{gnn} compare to other \acp{gnn} in practice as well as how \acs{lta}-like models compare to non-\acs{lta} model.
+		There we will see how 2-\acs{wl}-\acsp{gnn} compare to other \acp{gnn} in practice as well as how \acs{lta}-like models compare to non-\acs{lta} models.
 	\item Finally, \cref{sec:eval:lta} looks at the synthetic and real-world results from an \ac{lta} perspective.
 		There we will see how the predictive performance of an \acs{lta}-like model relates to the size and locality of its constituents.
 \end{enumerate*}
@@ -233,7 +233,7 @@ A more detailed description of the evaluated datasets can be found in \cref{sec:
 	For REDDIT and IMDB however, we used the same splits.
 	Also note that some values are missing because of \acf{oom} errors;
 	the resource use for all evaluations was limited to \SI{64}{\giga\byte} main memory and \SI{11}{\giga\byte} GPU memory.
-	On average, each \ac{gnn} assessment (see \cref{algo:eval:assessment}) took about three days on an AMD 1800X 16-thread CPU and an Nvidia 1080~Ti GPU.% chktex 29
+	On average, each \ac{gnn} assessment (as in \cref{algo:eval:assessment}) took about three days on an AMD 1800X 16-thread CPU and an Nvidia 1080~Ti GPU.% chktex 29
 }.
 For the evaluation of 2-\acs{wl}-\acsp{gnn}, different neighborhood radii were used for each dataset.
 In the order of the columns in the table above, the results were obtained with the radii $r = 8$, $5$, $2$, $1$ and $4$ respectively.

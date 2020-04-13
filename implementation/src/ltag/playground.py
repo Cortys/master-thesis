@@ -303,12 +303,25 @@ def ds_stats():
 # synthetic.balanced_triangle_classification_dataset(stored=True)().export_dot(152)
 # synthetic.balanced_triangle_classification_dataset(stored=True)().export_dot(153)
 # ds_stats()
-# p = eval_ds.Proteins_5()
-# d = eval_ds.DD_2()
-# p.draw(402)
-# d.draw(2)
-# p.export_dot(402)
-# d.export_dot(2)
+p = eval_ds.Proteins_5()
+d = eval_ds.DD_2()
+nci = eval_ds.NCI1_8()
+imdb = eval_ds.IMDB_8()
+reddit = eval_ds.RedditBinary_1()
+
+nci.draw(30)
+nci.draw(33)
+nci.draw(204)
+nci.draw(1300)
+nci.draw(4101)
+
+imdb.draw(107)
+imdb.draw(999)
+imdb.export_dot(999)
+
+reddit.draw(2)
+reddit.draw(100)
+reddit.export_dot(100)
 #
 # list(dsm.get_all(output_type="grakel")[0])
 #

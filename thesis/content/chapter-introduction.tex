@@ -6,71 +6,95 @@
 \pagenumbering{arabic}			% arabic page numbering
 \setcounter{page}{1}			% set page counter
 
-\section{Motivation}%
-\label{sec:intro:motivation}
-
-The field of \ac{ml} on graph-structured data has applications in many domains due to the general expressive power of graphs.
-The three most common types of graph~\ac{ml} problems are
+The field of \ac{ml} on graph-structured data has recently become an active topic of research.
+One reason for this is the wide range of domains and problems that are expressible in terms of graphs.
+Three very common types of such graph~\ac{ml} problems~\cite{Wu2019} are:
 \begin{enumerate}[label=\textbf{\arabic*.}]
 	\item \textbf{Link prediction:}
 		A graph with an incomplete edge set is given and the missing edges have to be predicted.
 		The suggestion of potential friends in a social network is a typical example for this.
 	\item \textbf{Vertex classification \& regression:}
 		Here a class or a score has to be predicted for each vertex of a graph.
-		In social graphs this corresponds to the prediction of properties of individuals, e.g.\ personal preferences or gender.
+		In social graphs this corresponds to the prediction of properties of individuals, e.g.\ personal preferences.
 		Another example is the prediction of the amount of traffic at the intersections of a street network.
 	\item \textbf{Graph classification \& regression:}
-		In this final problem type a single global class or continuous value has to be predicted for an input graph.
-		The canonical example for this is the prediction of properties of molecule graphs, e.g.\ the toxicity or solubility of a chemical.
+		In this final problem type, a single global class or continuous value has to be predicted for an input graph.
+		The canonical example for this is the prediction of properties of molecular graphs, e.g.\ the toxicity or solubility of a chemical.
 \end{enumerate}
-In this thesis we will focus on the last problem type, \ac{gcr}.
-An \ac{ml} method for this problem has to accept graphs of varying size and should be permutation invariant wrt.\ the order in which graph vertices are provided.
-Those requirements are not met by the commonly used learners that only accept fixed-size feature vectors as their input, e.g.\ \acp{lm}, \acp{svm} or \acp{mlp}.
+In this thesis we will focus specifically on the last problem type, \ac{gcr}.
+When comparing this problem with the more common problem of classification/regression on fixed-dimensional vector inputs $x \in \mathbb{R}^d$ we find two fundamental differences:
+\begin{enumerate*}[label={\circled{\small\arabic*}}]
+	\item The sizes of input graphs are generally not fixed; in \ac{gcr}, inputs can be arbitrarily small or large.
+	\item Moreover, while two distinct vectors $x \neq x'$ typically represent distinct inputs for which different predictions $y \neq y'$ can be produced, graphs generally cannot be uniquely encoded because the order in which vertices are provided does not matter.
+		A \ac{gcr} method must therefore be invariant w.r.t.\ vertex permutations, i.e.\ it must map two structurally identical graphs $G \simeq G'$ to the same prediction even if their encoding differs.
+\end{enumerate*}
 
-A \ac{gcr} method has to account for two central aspects of the problem:
-\begin{enumerate*}
-	\item Local structural analysis and
-	\item global aggregation
-\end{enumerate*}.
-The first aspect is about the extraction of relevant features of substructures of the input graph.
-The latter is about the way in which the local features are combined into a final class or regression value.
-The existing \ac{gcr} methods are mostly motivated by local structural graph analysis.
-The aspect of global aggregation on the other hand is less emphasized by those methods.
+Due to those two differences, the \ac{gcr} problem cannot be directly solved by any of the common learners for vectorial inputs, e.g.\ \acp{lm} or \acp{mlp}.
+Therefore, to tackle this problem, various graph-specific learners have been proposed over the recent years.
+This thesis provides a novel perspective on the \ac{gcr} problem by combining the existing approaches with another, currently unrelated, field of research called \ac{lta}~\cite{Melnikov2016}\cite{Melnikov2019}.
 
-There is however a separate branch of research that specifically looks at the problem of learning aggregation functions, called \ac{lta}.
-Current \ac{lta} approaches explicitly learn an aggregation functions for sets which can be interpreted as graphs without edges.
-The motivation for this thesis is to generalize \ac{lta} from sets to arbitrary graphs.
-The overall goal is to combine the aggregation learning perspective with existing \ac{gcr} methods.
+\section{Motivation}%
+\label{sec:intro:motivation}
 
-\section{Goals}%
-\label{sec:intro:goals}
+The existing \ac{gcr} approaches can be split into the family of so-called \textit{graph embeddings} and that of \acp{gnn}.
+The embedding approach maps graphs to vectors in order to then apply a standard vector classification or regression method.
+\Acp{gnn} on the other hand directly produce a prediction by using shared weights, similar to \acp*{cnn} on images~\cite{LeCun1998}.
 
-To extend \ac{lta} to graphs, three goals have to be achieved:
+Independent of those approaches, the family of \ac{lta} methods looks at the problem of aggregating variable-size \textit{compositions}, i.e.\ multisets, of so-called \textit{constituents}.
+Like \ac{gcr} approaches, an \ac{lta} method has to be able to process inputs of varying size in a permutation invariant fashion.
+Motivated by this similarity, this thesis extends the ideas of \ac{lta} to the domain of structured graph data.
+
+Such an extension is interesting because \ac{lta} models produce composition predictions which are the direct result of local constituent predictions.
+This means that \ac{lta} models provide insight into the influence of constituents on the final prediction, which makes \ac{lta} relevant from the perspective \ac{xai}~\cite{Gilpin2018}.
+\Cref{fig:intro:intuition} illustrates how a graph-variant of \ac{lta} could explain the prediction of some graph property.
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=0.8\linewidth]{gfx/introduction/intuition.pdf}
+	\caption{Intuition for how \ac{lta} could describe some graph property, e.g.\ the toxicity of a molecule, via a set of local constituent predictions.}\label{fig:intro:intuition}
+\end{figure}
+
+\section{Research Questions}%
+\label{sec:intro:questions}
+
+Based on the idea of extending \ac{lta} to graphs, we state the following three research questions which will be answered in this thesis:
 \begin{enumerate}[label=\textbf{\arabic*.}]
 	\item \textbf{Formalization of \ac{lta}:}
-		Before \ac{lta} can be extended, its essential characteristics have to be defined.
-		Those characteristics should provide the terminology to formally capture the differences and similarities between \ac{lta} and existing \ac{gcr} methods.
-	\item \textbf{Give an \ac{lta} interpretation of \ac{gcr} methods:}
-		Using the \ac{lta} formalization, representative \ac{gcr} approaches should be restated as \ac{lta} instances.
-		Currently there is no comprehensive formulation of the relation between both fields of research;
-		this is addressed by the the second goal.
-	\item \textbf{Define an \ac{lta} method for graphs:}
-		Using the \ac{lta} perspective on \ac{gcr}, hidden assumptions of the existing approaches should become clear and in which way they share the assumptions of \ac{lta}.
-		The last goal is to use those insights to formulate an \ac{lta}-\ac{gcr} method that combines ideas from the existing approaches with the \ac{lta} assumptions.
+		The previous work on \ac{lta} provides only a narrow definition of \ac{lta} for unstructured multiset inputs.
+		The question what its essential characteristics are, on a more general level, has not yet been considered.
+		Therefore we will provide the terminology and definitions to formally capture what constitutes an \ac{lta} method as opposed to a non-\ac{lta} method.
+	\item \textbf{An \ac{lta} interpretation of existing \ac{gcr} methods:}
+		Using the generalized \ac{lta} formalization, a selection of state-of-the-art \ac{gcr} approaches will be checked for their compatibility with \ac{lta}.
+		By doing so, we answer the question whether and how existing \ac{gcr} methods are able to produce predictions which are explainable by local constituent predictions.
+	\item \textbf{Definition of a novel \acs{lta}-inspired \ac{gcr} method:}
+		As a follow-up question to the previous one, we ask to which extent the existing \ac{gcr} methods are explainable and what their specific shortcomings are.
+		Based on those shortcomings we will propose a novel \acs{lta}-inspired approach to overcome them.
 \end{enumerate}
 
 \section{Structure}%
 \label{sec:intro:structure}
 
 \paragraph{\Cref{sec:related}: \nameref{sec:related}}
+In order to answer our three research questions, we begin by with on overview of the previous work regarding \ac{lta} as well as \ac{gcr}.
+We begin with a brief description of \ac{lta}.
+Then the theoretical foundations of the existing \ac{gcr} approaches are introduced;
+one particularly important concept there will be the so-called \acl*{wl} coloring.
+Based on the theoretical foundations, we conclude the chapter by describing common graph embedding and \acl{gnn} methods.
 
 \paragraph{\Cref{sec:ltag}: \nameref{sec:ltag}}
+In this chapter we answer the first two of our research questions.
+In the first step a formal definition of \ac{lta} is provided, which answers the question of what constitutes an \ac{lta} method.
+This definition is then used to analyze all \ac{gcr} approaches described in \cref{sec:related} for their compatibility with \ac{lta}.
 
 \paragraph{\Cref{sec:ltd}: \nameref{sec:ltd}}
+Based on the \ac{lta} perspective on \ac{gcr} provided in \cref{sec:ltag}, we find that the existing approaches are all limited by their underlying solution to the so-called \ac*{ltd} problem.
+To overcome this limitation, and thereby answer our third research question, we propose the general idea of edge-filtered graph convolutions.
+To realize this general idea in a specific method, we then proceed by proposing a novel type of \ac*{gcnn}, the so-called \textit{2-\acs*{wl}-\acs{gnn}}, which can serve as the foundation for an edge-filtering-based solution to the \acs*{ltd} problem.
+Apart from its uses in the context of \ac{lta}/\acs*{ltd}, we show that 2-\acs*{wl}-\acsp{gnn} have additional theoretical advantages over existing approaches;
+this makes them interesting even from a non-\acs{lta} perspective.
 
 \paragraph{\Cref{sec:eval}: \nameref{sec:eval}}
+In this chapter we empirically evaluate how \ac{gcr} approaches that are compatible with our definition of \ac{lta} perform compared to non-\acs{lta} \ac{gcr} approaches.
+Additionally, we compare the proposed 2-\acs*{wl}-\acs{gnn} with other state-of-the-art \acp{gnn} to verify whether its theoretical advantages over previous approaches can be observed in practice.
 
 \paragraph{\Cref{sec:conclusion}: \nameref{sec:conclusion}}
-
-\section{Formal Notation}%
-\label{sec:intro:notation}
+Finally, the results of this thesis are summarized and a brief outline of promising directions for future research is given.
