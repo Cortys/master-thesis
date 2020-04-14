@@ -3,7 +3,7 @@
 \chapter{Conclusion}%
 \label{sec:conclusion}
 
-To conclude the thesis, we now look back on the three research questions described in \cref{sec:intro:questions} and summarize the answers we gave to them in the previous chapters.
+To conclude the thesis, we now look back on the three research questions described in \cref{sec:intro:questions} and summarize the answers that were given to them in the previous chapters.
 Afterwards, a brief overview of future research directions based on our findings will be given.
 
 \section{Review}%
@@ -11,25 +11,26 @@ Afterwards, a brief overview of future research directions based on our findings
 
 \paragraph{\circled{1}\; What constitutes an \ac{lta} method?}
 We began with a general definition of \ac{lta} in \cref{sec:ltag:definition}.
-There we proposed that its defining characteristic should be the \textit{localized explainability} of its predictions.
-This characteristic was formalized via the notion of \textit{\ac{lta} formulations} (see \cfullref{defn:ltag:formulation}) which requires that a model is expressible in terms of a decomposition function $\psi: \mathcal{G} \to \mathcal{P}(\mathcal{G})$, a local evaluation function $f: \mathcal{G} \to \mathcal{Y} \times \mathcal{R}$ and a weighted aggregation function $\mathcal{A}: {(\mathcal{Y} \times \mathcal{R}_{\geq 0})}^* \to \mathcal{Y}$.
+There we proposed that its defining characteristic is the \textit{localized explainability} of its predictions.
+This characteristic was formalized via the notion of \textit{\ac{lta} formulations} (see \cfullref{defn:ltag:formulation}) which requires that a model is expressible in terms of a decomposition function $\psi: \mathcal{G} \to \mathcal{P}(\mathcal{G})$, a local evaluation function $f: \mathcal{G} \to \mathcal{Y} \times \mathbb{R}$ and a weighted aggregation function $\mathcal{A}: {(\mathcal{Y} \times \mathbb{R}_{\geq 0})}^* \to \mathcal{Y}$.
 An ideal \ac{lta} method has such a formulation with a decomposition function $\psi$ that splits graphs into ``meaningful'' constituents in some domain-specific sense of the word.
 Since this ideal notion of \ac{lta} is generally quite fuzzy, we only distinguished between \acs{lta}-like and non-\acs{lta} methods in this thesis;
-a method was called non-\acs{lta} if it uses a trivial decomposition function that just splits a graph $G$ into the single ``constituent'' $G$.
+a method was called non-\acs{lta} if it uses a trivial decomposition function that just splits a graph $G$ into the single global constituent $G$.
 
 \paragraph{\circled{2}\; How do existing \ac{gcr} methods relate to \ac{lta}?}
 In \cref{sec:ltag:formulation:svm,sec:ltag:formulation:gcnn} we used our definition of \ac{lta} to check which of the existing \ac{gcr} approaches are compatible with it.
-For the case of an \ac{svm} using a graph kernel/embedding we found that it is an \acs{lta}-like method if the kernel is a so-called nontrivial \acf{sce} (see \cfullref{defn:ltag:substruct-embedding,thm:ltag:svm-ltag-formulation}).
-This \ac{sce} condition is satisfied by fingerprint embeddings, the \ac{wl} subtree kernel and the 2-LWL kernel which makes them \acs{lta}-like.
-However, \texttt{graph2vec} embeddings, the \ac{wl} shortest-path kernel and the 2-GWL kernel were found to be trivial or only partly nontrivial \acp{sce}, i.e.\ they are non-\acs{lta} methods.
+For the case of an \ac{svm} using a graph kernel/embedding, we found that it is an \acs{lta}-like method if the kernel is a so-called nontrivial \acf{sce} (see \cfullref{defn:ltag:substruct-embedding,thm:ltag:svm-ltag-formulation}).
+This \ac{sce} condition is satisfied by fingerprint embeddings, the \ac{wl} subtree kernel and the 2-LWL kernel, which makes them \acs{lta}-like.
+However, \texttt{graph2vec} embeddings, the \ac{wl} shortest path kernel and the 2-GWL kernel were found to be trivial or only partly nontrivial \acp{sce}, i.e.\ they are non-\acs{lta} methods.
 After considering those embedding approaches we looked at \ac{gcnn} and showed that they also have an \ac{lta} formulation under certain conditions (see \cfullref{thm:ltag:gcnn-ltag-formulation}).
-More specifically, we saw that the constituents used by a \ac{gcnn} are spanned by the \ac{bfs} subtrees of its input graph.
 
 \paragraph{\circled{3}\; What are limitations of existing graph \ac{lta} methods and how can they be overcome?}
-\Cref{sec:ltd:edge-filter} described that the subtree constituents are their primary limitation of \acp{gcnn} and that more flexible decompositions can be learned via an edge filtering strategy.
-To realize edge filtering, we proposed that informative edge feature vectors could be used as the input to a filtering classifier.
-To produce such feature vectors we first looked at 2-\acsp{gnn} and found that they have various theoretical limitations, i.e.\ the inability to distinguish regular graphs and to detect cycles (see \cfullref{prop:ltd:2gnn-regular-limit,prop:ltd:2gnn-cycle-limit}).
-We therefore proposed the 2-\acs{wl}-\acs{gnn} which does not have those limitations (see \cfullref{cor:ltd:wl2-gnn-regular}).
+While graph embeddings techniques can, in principle, decompose a given graph into arbitrary constituents (see fingerprint embeddings), the \ac{lta} formulation of \acp{gcnn} uses constituents that are spanned by the \ac{bfs} subtrees of its input graph.
+In \cref{sec:ltd:edge-filter} we addressed this limitation of \acp{gcnn} by proposing that more flexible decompositions can be learned via an edge filtering strategy.
+The idea behind this is to selectively prune subtree constituents by learning to ignore certain edges based on informative edge feature vectors.
+To produce such edge feature vectors we first looked at 2-\acsp{gnn} and found that they have various theoretical limitations, i.e.\ the inability to distinguish regular graphs and to detect cycles (see \cfullref{prop:ltd:2gnn-regular-limit,prop:ltd:2gnn-cycle-limit}).
+We therefore proposed the novel 2-\acs{wl}-\acs{gnn} which does not have those limitations (see \cfullref{cor:ltd:wl2-gnn-regular}).
+It additionally also has a strictly greater expressive power than all the 1-\acs{wl} bounded vertex neighborhood aggregation \acp{gnn}, e.g.\ \ac{gcn} or \ac{gin} (see \cfullref{cor:ltd:wl2-gnn-more-wl1-power}).
 
 \paragraph{Evaluation results}
 For the evaluation of our results we considered two aspects:
@@ -42,3 +43,28 @@ This shows that \ac{lta} is in principle suitable for graph classification tasks
 
 \section{Future Directions}%
 \label{sec:conclusion:todo}
+
+Based on our results, let us now consider which follow-up questions could be tackled in future research.
+
+\paragraph{Further theoretical analysis of 2-\acs{wl}-\acsp{gnn}}
+Even though we proved that our proposed 2-\acs{wl} inspired convolution approach has certain theoretical advantages over the existing methods, we did not fully characterize its expressive and computational power w.r.t.\ the 2-\acs{wl} algorithm itself.
+As we empirically showed in \cref{sec:eval:synthetic}, 2-\acs{wl}-\acsp{gnn} are able to learn to detect certain triangles in graphs.
+We did however not consider the aspect of $m$-cycle detection or counting for $m > 3$.
+Further work is required to adapt the theoretical results for the 2-\acs{wl} algorithm to the graph convolution setting.
+One particularly interesting question there would be to analyze how exactly the neighborhood radius $r$ relates to the expressive power of a 2-\acs{wl}-\acs{gnn}.
+
+\paragraph{Further empirical real-world evaluation of 2-\acs{wl}-\acsp{gnn}}
+In our evaluations on real-world datasets we did not observe a clear advantage of 2-\acs{wl}-\acsp{gnn} over other methods.
+We did however find indicators that for the hypothesis that 2-\acs{wl}-\acsp{gnn} are able to perform better on datasets containing graphs with cycles when increasing the neighborhood radius.
+The cycle detection abilities of 2-\acs{wl} could therefore potentially be relevant for real-world problems.
+Future research could evaluate 2-\acs{wl}-\acsp{gnn} on a more diverse set of problem domains, e.g.\ software verification on \acfp{cfg}, and with other pooling layers to determine to which extent the theoretical advantages of 2-\acs{wl}-\acsp{gnn} can lead to an advantage in practice.
+
+\paragraph{Evaluation of the explainability of \acs{lta}-like models}
+Our definition of \ac{lta} was motivated by the idea that the local evaluations of constituents provide an explanation for the global aggregated prediction.
+However, in our evaluation of \ac{lta} we focused mostly on the question how \acs{lta}-like approaches perform compared to non-\acs{lta} approaches with the result that \acs{lta}-like models does not appear to have a general advantage or disadvantage regarding classification accuracy.
+In the next step it should be evaluated whether the constituent scores of an \acs{lta}-like model are meaningful and therefore provide an advantage from the perspective of \acl{xai}.
+
+\paragraph{Solving the \ac{ltd} problem via edge filtering}
+The motivation behind the proposed 2-\acs{wl}-\acs{gnn} was to use it to obtain informative edge feature vectors with which an edge filter could be trained to dynamically decompose graphs.
+The results in this thesis provide the first step towards the realization of this idea.
+Further research is required to determine whether this approach is suitable to learn meaningful constituents in real-world problem domains.
