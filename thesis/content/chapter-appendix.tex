@@ -35,6 +35,7 @@ We evaluated our implementations of 2-\acsp{gnn} as well as 2-\acs{wl}-\acsp{gnn
 		We incorporate this idea by passing the input feature vectors not only to the first convolution layer but to all convolution layers through concatenation iff.\ $\mathrm{JK} = \mathtt{true}$.
 	\item \textbf{Learning rate $\eta \in \{ \num{1e-2}, \num{1e-3}, \num{1e-4} \}$} of the Adam optimizer.
 	\item \textbf{Activation functions $\sigma$ and $\sigma_{\Gamma}$} are set to the standard logistic function.
+		However, for the evaluation of the synthetic TRIANGLE dataset we used ReLU instead because this choice led to improved and more consistent results in previous exploratory experiments.
 	\item \textbf{Number of epochs $E$ and early stopping patience $p$} are set to $E = 1000$ and $p = 100$, except for the evaluation of the synthetic TRIANGLE dataset for which we used $E = 5000$ and $p = 1000$ to ensure model convergence.
 \end{itemize}
 

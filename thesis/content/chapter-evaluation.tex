@@ -7,11 +7,11 @@ In \cref{sec:ltag} the relation between \ac{lta} and existing \ac{gcr} approache
 There we saw that the \ac{lta} formulations of existing approaches mostly use static decomposition functions, e.g.\ \ac{bfs} subtree decompositions.
 Motivated by the idea of dynamically learning decompositions via edge filters, we then proposed the novel 2-\acs{wl}-\acs{gnn} in \cref{sec:ltd}.
 The ideas presented in both chapters will now be empirically evaluated.
-Do to so we differentiate between two mostly independent evaluation aspects:
+To do so we differentiate between two mostly independent evaluation aspects:
 \begin{enumerate}[label={\textbf{\arabic*.}}]
 	\item \textbf{Evaluation of 2-\acs{wl}-\acsp{gnn}:}
 		Even though it was motivated by \ac{lta}, a 2-\acs{wl}-\acs{gnn} is not generally more ``\acs{lta}-like'' than other approaches.
-		Nonetheless, due to the theoretical advantages described in \cref{sec:ltd:wl2gnn:properties} it is an interesting approach independently from its potential applications in \ac{lta} (see \cref{sec:ltd:edge-filter}).
+		Nonetheless, due to the theoretical advantages described in \cref{sec:ltd:wl2gnn:properties}, it is an interesting approach independently from its potential applications in \ac{lta} (see \cref{sec:ltd:edge-filter}).
 		Thus the first aspect of our evaluation is to compare 2-\acs{wl}-\acsp{gnn} with the other previously described \ac{gcr} methods in a general non-\acs{lta} fashion, i.e.\ with an added \ac{mlp} after the pooling layer since this is how \acp{gnn} are typically evaluated in other works.
 	\item \textbf{Evaluation of the \ac{lta} assumption:}
 		We previously described that a given domain problem satisfies the \ac{lta} assumption if its solutions can be described by an \ac{lta} formulation (see \cfullref{defn:ltag:lta-assumption}).
@@ -22,7 +22,7 @@ This chapter will tackle those two aspects in four steps:
 \begin{enumerate*}[label={\circled{\small\arabic*}}]
 	\item We begin by describing the experimental setup used to obtain the evaluation results in \cref{sec:eval:setup}.
 	\item We then present results on synthetically generated data in \cref{sec:eval:synthetic}.
-	 	There we will illustrate the higher expressive power of 2-\acs{wl}-\acsp{gnn} when compared to other \ac{gcr} approaches which confirms the theoretical results from \cref{sec:ltd:wl2gnn:properties}.
+	 	There we will illustrate the higher expressive power of 2-\acs{wl}-\acsp{gnn} when compared to other \ac{gcr} approaches, which confirms the theoretical results from \cref{sec:ltd:wl2gnn:properties}.
 	\item Then evaluation results on real-world datasets are described in \cref{sec:eval:real}.
 		There we will see how 2-\acs{wl}-\acsp{gnn} compare to other \acp{gnn} in practice as well as how \acs{lta}-like models compare to non-\acs{lta} models.
 	\item Finally, \cref{sec:eval:lta} looks at the synthetic and real-world results from an \ac{lta} perspective.
@@ -76,15 +76,15 @@ To tackle this issue they evaluated multiple state-of-the-art methods using a un
 \end{minipage}}
 
 We base our evaluations on this assessment strategy with $k = 10$ folds and $r = 3$ repeats per fold to smooth out differences caused by random weight initializations.
-For each dataset the same folds are used across the evaluated models; class proportions are preserved within each fold by using stratified splits.
+For each dataset, the same folds are used across the evaluated models; class proportions are preserved within each fold by using stratified splits.
 To keep the total runtime of the experiments feasible, a single 90\%/10\% holdout split into training and validation data is used instead of cross-validation.
 To train models that require gradient-based optimization, we use the well-known Adam optimizer~\cite{Kingma2015} and the standard binary crossentropy loss.
 In all experiments, training is performed with an early stopping condition which cancels the optimization if there is no improvement to the validation loss for more than $p$ epochs.
 The patience period $p$ is part of the hyperparameter configurations $\theta \in \Theta$.
 
-Using this assessment strategy we evaluate \acp{svm} with the following graph kernels:
+Using this assessment strategy, we evaluate \acp{svm} with the following graph kernels:
 \begin{enumerate}[label={\textbf{\arabic*.}},itemsep=2pt,parsep=2pt]
-	\item \textbf{\ac{wl} subtree kernel (\acs{wl}\textsubscript{ST})} with the iteration counts $T \in \{ 1,2,3,4,5 \}$ to evaluate the influence of the depth of \ac{bfs} subtrees which span \ac{lta} constituents.
+	\item \textbf{\ac{wl} subtree kernel (\acs{wl}\textsubscript{ST})} with the iteration counts $T \in \{ 1,2,3,4,5 \}$, to evaluate the influence of the depth of \ac{bfs} subtrees which span \ac{lta} constituents.
 	\item \textbf{\ac{wl} shortest path kernel (\acs{wl}\textsubscript{SP})} with the iteration count $T = 3$.
 	\item \textbf{2-LWL kernel} with the iteration count $T = 3$.
 	\item \textbf{2-GWL kernel} with the iteration count $T = 3$.
@@ -95,17 +95,17 @@ To train \acp{svm} with those kernels, \citetitle{SKL}~\cite{Pedregosa2011}\cite
 For the evaluation of \acp{gcnn} we selected the following methods:
 \begin{enumerate}[label={\textbf{\arabic*.}},itemsep=2pt,parsep=2pt]
 	\item \textbf{Structure unaware baseline:}
-		\citet{Errica2020} describe a simple model which simply applies a standard \ac{mlp} to each individual vertex feature vector, then sums up the resulting feature vectors and applies another \ac{mlp} to the vector sum.
+		\citet{Errica2020} describe a simple model which applies a standard \ac{mlp} to each individual vertex feature vector, then sums up the resulting feature vectors and applies another \ac{mlp} to the vector sum.
 		This approach does not use any structural information and therefore serves as a baseline to detect whether a \ac{gnn} is able to exploit graph structure.
 	\item \textbf{\ac{gin}} is evaluated as described by \citet{Xu2018}, i.e.\ with a sum pooling layer and an appended \ac{mlp} to produce the final prediction.
 	\item \textbf{2-\acs{gnn}} is evaluated with both a static $\mean$ pooling layer and with \ac{sampool} (see \cfullref{defn:ltag:sam-pool}).
-		After the pooling layer a \ac{mlp} is used to produce the final prediction.
+		After the pooling layer, an \ac{mlp} is used to produce the final prediction.
 	\item \textbf{2-\acs{wl}-\ac{gnn}} \textit{(our method)} is also evaluated with $\mean$ pooling and \ac{sampool}, just like 2-\ac{gnn}.
-		To test the \ac{lta} assumption we evaluate 2-\acs{wl}-\acs{gnn} in an \acs{lta}-like configuration and in the standard non-\acs{lta} configuration.
+		To test the \ac{lta} assumption, we evaluate 2-\acs{wl}-\acs{gnn} in an \acs{lta}-like configuration and in the standard non-\acs{lta} configuration.
 		The \acs{lta}-like configuration uses a stack of 2-\acs{wl} convolutions that produce a local prediction $y_{ij} \in [0, 1]$ for each edge $e_{ij}$ instead of a local feature vector $z_{ij} \in \mathbb{R}^{d^{(T)}}$ and it does not have an \ac{mlp} after the pooling/aggregation layer.
 \end{enumerate}
 The baseline and \ac{gin} results are obtained using the PyTorch-based implementation provided by \citet{Errica2020}.
-For both 2-\acs{gnn} and 2-\acs{wl}-\ac{gnn} a custom TensorFlow-based implementation is used.
+For both 2-\acs{gnn} and 2-\acs{wl}-\ac{gnn}, a custom TensorFlow-based implementation is used.
 The code for all conducted experiments as well as the used dataset splits are available GitHub\footnote{\url{https://github.com/Cortys/master-thesis}}.
 The evaluated hyperparameter configurations $\Theta$ are described in \cref{sec:appendix:config-grid}.
 
@@ -117,7 +117,7 @@ To determine the classes of the graphs in this dataset, a learner has to solve t
 Given a graph $G$ with vertices that are colored as either $l_G[v] = \colorlabel{t_blue}{A}$ or as $l_G[v] = \colorlabel{t_red}{B}$, the learner has to find the unique triangle $(v_i, v_j, v_k)$ in $G$ for which $l_G[v_i] = l_G[v_j] = l_G[v_k]$. % chktex 25
 The class of $G$ is then determined by the color of the vertices $(v_i, v_j, v_k)$.
 
-Based on this problem we generated a synthetic triangle detection dataset.
+Based on this problem, we generated a synthetic triangle detection dataset.
 It contains randomly generated graphs with varying vertex counts and vertex color proportions (see \cref{sec:appendix:ds-stats} for a more detailed description).
 We use this dataset to evaluate whether a learner is able to ignore varying amounts of noisy random structure and focus on relevant local substructures, in this case unicolored triangles.
 For the evaluation of 2-\acs{wl}-\acsp{gnn}, the neighborhood radius $r = 2$ is used.
@@ -161,11 +161,11 @@ The presence of an \colorlabel{t_blue}{A}-colored triangle in a graph $G$ implie
 This local color density difference is already detectable in the depth-1 \acs{bfs} subtrees used by 1-\acs{wl} after a single refinement step; this explains why \acs{wl}\textsubscript{ST} performs similarly for $T = 1$ and $T = 5$.
 
 Let us now take a look at the 2-\acs{wl} inspired kernels: 2-LWL and 2-GWL.\@
-Interestingly both kernels do not appear to generalize better the 1-\acs{wl} bounded methods;
+Interestingly, both kernels do not appear to generalize better the 1-\acs{wl} bounded methods;
 we explain this by the fairly small size of the triangle detection dataset (228 graphs).
-Even though both kernels embed graphs into a space with dimensions that indicate the presence of a unicolored triangle (see \cfullref{prop:related:wl2-cycle-count}), there are many of those triangle-indicating embedding dimensions s.t.\ the indicating dimensions found in a given training split might not overlap with those in the test split.
+Even though both kernels embed graphs into a space with dimensions that indicate the presence of a unicolored triangle (see \cfullref{prop:related:wl2-cycle-count}), there are so many of those triangle-indicating embedding dimensions that the indicating dimensions found in a given training split might not overlap with those in the test split.
 
-Looking at the 2-\acs{wl} inspired \acp{gnn} (2-\acs{gnn}, 2-\acs{wl}-\acs{gnn}), we find that the proposed 2-\acs{wl}-\acs{gnn} significantly outperforms all other evaluated methods which confirms our theoretical results from \cref{sec:ltd:wl2gnn:properties}.
+Looking at the 2-\acs{wl} inspired \acp{gnn} (2-\acs{gnn}, 2-\acs{wl}-\acs{gnn}), we find that the proposed 2-\acs{wl}-\acs{gnn} significantly outperforms all other evaluated methods, which confirms our theoretical results from \cref{sec:ltd:wl2gnn:properties}.
 We evaluated 2-\acs{wl}-\acsp{gnn} in an \acs{lta}-like configuration without a final \ac{mlp} and in a non-\acs{lta} configuration with an \ac{mlp} after the pooling layer.
 Comparing both configurations, we see that the \acs{lta}-variant has a worse generalization performance despite the fact that the triangle detection problem fits well into the \ac{lta} framework:
 \begin{enumerate*}[label={\circled{\small\arabic*}}]
@@ -224,7 +224,7 @@ Since the synthetic triangle detection problem was designed specifically to high
 		For PROTEINS and D\&D, a learner has to determine whether a given protein molecule is an enzyme.
 	\item \textbf{Social networks:}
 		The REDDIT and IMDB datasets~\cite{Yanardag2015} contain graphs representing the relations between users in online discussions and movie actors respectively.
-		For REDDIT the type of a community has to be predicted based on a discussion thread; for IMDB the goal is to determine movie genres.
+		For REDDIT, the type of a community has to be predicted based on a discussion thread; for IMDB, the goal is to determine movie genres.
 \end{enumerate}
 A more detailed description of the evaluated datasets can be found in \cref{sec:appendix:ds-stats}.
 \Cref{tbl:eval:real} shows our evaluation results\footnote{
@@ -250,7 +250,7 @@ This confirms the very similar results of \citet{Errica2020}.
 Lastly, note that the \acs{lta}-like 2-\acs{wl}-\acs{gnn} configurations either perform significantly worse or roughly similar to their non-\acs{lta} counterparts.
 This mirrors our result on the synthetic triangle detection dataset.
 Regarding the \acs{lta} assumption (see \cfullref{defn:ltag:lta-assumption}), this is evidence that the decomposition function $\psi$ of 2-\acs{wl}-\acsp{gnn} (see \cfullref{thm:ltag:gcnn-ltag-formulation}) does not produce constituents $c_i \in \psi(G)$ whose local evaluations $f(c_i) \in \mathcal{Y}$ are as indicative of the graph $G$'s class $y \in \mathcal{Y}$ as an arbitrary feature vector $z_i \in \mathbb{R}^{d^{(T)}}$.
-This does however not imply, that the evaluated real-world problem domains are generally incompatible with the \ac{lta} assumption.
+This does however not imply that the evaluated real-world problem domains are generally incompatible with the \ac{lta} assumption.
 When considering the results of the \ac{lta}-like \acs{wl}\textsubscript{ST} model, we find that it is mostly comparable with the alternative non-\acs{lta} approaches and, in the case of NCI1, even significantly better.
 This shows that local constituent evaluations are in principle suitable for graph classification tasks if the right decomposition, evaluation and aggregation functions are chosen.
 
@@ -261,7 +261,7 @@ To conclude our evaluation, we now look at the influence of constituent sizes on
 As described in \cref{sec:ltag:formulation:svm,sec:ltag:formulation:gcnn:conv}, the constituents in the \ac{lta} formulations of both of these models are spanned by \ac{bfs} subtrees of some depth $T$.
 Thus, for large $T$, decompositions consist of just the connected components of a graph, i.e.\ they are only partially \acs{lta}-like.
 
-We now analyze for which degree of constituent locality \acs{wl}\textsubscript{ST} and 2-\acs{wl}-\acsp{gnn} perform best by evaluating them using varying tree depths $T$.
+We now analyze for which degree of constituent locality \acs{wl}\textsubscript{ST} and 2-\acs{wl}-\acsp{gnn} perform best, by evaluating them using varying tree depths $T$.
 For \acs{wl}\textsubscript{ST} we can set $T$ directly via the number of refinement steps.
 \Cref{fig:eval:wlst-depths} shows the the accuracies of \acs{wl}\textsubscript{ST} for $T \in \{ 1, \dots, 5 \}$.
 On all evaluated datasets, the test accuracy tends to be optimal for some $T \in \{ 1, 2, 3 \}$.%
@@ -320,7 +320,7 @@ If we compute the mean radii of the graphs in each dataset\footnote{
 	The radius of a graph $G$ is defined as $\min_{v \in \mathcal{V}_G} \max_{u \in \mathcal{V}_G} d_{\mathrm{SP}, G}(v, u)$, i.e.\ the distance of the furthest vertex $u$ from the most central vertex $v$ of $G$.
 }, we find that they are all larger than $3$, with the exception of the triangle detection and the IMDB dataset (see \cref{tbl:appendix:ds-stats}).
 This implies that the best-performing subtree constituents do not span entire connected components but smaller substructures on average.
-The REDDIT dataset shows this very clearly; there a subtree must have a depth of at least $5$ in order to span an average graph while the best-performing subtree constituents only have a depth of $T = 2$.
+The REDDIT dataset shows this very clearly; there a subtree must have a depth of at least $5$ in order to span an average graph, while the best-performing subtree constituents only have a depth of $T = 2$.
 This indicates that the REDDIT community detection problem is better described by small localized constituents than by large non-localized ones.
 
 Let us now look at the constituent locality of 2-\acs{wl}-\acsp{gnn}.
@@ -329,7 +329,7 @@ Just like the iteration count in \acs{wl}\textsubscript{ST}, the number of layer
 The neighborhood radius $r$ on the other hand determines how many new edges are present in $G^r$ in comparison to $G$;
 when $r$ is increased, the \ac{bfs} subtrees can span larger constituents due to the additional connections.
 
-In addition to its influence on constituent sizes, a higher neighborhood radius also introduces additional feature vectors into the convolved feature matrices $Z^{(t)} \in \mathbb{R}^{\left|\mathcal{E}_{G^r}\right| \times d^{(t)}}$.
+Apart from its influence on constituent sizes, a higher neighborhood radius also introduces additional feature vectors into the convolved feature matrices $Z^{(t)} \in \mathbb{R}^{\left|\mathcal{E}_{G^r}\right| \times d^{(t)}}$.
 As we saw in the proof sketch of 2-\acs{wl}'s cycle counting ability (see \cfullref{prop:related:wl2-cycle-count}), those additional features/colors can carry important structural information about a graph.
 \newcommand{\wlRadiusPlot}[4][width=0.22\linewidth]{%
 \begin{tikzpicture}
@@ -385,7 +385,7 @@ As we saw in the proof sketch of 2-\acs{wl}'s cycle counting ability (see \cfull
 	}\label{fig:eval:wl2-gnn-radius}
 \end{figure}
 \Cref{fig:eval:wl2-gnn-radius} shows that adding this information via a neighborhood radius $r > 1$ does correlate with a higher training and test accuracy on the NCI1 and D\&D datasets; on the IMDB and PROTEINS datasets this is not the case.
-This difference is interesting because NCI1 (molecular structures) and D\&D (protein sequences) contain more cyclic graphs while IMDB (ego-network structures) and PROTEINS (protein sequences) consist of more tree- or list-like graphs (see \cref{sec:appendix:ds-stats}).
+This difference is interesting because NCI1 (molecular structures) and D\&D (protein sequences) contain more cyclic graphs, while IMDB (ego-network structures) and PROTEINS (protein sequences) consist of more tree- or list-like graphs (see \cref{sec:appendix:ds-stats}).
 Even though the PROTEINS and D\&D datasets both contain protein sequences, we find that the protein sequences in the PROTEINS dataset are very ``list-like'' with much fewer large cycles than in the proteins structures of the D\&D dataset (compare the vertex and edge count statistics of both datasets in \cref{tbl:appendix:ds-stats}).
 \Cref{fig:evaluation:proteins-dd-diff} illustrates this difference.
 This leads us the the hypothesis that 2-\acs{wl}-\acsp{gnn} with a neighborhood radius of $r > 1$ are able to improve their real-world performance over that achieved with $r = 1$ by detecting cyclic constituents in graphs.

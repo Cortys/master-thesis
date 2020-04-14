@@ -60,13 +60,13 @@ Based on the idea of extending \ac{lta} to graphs, we state the following three 
 \begin{enumerate}[label=\textbf{\arabic*.}]
 	\item \textbf{Formalization of \ac{lta}:}
 		The previous work on \ac{lta} provides only a narrow definition of \ac{lta} for unstructured multiset inputs.
-		The question what its essential characteristics are, on a more general level, has not yet been considered.
+		The question, what its essential characteristics are on a more general level, has not yet been considered.
 		Therefore we will provide the terminology and definitions to formally capture what constitutes an \ac{lta} method as opposed to a non-\ac{lta} method.
 	\item \textbf{An \ac{lta} interpretation of existing \ac{gcr} methods:}
 		Using the generalized \ac{lta} formalization, a selection of state-of-the-art \ac{gcr} approaches will be checked for their compatibility with \ac{lta}.
 		By doing so, we answer the question whether and how existing \ac{gcr} methods are able to produce predictions which are explainable by local constituent predictions.
 	\item \textbf{Definition of a novel \acs{lta}-inspired \ac{gcr} method:}
-		As a follow-up question to the previous one, we ask to which extent the existing \ac{gcr} methods are explainable and what their specific shortcomings are.
+		As a follow-up question to the previous one, we ask to which extent the existing \ac{gcr} methods are explainable via the \ac{lta} perspective and what their specific shortcomings are.
 		Based on those shortcomings we will propose a novel \acs{lta}-inspired approach to overcome them.
 \end{enumerate}
 
@@ -74,7 +74,7 @@ Based on the idea of extending \ac{lta} to graphs, we state the following three 
 \label{sec:intro:structure}
 
 \paragraph{\Cref{sec:related}: \nameref{sec:related}}
-In order to answer our three research questions, we begin by with on overview of the previous work regarding \ac{lta} as well as \ac{gcr}.
+In order to answer our three research questions, we begin with an overview of the previous work regarding \ac{lta} as well as \ac{gcr}.
 We begin with a brief description of \ac{lta}.
 Then the theoretical foundations of the existing \ac{gcr} approaches are introduced;
 one particularly important concept there will be the so-called \acl*{wl} coloring.
@@ -83,12 +83,12 @@ Based on the theoretical foundations, we conclude the chapter by describing comm
 \paragraph{\Cref{sec:ltag}: \nameref{sec:ltag}}
 In this chapter we answer the first two of our research questions.
 In the first step a formal definition of \ac{lta} is provided, which answers the question of what constitutes an \ac{lta} method.
-This definition is then used to analyze all \ac{gcr} approaches described in \cref{sec:related} for their compatibility with \ac{lta}.
+This definition is then used to analyze all \ac{gcr} approaches described in \cref{sec:related} for their compatibility with \ac{lta}, which answers the second research question.
 
 \paragraph{\Cref{sec:ltd}: \nameref{sec:ltd}}
-Based on the \ac{lta} perspective on \ac{gcr} provided in \cref{sec:ltag}, we find that the existing approaches are all limited by their underlying solution to the so-called \ac*{ltd} problem.
+Based on the \ac{lta} perspective on \ac{gcr} provided in \cref{sec:ltag}, we find that the existing \ac{gnn} approaches are all limited by their underlying solution to the so-called \ac*{ltd} problem.
 To overcome this limitation, and thereby answer our third research question, we propose the general idea of edge-filtered graph convolutions.
-To realize this general idea in a specific method, we then proceed by proposing a novel type of \ac*{gcnn}, the so-called \textit{2-\acs*{wl}-\acs{gnn}}, which can serve as the foundation for an edge-filtering-based solution to the \acs*{ltd} problem.
+To realize this general idea in a specific method, we then proceed by proposing a novel type of \ac*{gcnn}, the so-called \textit{2-\acs*{wl}-\acs{gnn}}, which can serve as the foundation for an edge-filtering based solution to the \acs*{ltd} problem.
 Apart from its uses in the context of \ac{lta}/\acs*{ltd}, we show that 2-\acs*{wl}-\acsp{gnn} have additional theoretical advantages over existing approaches;
 this makes them interesting even from a non-\acs{lta} perspective.
 
