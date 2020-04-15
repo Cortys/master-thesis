@@ -336,7 +336,7 @@ We begin by proving that 2-\acs{wl}-\acsp{gnn} are at least as powerful as 1-\ac
 		\begin{aligned}
 			Z^{(t,1)}[e_{ij}] &= \textcolor{t_blue}{Z^{(t,0)}[e_{ij}] W_{\mathrm{L}}^{(t,1)}} + \smashoperator[lr]{\sum_{v_l \in {\Gamma_{G^1}(v_i) \cap \Gamma_{G^1}(v_j)}}} \textcolor{t_red}{\left( Z^{(t,0)}[e_{ij}] W_{\mathrm{F}}^{(t,1)}\right)} \odot \textcolor{t_darkgreen}{\left( \left( Z^{(t,0)}[e_{il}] + Z^{(t,0)}[e_{lj}] \right) W_{\Gamma}^{(t,1)} \right)} \\ % chktex 25
 			&= \begin{cases}
-				\textcolor{t_blue}{(1, 0, w_{ii}, 0)} + \textcolor{t_darkgreen}{\left(0, 0, 0, 2\textcolor{t_red}{w_{ii}} Z^{(t-1)}[v_i]\right)} + \smashoperator[lr]{\sum_{v_l \in \Gamma_{G^1}(v_i)}} \textcolor{t_darkgreen}{\left(0, w_{il} \textcolor{t_red}{Z^{(t-1)}[v_i]}, 0, 0\right)} & \text{if $i = j$} \\ % chktex 25
+				\textcolor{t_blue}{(1, 0, w_{ii}, 0)} + \textcolor{t_darkgreen}{\left(0, 0, 0, 2\textcolor{t_red}{w_{ii}} Z^{(t-1)}[v_i]\right)} + \smashoperator[lr]{\sum_{v_l \in \Gamma_{G^1}(v_i)}} \textcolor{t_darkgreen}{\left(0, \tfrac{2}{\textcolor{t_red}{2}} \textcolor{t_red}{Z^{(t-1)}[v_i]} w_{il}, 0, 0\right)} & \text{if $i = j$} \\ % chktex 25
 				\textcolor{t_blue}{(0, 0, w_{ij}, 0)} + \textcolor{t_darkgreen}{\left(0, 0, 0, \textcolor{t_red}{w_{ij}} Z^{(t-1)}[v_i]\right)} + \textcolor{t_darkgreen}{\left(0, 0, 0, \textcolor{t_red}{w_{ij}} Z^{(t-1)}[v_j]\right)} & \text{else} % chktex 25
 			\end{cases} \\
 			&= \begin{cases}
@@ -395,9 +395,20 @@ We begin by proving that 2-\acs{wl}-\acsp{gnn} are at least as powerful as 1-\ac
 		\end{pmatrix}
 		\text{.}
 	\end{gather*}
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=\linewidth]{gfx/ltd/wl2-vert-agg-intuition.pdf}
+		\caption[Intuition for how $S^{(t, 1)}$ and $S^{(t, 2)}$ compute vertex neighborhood sums.]{
+			Intuition for how $S^{(t, 1)}$ and $S^{(t, 2)}$ compute vertex neighborhood sums in two steps.
+			For simplicity, weights are ignored, i.e.\ all $w_{ij} = 1$.
+			For each self-loop/edge $e_{ij} \in \mathcal{E}_{G^1}$, the set of localized 2-\acs{wl} neighbors $\Gamma_{G^1}(v_i) \cap \Gamma_{G^1}(v_j)$ is shown in the middle, after the first step.
+			Note that the colors in this illustration are unrelated to the colored parts in the previous equations.
+		}\label{fig:ltd:wl2-vert-agg-intuition}
+	\end{figure}
 	Using the two layers $S^{(t, 1)}$ and $S^{(t, 2)}$ that we just defined, the weighted vertex neighborhood sum for all $v_i \in \mathcal{V}_G$ is contained in $Z^{(t,2)}[e_{ii}]$.
 	Additionally, for all $e_{ij} \in \mathcal{E}_{G^1}$, the indicators ${Z^{(t,2)}[e_{ij}]}_1 = \mathbbm{1}[i = j]$ and the weights ${Z^{(t,2)}[e_{ij}]}_{d^{(t)} + 2} = w_{ij}$ are preserved.
 	This means that \cref{inv:ltd:wl2-simulation:indicator,inv:ltd:wl2-simulation:weight} are satisfied after $S^{(t, 2)}$.
+
 	To complete the induction step, it now remains to show that all three invariants hold after applying the layers $S^{(t, 2+1)}, \dots, S^{(t, 2+K)}$.
 	As previously mentioned, a 2-\acs{wl} convolution layer is reduced to a fully connected layer if $W_{\mathrm{F}}^{(t)} = \mathbf{0}$.
 	Via the universal approximation theorem~\cite{Hornik1991} we can therefore use $S^{(t, 2+1)}, \dots, S^{(t, 2+K)}$ to simulate the $K$ layers of $\mathrm{\acs*{mlp}}^{(t)}$ without changing the first and last dimension of each feature vector to preserve \cref{inv:ltd:wl2-simulation:indicator,inv:ltd:wl2-simulation:weight}.
@@ -411,7 +422,7 @@ We begin by proving that 2-\acs{wl}-\acsp{gnn} are at least as powerful as 1-\ac
 		\end{cases}
 		\text{.}
 	\end{align*}
-	By our previous definition of $\mathit{Pool}_2$, this in turn implies that $\mathit{Pool}_2(Z_G^{(T,2+K)}) = \mathit{Pool}_1(Z_G^{(T)}) \iff h_2(G) = h_1(G)$ which concludes the proof.
+	By our previous definition of $\mathit{Pool}_2$, this in turn implies that $\mathit{Pool}_2(Z_G^{(T,2+K)}) = \mathit{Pool}_1(Z_G^{(T)}) \iff h_2(G) = h_1(G)$, which concludes the proof.
 \end{proof}
 \begin{cor}\label{cor:ltd:wl2-gnn-wl1-power}
 	2-\acs{wl}-\acsp{gnn} have at least the same discriminative power as 1-\acs{wl}.
