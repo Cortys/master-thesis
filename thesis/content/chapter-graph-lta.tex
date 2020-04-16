@@ -160,9 +160,9 @@ Based on this requirement we now proof the main theorem which shows the relation
 	\end{align*}
 	By choosing $f_h(c_t) \coloneqq (y_t, w_t)$ and $\mathcal{A}_h(S) = \wmaj(S \cup \ldblbrace (y_b, w_b) \rdblbrace)$, the \ac{svm} model therefore has an \ac{lta} formulation with the decomposition function $\psi_{\varphi}$.
 
-	To complete the proof it now remains to show that $f_h$ and $\mathcal{A}_h$ are in fact a local evaluation function and a weighted aggregation function respectively.
+	To complete the proof, it now remains to show that $f_h$ and $\mathcal{A}_h$ are in fact a local evaluation function and a weighted aggregation function respectively.
 	To see that $f_h$ performs local evaluation, note that $f_h(c_t) \coloneqq (\sgn z_t, {|z_t|})$, with $z_t \coloneqq \sum_{i=1}^{d} \gamma_{\varphi,i}(c_t) \beta_i$ only depending on the shared multiplicity functions $\gamma_{\varphi,i}$, the constants $\beta_i$ and the constituent $c_t$;
-	apart from $c_t$ no other information from the input graph $G$ is required by $f_h$ which makes it a local evaluation function.
+	apart from $c_t$ no other information from the input graph $G$ is required by $f_h$, which makes it a local evaluation function.
 	To see why $\mathcal{A}_h$ satisfies \cref{defn:ltag:weighted-agg}, note that it inherits the idempotency property from $\wmaj$ because $\mathcal{A}_h$ ignores the bias ``pseudo-constituent'' $(y_b, w_b)$ for all threshold weights $\max w_t \geq \eta > w_b$, similarly the zero invariance of $\wmaj$ is also directly inherited.
 	This concludes the proof.
 \end{proof}
@@ -206,7 +206,7 @@ To see what \cref{thm:ltag:svm-ltag-formulation} implies in practice, we will no
 			\caption[The constituents implied by the \ac{wl} subtree kernel embedding for an example graph.]{
 				The constituents $c_{j,t}$ implied by the \ac{wl} subtree embedding vector $\varphi(G) = (\underbrace{\textcolor{t_blue}{4}, \textcolor{t_red}{0}, \textcolor{t_green}{0}, \textcolor{t_darkyellow}{0}}_{t = 0}, \underbrace{\textcolor{t_blue}{0}, \textcolor{t_red}{2}, \textcolor{t_green}{1}, \textcolor{t_darkyellow}{1}}_{t = 1})$. % chktex 25
 				The subtrees $S_{j,t}$ that span each constituent $c_{j,t}$ are visualized by the colored arrows that originate from the colored root vertices.
-				Because $S_{1,1}$ and $S_{2,1}$ span the same constituent $c = c_{1,1} = c_{2,1} = G[\{ v_1, v_2, v_3 \}]$, its multiplicity is $\gamma_{\varphi, \colorlabel{t_red}{\scriptsize B}, 1}(c) = 2$; % chktex 25
+				Because $S_{1,1}$ and $S_{2,1}$ span the same constituent $c = c_{1,1} = c_{2,1} = G[\{ v_1, v_2, v_3 \}]$, its multiplicity is $\gamma_{\varphi, \colorlabel{t_red}{\tiny B}, 1}(c) = 2$; % chktex 25
 				the multiplicity of all other constituents is $1$.
 			}\label{fig:ltag:wl1-constituents}
 		\end{figure}
@@ -221,7 +221,7 @@ To see what \cref{thm:ltag:svm-ltag-formulation} implies in practice, we will no
 			\text{.} \nonumber
 		\end{align}
 		The purpose of the $\mathit{complete}(S)$ condition is to only count the \ac{bfs} subtrees of the constituent $c$ that are also \ac{bfs} subtrees of the complete graph $G$.
-		To see why this is required, note that in \cref{fig:ltag:wl1-constituents} the $c_{1,1}$/$c_{2,1}$ constituent contains the color subtree $S_{\colorlabel{t_red}{\scriptsize B}}$ three times (rooted at $v_1$, $v_2$ and $v_3$) even though $G$ only contains it twice (rooted at $v_1$ and $v_2$). % chktex 25
+		To see why this is required, note that in \cref{fig:ltag:wl1-constituents} the $c_{1,1}$/$c_{2,1}$ constituent contains the color subtree $S_{\colorlabel{t_red}{\tiny B}}$ three times (rooted at $v_1$, $v_2$ and $v_3$) even though $G$ only contains it twice (rooted at $v_1$ and $v_2$). % chktex 25
 		Also note that, since $\gamma_{\varphi, i, t}(c)$ must only depend on a given constituent $c$ and not on the graph $G$ it was decomposed from, the degree information $|\Gamma_G(v_{\mathrm{leaf}})|$ of the constituent vertices $v \in \mathcal{V}_c$ is assumed to be statically encoded in the labels $l_c[v]$ or feature vectors $x_c[v]$.
 
 		Via the decomposition and multiplicity functions that were just described, $\varphi_{\mathrm{ST}}$ is in fact an \ac{sce} with a nontrivial, subtree-based decomposition function.
@@ -409,6 +409,14 @@ Using those definitions we can complete the connection between \acp{gcnn} and \a
 Note that \cref{thm:ltag:gcnn-ltag-formulation} requires \acp{gcnn} without a final \ac{mlp}, which is unlike the architecture proposed in the \ac{gcn}~\cite{Kipf2017} and \ac{gin}~\cite{Xu2018} papers.
 The reason for this is that the composition $\mathrm{\acs*{mlp}} \circ \mathit{Pool}$ cannot be guaranteed to be homomorphic to a weighted aggregation function $\mathcal{A}$ due to the well-known universal approximation theorem~\cite{Hornik1991}.
 
+\begin{figure}[t]
+	\centering
+	\includegraphics[width=0.73\linewidth]{gfx/graph-lta/gcnn-lta.pdf}
+	\caption[Illustration of the \ac{lta} formulation for \acp{gcnn}.]{
+		Illustration of the \ac{lta} formulation for \acp{gcnn}, as shown in \cref{thm:ltag:gcnn-ltag-formulation}.
+		Constituent weights are left out for simplicity.
+	}\label{fig:ltag:gcnn-lta}
+\end{figure}
 To conclude our analysis of the relation between \ac{lta} and \acp{gcnn}, we check which of the graph pooling layers described in \cref{sec:related:gcr:nn} satisfy \cref{defn:ltag:assoc-aggregation-pooling} are therefore allowed in \acs{lta}-like \acp{gcnn} by \cref{thm:ltag:gcnn-ltag-formulation}.
 For simplicity we assume that the target score domain is $\mathcal{Y} = [0, 1]$.
 \begin{enumerate}[label={\textbf{\arabic*.}}]
