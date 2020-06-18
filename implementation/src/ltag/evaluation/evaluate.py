@@ -240,7 +240,7 @@ def evaluate(
         hp_str = f"{hp_i+1}/{hpc}"
         curr_i_start = 0
 
-        if single_hp != hp_i:
+        if single_hp is not None and single_hp != hp_i:
           print(f"Skipping {fold_str} with hp {hp_str} due to single hp mode.")
           continue
 
