@@ -9,7 +9,7 @@ def tolerant(f):
   if hasattr(f, "__tolerant__"):
     return f
 
-  spec = inspect.getfullargspec(f)
+  spec = inspect.getfullargspec(f.__init__ if inspect.isclass(f) else f)
   f_varkws = spec.varkw is not None
 
   if f_varkws:

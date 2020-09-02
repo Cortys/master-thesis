@@ -39,6 +39,8 @@ def summarize(mf, dsm, **kwargs):
   return summary.summarize_evaluation(
     evaluate.find_eval_dir(mf, dsm), **kwargs)
 
+def epoch_times(mf, dsm, **kwargs):
+  return evaluate.evaluate_epoch_time(mf, dsm)
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(
@@ -52,6 +54,9 @@ if __name__ == "__main__":
   parser.add_argument(
     "-q", "--quick", action="store_true",
     help="Only do a quick run to check whether there might be OOM issues.")
+  parser.add_argument(
+    "-t", "--time", action="store_true",
+    help="Only measure the epoch times of the first hp config.")
   parser.add_argument(
     "-s", "--summarize", action="store_true",
     help="Only run the summarizer on existing evaluations.")
@@ -69,6 +74,9 @@ if __name__ == "__main__":
   elif args.summarize:
     type = "summarization"
     f = summarize
+  elif args.time:
+    type = "epoch time measurement"
+    f = epoch_times
   elif args.dry:
     type = "dry evaluation"
     f = fy.partial(resume, dry=True)

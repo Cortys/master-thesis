@@ -179,7 +179,7 @@ def imdb_experient():
   print(model.evaluate(test))
 
 def wl2_power_experiment():
-  model_class = gnn_models.SagK2GNN
+  model_class = gnn_models.AvgCWL2GCN
   # model_class = gnn_models.with_fc(model_class)
   dsm = synthetic.threesix_dataset(stored=True)(
     wl2_neighborhood=1)  # ok(3, 2, 1)
@@ -294,7 +294,7 @@ def ds_stats():
     json.dump(s, f, cls=NumpyEncoder, indent="\t")
   print("Done.")
 
-# wl2_power_experiment()
+wl2_power_experiment()
 # synthetic_experiment2()
 # imdb_experient()
 
@@ -303,25 +303,25 @@ def ds_stats():
 # synthetic.balanced_triangle_classification_dataset(stored=True)().export_dot(152)
 # synthetic.balanced_triangle_classification_dataset(stored=True)().export_dot(153)
 # ds_stats()
-p = eval_ds.Proteins_5()
-d = eval_ds.DD_2()
-nci = eval_ds.NCI1_8()
-imdb = eval_ds.IMDB_8()
-reddit = eval_ds.RedditBinary_1()
+# p = eval_ds.Proteins_5()
+# d = eval_ds.DD_2()
+# nci = eval_ds.NCI1_8()
+# imdb = eval_ds.IMDB_8()
+# reddit = eval_ds.RedditBinary_1()
 
-nci.draw(30)
-nci.draw(33)
-nci.draw(204)
-nci.draw(1300)
-nci.draw(4101)
-
-imdb.draw(107)
-imdb.draw(999)
-imdb.export_dot(999)
-
-reddit.draw(2)
-reddit.draw(100)
-reddit.export_dot(100)
+# nci.draw(30)
+# nci.draw(33)
+# nci.draw(204)
+# nci.draw(1300)
+# nci.draw(4101)
+#
+# imdb.draw(107)
+# imdb.draw(999)
+# imdb.export_dot(999)
+#
+# reddit.draw(2)
+# reddit.draw(100)
+# reddit.export_dot(100)
 #
 # list(dsm.get_all(output_type="grakel")[0])
 #

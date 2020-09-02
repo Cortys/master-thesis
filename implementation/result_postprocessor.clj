@@ -4,6 +4,8 @@
          '[cheshire.core :as json]
          '[clojure.java.shell :refer [sh]])
 
+(def include-lta true)
+
 (def default-radii {"balanced_triangle_classification_dataset" 2
                     "NCI1" 8
                     "PROTEINS_full" 5
@@ -33,7 +35,7 @@
 (def k2gnn-model "2-GNN")
 (def wl2-gnn-model "2-WL-GNN")
 (def mean-pool "\\mean")
-(def sam-pool "\\mathrm{SAM}")
+(def sam-pool (if include-lta "\\mathrm{SAM}" "\\wmean"))
 (def models-with-potential-oom #{wlst-model wlsp-model k2gnn-model})
 
 (defn round
@@ -293,10 +295,12 @@
 (defn res->full-name
   [{name :model params :params is-lta :is-lta}]
   (str "\\textbf{"
-       (cond
-         is-lta (str "\\textcolor{t_darkgreen}{" name "*}")
-         (= name "2-WL-GNN") (str name "\\phantom{*}")
-         :else name)
+       (if include-lta
+         (cond
+           is-lta (str "\\textcolor{t_darkgreen}{" name "*}")
+           (= name "2-WL-GNN") (str name "\\phantom{*}")
+           :else name)
+         name)
        "} ($" params "$)"))
 
 (defn mean
@@ -319,11 +323,12 @@
     (std test_diffs)))
 
 (defn fold-differences->tex
-  [{:keys [only-default]} file dataset]
+  [{:keys [only-default no-lta] :or {no-lta include-lta}} file dataset]
   (let [results (sort-by :order (dataset-results dataset :only-default only-default))
         results (if (> (count results) 12)
                   (remove :hide-diff results)
                   results)
+        results (if no-lta (remove #(and (:is-lta %) (= (:model %) "2-WL-GNN")) results) results)
         diffs
         (for [{folds-a :folds test-a-mean :test-mean test-a-std :test-std} results
               {folds-b :folds test-b-mean :test-mean test-b-std :test-std} results

@@ -12,7 +12,7 @@ from tensorflow import keras
 import funcy as fy
 import tensorflow as tf
 
-from ltag.utils import NumpyEncoder
+from ltag.utils import statistics, NumpyEncoder
 import ltag.chaining.pipeline as cp
 import ltag.evaluation.summary as summary
 
@@ -28,12 +28,25 @@ log_dir_base = Path("../logs")
 def time_str():
   return datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
+class EpochTimeCallback(keras.callbacks.Callback):
+  def __init__(self):
+    self.times = []
+    self.currTime = timer()
+
+  def on_epoch_end(self, epoch, logs={}):
+    currTime = timer()
+    self.times.append(currTime - self.currTime)
+    self.currTime = currTime
+
+  def on_train_end(self, logs={}):
+    pass
+
 def train(
   model, train_ds, val_ds=None, label=None,
   log_dir_base=log_dir_base,
   epochs=1000, patience=50, restore_best=False,
   stopping_min_delta=0.0001,
-  verbose=2):
+  verbose=2, measure_epoch_times=False):
   label = "_" + label if label is not None else ""
 
   t = time_str()
@@ -47,10 +60,21 @@ def train(
     min_delta=stopping_min_delta,
     restore_best_weights=restore_best)
 
-  return model.fit(
+  if measure_epoch_times:
+    tc = EpochTimeCallback()
+    callbacks = [tb, es, tc]
+  else:
+    callbacks = [tb, es]
+
+  hist = model.fit(
     train_ds, validation_data=val_ds,
-    epochs=epochs, callbacks=[tb, es],
+    epochs=epochs, callbacks=callbacks,
     verbose=verbose)
+
+  if measure_epoch_times:
+    return hist, tc.times
+  else:
+    return hist
 
 @cp.tolerant
 def evaluation_step(
@@ -345,3 +369,35 @@ def quick_evaluate(model_factory, ds_manager, **kwargs):
     model_factory, ds_manager,
     epochs=1, repeat=1, winner_repeat=1, label="quick",
     **fy.omit(kwargs, ["epochs", "repeat", "winner_repeat", "label"]))
+
+def evaluate_epoch_time(model_factory, ds_manager, hp_args=None):
+  eval_dir = find_eval_dir(model_factory, ds_manager, "time_eval")
+  if not eval_dir.exists():
+    os.makedirs(eval_dir)
+
+  log_dir_base = eval_dir / "logs"
+  times_file = eval_dir / "times.json"
+
+  if not log_dir_base.exists():
+    os.makedirs(log_dir_base)
+
+  hp_args = hp_args or dict()
+  model_ctr, hps = model_factory(ds_manager, **hp_args)
+  model = model_ctr(**list(hps)[0])
+  train_ds = ds_manager.get_all(output_type=model_factory.input_type)
+
+  model.summary()
+
+  _, times = train(
+    model, train_ds,
+    log_dir_base=log_dir_base,
+    epochs=110, patience=110,
+    measure_epoch_times=True)
+
+  with open(times_file, "w") as f:
+    json.dump(
+      {
+        "summary": statistics(times[10:]),
+        "epoch_times": times
+      },
+      f, cls=NumpyEncoder, indent="\t")
