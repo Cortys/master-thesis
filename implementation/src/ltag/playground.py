@@ -179,13 +179,16 @@ def imdb_experient():
   print(model.evaluate(test))
 
 def wl2_power_experiment():
+  # model_class = gnn_models.AvgGIN
   model_class = gnn_models.AvgCWL2GCN
-  # model_class = gnn_models.with_fc(model_class)
+  model_class = gnn_models.with_fc(model_class)
   dsm = synthetic.threesix_dataset(stored=True)(
     wl2_neighborhood=1)  # ok(3, 2, 1)
 
   if model_class.input_type == "dense":
     in_dim = dsm.dim_dense_features()
+  elif model_class.input_type == "wl1":
+    in_dim = dsm.dim_wl1_features()
   else:
     in_dim = dsm.dim_wl2_features()
 
@@ -197,7 +200,7 @@ def wl2_power_experiment():
   model = model_class(
     act="sigmoid", squeeze_output=True,
     layer_dims=[in_dim, 4, 1],
-    fc_layer_dims=[1, 2, 1],
+    fc_layer_dims=[1, 10, 1],
     neighborhood_mask=1,  # ok(3, 2), nok(-1, 1)
     bias=False, no_local_hash=True)
 
@@ -212,7 +215,7 @@ def wl2_power_experiment():
 
   evaluate.train(
     model, ds, verbose=1,
-    epochs=100, patience=200,
+    epochs=200, patience=200,
     label=f"{dsm.name}_{model.name}")
 
   print(
@@ -258,7 +261,6 @@ def synthetic_experiment2():
     model, ds, ds_test, verbose=2,
     epochs=5000, patience=2000,
     label=f"{dsm.name}_{model.name}")
-
 
 def kernel_experiment():
   model_class = kernel_models.WL_sp
@@ -374,7 +376,7 @@ wl2_power_experiment()
 #
 # # WL2:
 #
-# g2 = utils.make_wl2_batch([ds.wl2_dataset[0][i]], True)
+# g2 = utils.make_wl_batch([ds.wl2_dataset[0][i]], True)
 #
 # x2 = tf.constant(g2[0])
 # a2 = tf.constant(g2[1])

@@ -8,6 +8,7 @@ import funcy as fy
 import ltag.chaining.model as cm
 import ltag.layers.dense as ld
 import ltag.layers.wl2 as lwl2
+import ltag.layers.wl1 as lwl1
 from ltag.layers.DenseLayer import DenseLayer
 
 @cm.model_inputs
@@ -50,12 +51,23 @@ def gnn_en_inputs():
 
   return X, ref_a, backref, e_map, v_count
 
+@cm.model_inputs
+def gnn_wl1_inputs():
+  X = keras.Input(shape=(None,), dtype=tf.float32, name="X")
+  ref_a = keras.Input(shape=(), dtype=tf.int32, name="ref_a")
+  ref_b = keras.Input(shape=(), dtype=tf.int32, name="ref_b")
+  v_map = keras.Input(shape=(), dtype=tf.int32, name="v_map")
+  v_count = keras.Input(shape=(), dtype=tf.int32, name="v_count")
+
+  return X, ref_a, ref_b, v_map, v_count
+
 
 input_types = {
   "dense": gnn_dense_inputs,
   "wl2": gnn_wl2_inputs,
   "wl2c": gnn_wl2c_inputs,
-  "en": gnn_en_inputs
+  "en": gnn_en_inputs,
+  "wl1": gnn_wl1_inputs
 }
 
 @cm.model_step
@@ -128,6 +140,11 @@ K2GNN = gnn_model("K2GNN", [
   select_features],
   input_type="en")
 
+GIN = gnn_model("GIN", [
+  with_layers(lwl1.GINLayer, prefix="conv"),
+  select_features],
+  input_type="wl1")
+
 # Averaging GNNs:
 
 AvgDenseGCN = DenseGCN.extend("AvgDenseGCN", [
@@ -140,6 +157,8 @@ AvgWL2GCN = WL2GCN.extend("AvgWL2GCN", [
 AvgCWL2GCN = CWL2GCN.extend("AvgCWL2GCN", [
   cm.with_layer(lwl2.AvgPooling, with_inputs=True)])
 AvgK2GNN = K2GNN.extend("AvgK2GNN", [
+  cm.with_layer(lwl2.AvgPooling, with_inputs=True)])
+AvgGIN = GIN.extend("AvgGIN", [
   cm.with_layer(lwl2.AvgPooling, with_inputs=True)])
 
 # Max GNNs:

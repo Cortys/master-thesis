@@ -94,18 +94,36 @@ def wl1_convolution_compact(X, ref_a, backref):
 
   return X_agg
 
+@tf.function
+def gin_convolution_compact(X, ref_a, ref_b):
+  X_a = tf.gather(X, ref_a, axis=0)
+  X_b = tf.gather(X, ref_b, axis=0)
 
-# import ltag.datasets.synthetic.datasets as synthetic
-#
-# ds = synthetic.threesix_dataset()(wl2_batch_size={
-#   "batch_graph_count": 100
-# })
-#
-# (X, ref_a, ref_b, backref, e_map, v_count), y = list(
-#   ds.get_all(output_type="wl2c"))[0]
-#
-# c = wl2_convolution_compact(X, ref_a, ref_b, backref, tf.nn.relu)
-#
-# e_map
-#
-# print(c)
+  X_shape = tf.shape(X)
+
+  idx_a = tf.expand_dims(ref_a, axis=-1)
+  idx_b = tf.expand_dims(ref_b, axis=-1)
+  X_agg = (
+    X
+    + tf.scatter_nd(idx_a, X_b, shape=X_shape)
+    + tf.scatter_nd(idx_b, X_a, shape=X_shape))
+
+  return X_agg
+
+
+import ltag.datasets.synthetic.datasets as synthetic
+
+ds = synthetic.threesix_dataset()(wl2_batch_size={
+  "batch_graph_count": 100
+})
+
+(X, ref_a, ref_b, v_map, v_count), y = list(
+  ds.get_all(output_type="wl1"))[0]
+
+synthetic.threesix_dataset()().get_all(output_type="wl1")
+
+import numpy as np
+np.array(list(zip(ref_a, ref_b)))
+
+gin_convolution_compact(
+tf.constant(np.ones((12, 1))), ref_a, ref_b)

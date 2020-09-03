@@ -19,7 +19,7 @@ class GraphDatasetManager:
     self, kfold_class=StratifiedKFold, outer_k=10, inner_k=None,
     seed=42, holdout_test_size=0.1,
     dense_batch_size=50,
-    wl2_neighborhood=1, wl2_cache=True,
+    wl2_neighborhood=1, wl_cache=True,
     wl2_batch_size={},
     wl2_indices=False,
     node_one_labels=True,
@@ -33,7 +33,7 @@ class GraphDatasetManager:
     self.holdout_test_size = holdout_test_size
     self.dense_batch_size = dense_batch_size
     self.wl2_neighborhood = wl2_neighborhood
-    self.wl2_cache = wl2_cache
+    self.wl_cache = wl_cache
     self.wl2_batch_size = wl2_batch_size
     self.wl2_indices = wl2_indices
     self.node_one_labels = node_one_labels
@@ -54,6 +54,7 @@ class GraphDatasetManager:
     self._wl2_dataset = None
     self._wl2c_dataset = None
     self._en_dataset = None
+    self._wl1_dataset = None
     self._splits = None
 
     self._setup(**kwargs)
@@ -76,7 +77,7 @@ class GraphDatasetManager:
         neighborhood, with_indices=self.wl2_indices)
       for g in graphs])
 
-    print(f"Encoded WL2 graphs.")
+    print("Encoded WL2 graphs.")
 
     return wl2_graphs, targets
 
@@ -93,7 +94,7 @@ class GraphDatasetManager:
         neighborhood, compact=True)
       for g in graphs])
 
-    print(f"Encoded WL2c graphs.")
+    print("Encoded WL2c graphs.")
 
     return wl2_graphs, targets
 
@@ -109,9 +110,24 @@ class GraphDatasetManager:
         self._num_node_labels, self._num_edge_labels)
       for g in graphs])
 
-    print(f"Encoded graphs as edge neighborhood graphs.")
+    print("Encoded graphs as edge neighborhood graphs.")
 
     return en_graphs, targets
+
+  def _load_wl1_dataset(self):
+    graphs, targets = self.dataset
+
+    print(f"Encoding {self.name} as WL1 graphs...")
+
+    wl1_graphs = np.array([
+      ds_utils.wl1_encode(
+        g,
+        self._dim_node_features, self._num_node_labels)
+      for g in graphs])
+
+    print("Encoded graphs as WL1 graphs.")
+
+    return wl1_graphs, targets
 
   @property
   def full_name(self):
@@ -165,6 +181,13 @@ class GraphDatasetManager:
     return self._en_dataset
 
   @property
+  def wl1_dataset(self):
+    if self._wl1_dataset is None:
+      self._wl1_dataset = self._load_wl1_dataset()
+
+    return self._wl1_dataset
+
+  @property
   def splits(self):
     if self._splits is None:
       self._splits = self._make_splits()
@@ -209,6 +232,10 @@ class GraphDatasetManager:
     return (
       3 + cls._dim_node_features + cls._dim_edge_features
       + cls._num_node_labels + cls._num_edge_labels)
+
+  @classmethod
+  def dim_wl1_features(cls):
+    return max(1, cls._dim_node_features + cls._num_node_labels)
 
   @property
   def max_num_nodes(self):
@@ -295,7 +322,7 @@ class GraphDatasetManager:
     return splits
 
   def _get_wl2_batches(self, name, idxs=None):
-    if self.wl2_cache:
+    if self.wl_cache:
       graphs, targets = self.wl2_dataset
     else:
       graphs, targets = self.dataset
@@ -304,7 +331,7 @@ class GraphDatasetManager:
       graphs = graphs[idxs]
       targets = targets[idxs]
 
-    batches = ds_utils.to_wl2_ds(
+    batches = ds_utils.to_wl_ds(
       graphs, targets,
       dim_node_features=self._dim_node_features,
       dim_edge_features=self._dim_edge_features,
@@ -312,14 +339,14 @@ class GraphDatasetManager:
       num_edge_labels=self._num_edge_labels,
       with_indices=self.wl2_indices,
       as_list=True,  # no laziness due to slow wl2 batching
-      preencoded=self.wl2_cache,
+      preencoded=self.wl_cache,
       neighborhood=self.wl2_neighborhood,
       **self.wl2_batch_size)
 
     return batches
 
   def _get_wl2c_batches(self, name, idxs=None):
-    if self.wl2_cache:
+    if self.wl_cache:
       graphs, targets = self.wl2c_dataset
     else:
       graphs, targets = self.dataset
@@ -328,23 +355,23 @@ class GraphDatasetManager:
       graphs = graphs[idxs]
       targets = targets[idxs]
 
-    batches = ds_utils.to_wl2_ds(
+    batches = ds_utils.to_wl_ds(
       graphs, targets,
       dim_node_features=self._dim_node_features,
       dim_edge_features=self._dim_edge_features,
       num_node_labels=self._num_node_labels,
       num_edge_labels=self._num_edge_labels,
       with_indices=self.wl2_indices,
-      lazy=self.wl2_cache,  # wl2c preencoded graphs can be batched quickly
+      lazy=self.wl_cache,  # wl2c preencoded graphs can be batched quickly
       compact=True,
-      preencoded=self.wl2_cache,
+      preencoded=self.wl_cache,
       neighborhood=self.wl2_neighborhood,
       **self.wl2_batch_size)
 
     return batches
 
   def _get_en_batches(self, name, idxs=None):
-    if self.wl2_cache:
+    if self.wl_cache:
       graphs, targets = self.en_dataset
     else:
       graphs, targets = self.dataset
@@ -353,16 +380,37 @@ class GraphDatasetManager:
       graphs = graphs[idxs]
       targets = targets[idxs]
 
-    batches = ds_utils.to_wl2_ds(
+    batches = ds_utils.to_wl_ds(
       graphs, targets,
       dim_node_features=self._dim_node_features,
       dim_edge_features=self._dim_edge_features,
       num_node_labels=self._num_node_labels,
       num_edge_labels=self._num_edge_labels,
       with_indices=self.wl2_indices,
-      lazy=self.wl2_cache,  # en preencoded graphs can be batched quickly
+      lazy=self.wl_cache,  # en preencoded graphs can be batched quickly
       en_encode=True,
-      preencoded=self.wl2_cache,
+      preencoded=self.wl_cache,
+      **self.wl2_batch_size)
+
+    return batches
+
+  def _get_wl1_batches(self, name, idxs=None):
+    if self.wl_cache:
+      graphs, targets = self.wl1_dataset
+    else:
+      graphs, targets = self.dataset
+
+    if idxs is not None:
+      graphs = graphs[idxs]
+      targets = targets[idxs]
+
+    batches = ds_utils.to_wl_ds(
+      graphs, targets,
+      dim_node_features=self._dim_node_features,
+      num_node_labels=self._num_node_labels,
+      wl1_encode=True,
+      lazy=self.wl_cache,  # wl1 preencoded graphs can be batched quickly
+      preencoded=self.wl_cache,
       **self.wl2_batch_size)
 
     return batches
@@ -441,7 +489,7 @@ class GraphDatasetManager:
         batches.name = ds_name
         return batches
 
-      ds = ds_utils.wl2_batches_to_dataset(*batches)
+      ds = ds_utils.wl_batches_to_dataset(*batches)
     elif output_type == "wl2c":
       batches = self._get_wl2c_batches(ds_name, idxs)
 
@@ -452,7 +500,7 @@ class GraphDatasetManager:
         batches.name = ds_name
         return batches
 
-      ds = ds_utils.wl2_batches_to_dataset(*batches, compact=True)
+      ds = ds_utils.wl_batches_to_dataset(*batches, compact=True)
     elif output_type == "en":
       batches = self._get_en_batches(ds_name, idxs)
 
@@ -463,7 +511,18 @@ class GraphDatasetManager:
         batches.name = ds_name
         return batches
 
-      ds = ds_utils.wl2_batches_to_dataset(*batches, en_encode=True)
+      ds = ds_utils.wl_batches_to_dataset(*batches, en_encode=True)
+    elif output_type == "wl1":
+      batches = self._get_wl1_batches(ds_name, idxs)
+
+      if batches is None:
+        return
+
+      if isinstance(batches, tf.data.Dataset):
+        batches.name = ds_name
+        return batches
+
+      ds = ds_utils.wl_batches_to_dataset(*batches, wl1_encode=True)
 
     ds.name = ds_name
 

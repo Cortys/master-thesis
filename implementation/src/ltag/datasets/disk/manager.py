@@ -89,6 +89,23 @@ class StoredGraphDatasetManager(GraphDatasetManager):
       with open(en_dir / f"{self.name}.pickle", "rb") as f:
         return pickle.load(f)
 
+  def _load_wl1_dataset(self):
+    wl1_dir = self.root_dir / "wl1"
+
+    if not (wl1_dir / f"{self.name}.pickle").exists():
+      if not wl1_dir.exists():
+        os.makedirs(wl1_dir)
+
+      en_dataset = super()._load_wl1_dataset()
+
+      with open(wl1_dir / f"{self.name}.pickle", "wb") as f:
+        pickle.dump(en_dataset, f)
+
+      return en_dataset
+    else:
+      with open(wl1_dir / f"{self.name}.pickle", "rb") as f:
+        return pickle.load(f)
+
   def _make_splits(self):
     splits_filename = self.processed_dir / f"{self.name}_splits.json"
 

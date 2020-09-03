@@ -8,6 +8,7 @@ from timeit import default_timer as timer
 import warnings
 from pathlib import Path
 from datetime import datetime
+import numpy as np
 from tensorflow import keras
 import funcy as fy
 import tensorflow as tf
@@ -386,7 +387,10 @@ def evaluate_epoch_time(model_factory, ds_manager, hp_args=None):
   model = model_ctr(**list(hps)[0])
   train_ds = ds_manager.get_all(output_type=model_factory.input_type)
 
-  model.summary()
+  wc = int(np.sum([
+    keras.backend.count_params(w)
+    for w in model.trainable_weights]))
+  print(f"\nModel {model_factory.name} trainable weights = {wc}\n")
 
   _, times = train(
     model, train_ds,
