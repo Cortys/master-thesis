@@ -382,6 +382,10 @@ def evaluate_epoch_time(model_factory, ds_manager, hp_args=None):
   if not log_dir_base.exists():
     os.makedirs(log_dir_base)
 
+  if times_file.exists():
+    print(f"Already evaluated times of {model_factory.name} on the dataset.")
+    return
+
   hp_args = hp_args or dict()
   model_ctr, hps = model_factory(ds_manager, **hp_args)
   model = model_ctr(**list(hps)[0])
@@ -402,6 +406,7 @@ def evaluate_epoch_time(model_factory, ds_manager, hp_args=None):
     json.dump(
       {
         "summary": statistics(times[10:]),
+        "weight_count": wc,
         "epoch_times": times
       },
       f, cls=NumpyEncoder, indent="\t")

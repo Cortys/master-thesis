@@ -260,3 +260,81 @@ def balanced_triangle_classification_dataset(seed=1337):
         fy.partial(noisy_triangle_graph, *config), repeat)])
 
     return graphs, np.array(ys)
+
+def loop_neighbors(pos, size, split=False, only_next=True):
+  dim = len(size)
+
+  res = []
+
+  for i in range(dim):
+    min = 0
+    max = size[i]
+
+    if split and i == 0:
+      if pos[i] < size[i] / 2:
+        max = size[i] / 2
+      else:
+        min = size[i] / 2
+
+    next = pos[i] + 1
+
+    if next >= max:
+      next = min
+
+    res.append(pos[:i] + (next,) + pos[(i+1):])
+
+    if not only_next:
+      prev = pos[i] - 1
+      if prev < min:
+        prev = max - 1
+
+      res.append(pos[:i] + (prev,) + pos[(i+1):])
+
+  return res
+
+@synthetic_dataset
+def hyperloop_dataset(size=(10,)):
+  if size[0] % 2 != 0:
+    raise Exception("First loop dimension must be even.")
+
+  g1 = nx.Graph()
+  g2 = nx.Graph()
+
+  nodes = {pos: i for i, pos in enumerate(cart(*[range(d) for d in size]))}
+
+  for pos, i in nodes.items():
+    n1 = loop_neighbors(pos, size, False)
+    n2 = loop_neighbors(pos, size, True)
+
+    g1.add_edges_from([(i, nodes[npos]) for npos in n1])
+    g2.add_edges_from([(i, nodes[npos]) for npos in n2])
+
+  N = 50
+
+  return [g1] * N + [g2] * N, [0] * N + [1] * N
+
+def hyperloop_dataset_generator(size=(10,)):
+  suffix = "_" + "_".join(str(s) for s in size)
+
+  return fy.partial(hyperloop_dataset, size, stored_suffix=suffix)
+
+
+hyperloop_16 = hyperloop_dataset_generator((16,))
+hyperloop_32 = hyperloop_dataset_generator((32,))
+hyperloop_64 = hyperloop_dataset_generator((64,))
+hyperloop_128 = hyperloop_dataset_generator((128,))
+hyperloop_256 = hyperloop_dataset_generator((256,))
+hyperloop_512 = hyperloop_dataset_generator((512,))
+hyperloop_1024 = hyperloop_dataset_generator((1024,))
+hyperloop_2048 = hyperloop_dataset_generator((2048,))
+hyperloop_4096 = hyperloop_dataset_generator((4096,))
+hyperloop_8192 = hyperloop_dataset_generator((8192,))
+
+# hyperloop_256_2 = hyperloop_dataset_generator((256, 2))
+# hyperloop_128_2_2 = hyperloop_dataset_generator((128, 2, 2))
+# hyperloop_64_2_2_2 = hyperloop_dataset_generator((64, 2, 2, 2))
+
+hyperloop_512_2 = hyperloop_dataset_generator((512, 2))  # deg 3
+hyperloop_256_2_2 = hyperloop_dataset_generator((256, 2, 2))  # deg 4
+hyperloop_128_2_2_2 = hyperloop_dataset_generator((128, 2, 2, 2))  # deg 5
+hyperloop_64_2_2_2_2 = hyperloop_dataset_generator((64, 2, 2, 2, 2))  # deg 6

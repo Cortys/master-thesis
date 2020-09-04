@@ -109,21 +109,3 @@ def gin_convolution_compact(X, ref_a, ref_b):
     + tf.scatter_nd(idx_b, X_a, shape=X_shape))
 
   return X_agg
-
-
-import ltag.datasets.synthetic.datasets as synthetic
-
-ds = synthetic.threesix_dataset()(wl2_batch_size={
-  "batch_graph_count": 100
-})
-
-(X, ref_a, ref_b, v_map, v_count), y = list(
-  ds.get_all(output_type="wl1"))[0]
-
-synthetic.threesix_dataset()().get_all(output_type="wl1")
-
-import numpy as np
-np.array(list(zip(ref_a, ref_b)))
-
-gin_convolution_compact(
-tf.constant(np.ones((12, 1))), ref_a, ref_b)

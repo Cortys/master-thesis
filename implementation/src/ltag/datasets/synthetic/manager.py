@@ -33,8 +33,8 @@ class StoredSyntheticDatasetManager(TUDatasetManager):
 
 def synthetic_dataset(f):
   @fy.wraps(f)
-  def w(*args, stored=False, **kwargs):
-    n = f.__name__
+  def w(*args, stored=False, stored_suffix="", **kwargs):
+    n = f.__name__ + stored_suffix
 
     def generate():
       graphs, y = cp.tolerant(f)(*args, **kwargs)

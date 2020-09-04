@@ -299,31 +299,39 @@ def SagK2GNN_FC_Binary(
   return fy.map(entry_duplicator(duplicate_settings), hps)
 
 
-# GIN:
+# Timing:
 
-@binary_classifier(gnn_models.with_fc(gnn_models.AvgGIN))
-def AvgGIN_FC_Binary(
+@binary_classifier(gnn_models.AvgCWL2GCN)
+def AvgCWL2GCN_Timing_Binary(
   dsm,
-  wl1_local_act="sigmoid",
-  wl1_layer_widths=[32, 64],
-  wl1_layer_depths=[1, 3],
-  wl1_stack_tfs=[None, "keep_input"]):
-  in_dim = dsm.dim_wl1_features()
+  cwl2_local_act="sigmoid",
+  cwl2_stack_tfs=[None]):
+  in_dim = dsm.dim_wl2_features()
 
-  hidden = [
-    ([b] * l, [b, b])
-    for b, l in cart(wl1_layer_widths, wl1_layer_depths)]
-
-  hidden_hp = [dict(
-    conv_layer_dims=[in_dim, *ch],
-    fc_layer_dims=[*fh, 1]
-  ) for ch, fh in hidden]
-
-  return cart_merge(cart(
+  return cart(
     conv_act=["sigmoid"],
-    conv_stack_tf=wl1_stack_tfs,
+    conv_local_act=[cwl2_local_act],
+    conv_stack_tf=cwl2_stack_tfs,
+    conv_layer_dims=[[in_dim, 24, 24, 1]],
     conv_bias=[True],
     fc_bias=[True],
-    learning_rate=[0.01, 0.001, 0.0001],
+    learning_rate=[0.01],
     squeeze_output=[True]
-  ), hidden_hp)
+  )
+
+@binary_classifier(gnn_models.AvgGIN)
+def AvgGIN_Timing_Binary(
+  dsm,
+  wl1_local_act="sigmoid",
+  wl1_stack_tfs=[None]):
+  in_dim = dsm.dim_wl1_features()
+
+  return cart(
+    conv_act=["sigmoid"],
+    conv_stack_tf=wl1_stack_tfs,
+    conv_layer_dims=[[in_dim, 32, 1]],
+    conv_bias=[True],
+    fc_bias=[True],
+    learning_rate=[0.01],
+    squeeze_output=[True]
+  )

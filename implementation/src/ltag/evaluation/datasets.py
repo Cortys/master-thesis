@@ -177,6 +177,192 @@ synthetic = synthetic_binary
 stored_synthetic = synthetic
 dynamic_synthetic = []
 
+# Synthetic Timing Testsets:
+
+loop_batch = {
+  "fuzzy_batch_edge_count": 1300000,
+  "upper_batch_edge_count": 1300000,
+  "batch_graph_count": 100
+}
+
+hyperloop_16_1 = fy.partial(
+  syn.hyperloop_16(stored=True),
+  wl2_neighborhood=1, wl2_batch_size=loop_batch)
+hyperloop_32_1 = fy.partial(
+  syn.hyperloop_32(stored=True),
+  wl2_neighborhood=1, wl2_batch_size=loop_batch)
+hyperloop_64_1 = fy.partial(
+  syn.hyperloop_64(stored=True),
+  wl2_neighborhood=1, wl2_batch_size=loop_batch)
+hyperloop_128_1 = fy.partial(
+  syn.hyperloop_128(stored=True),
+  wl2_neighborhood=1, wl2_batch_size=loop_batch)
+hyperloop_256_1 = fy.partial(
+  syn.hyperloop_256(stored=True),
+  wl2_neighborhood=1, wl2_batch_size=loop_batch)
+hyperloop_512_1 = fy.partial(
+  syn.hyperloop_512(stored=True),
+  wl2_neighborhood=1, wl2_batch_size=loop_batch)
+hyperloop_1024_1 = fy.partial(
+  syn.hyperloop_1024(stored=True),
+  wl2_neighborhood=1, wl2_batch_size=loop_batch)
+hyperloop_2048_1 = fy.partial(
+  syn.hyperloop_2048(stored=True),
+  wl2_neighborhood=1, wl2_batch_size=loop_batch)
+hyperloop_4096_1 = fy.partial(
+  syn.hyperloop_4096(stored=True),
+  wl2_neighborhood=1, wl2_batch_size=loop_batch)
+hyperloop_8192_1 = fy.partial(
+  syn.hyperloop_8192(stored=True),
+  wl2_neighborhood=1, wl2_batch_size=loop_batch)
+
+hyperloop_512_2_1 = fy.partial(
+  syn.hyperloop_512_2(stored=True),
+  wl2_neighborhood=1, wl2_batch_size=loop_batch)
+hyperloop_256_2_2_1 = fy.partial(
+  syn.hyperloop_256_2_2(stored=True),
+  wl2_neighborhood=1, wl2_batch_size=loop_batch)
+hyperloop_128_2_2_2_1 = fy.partial(
+  syn.hyperloop_128_2_2_2(stored=True),
+  wl2_neighborhood=1, wl2_batch_size=loop_batch)
+hyperloop_64_2_2_2_2_1 = fy.partial(
+  syn.hyperloop_64_2_2_2_2(stored=True),
+  wl2_neighborhood=1, wl2_batch_size=loop_batch)
+
+hyperloop_16_2 = fy.partial(
+  syn.hyperloop_16(stored=True),
+  wl2_neighborhood=2, wl2_batch_size=loop_batch, name_suffix="_n2")
+hyperloop_32_2 = fy.partial(
+  syn.hyperloop_32(stored=True),
+  wl2_neighborhood=2, wl2_batch_size=loop_batch, name_suffix="_n2")
+hyperloop_64_2 = fy.partial(
+  syn.hyperloop_64(stored=True),
+  wl2_neighborhood=2, wl2_batch_size=loop_batch, name_suffix="_n2")
+hyperloop_128_2 = fy.partial(
+  syn.hyperloop_128(stored=True),
+  wl2_neighborhood=2, wl2_batch_size=loop_batch, name_suffix="_n2")
+hyperloop_256_2 = fy.partial(
+  syn.hyperloop_256(stored=True),
+  wl2_neighborhood=2, wl2_batch_size=loop_batch, name_suffix="_n2")
+hyperloop_512_2 = fy.partial(
+  syn.hyperloop_512(stored=True),
+  wl2_neighborhood=2, wl2_batch_size=loop_batch, name_suffix="_n2")
+hyperloop_1024_2 = fy.partial(
+  syn.hyperloop_1024(stored=True),
+  wl2_neighborhood=2, wl2_batch_size=loop_batch, name_suffix="_n2")
+hyperloop_2048_2 = fy.partial(
+  syn.hyperloop_2048(stored=True),
+  wl2_neighborhood=2, wl2_batch_size=loop_batch, name_suffix="_n2")
+hyperloop_4096_2 = fy.partial(
+  syn.hyperloop_4096(stored=True),
+  wl2_neighborhood=2, wl2_batch_size=loop_batch, name_suffix="_n2")
+hyperloop_8192_2 = fy.partial(
+  syn.hyperloop_8192(stored=True),
+  wl2_neighborhood=2, wl2_batch_size=loop_batch, name_suffix="_n2")
+
+hyperloop_512_2_2 = fy.partial(
+  syn.hyperloop_512_2(stored=True),
+  wl2_neighborhood=2, wl2_batch_size=loop_batch, name_suffix="_n2")
+hyperloop_256_2_2_2 = fy.partial(
+  syn.hyperloop_256_2_2(stored=True),
+  wl2_neighborhood=2, wl2_batch_size=loop_batch, name_suffix="_n2")
+hyperloop_128_2_2_2_2 = fy.partial(
+  syn.hyperloop_128_2_2_2(stored=True),
+  wl2_neighborhood=2, wl2_batch_size=loop_batch, name_suffix="_n2")
+hyperloop_64_2_2_2_2_2 = fy.partial(
+  syn.hyperloop_64_2_2_2_2(stored=True),
+  wl2_neighborhood=2, wl2_batch_size=loop_batch, name_suffix="_n2")
+
+hyperloop_16_3 = fy.partial(
+  syn.hyperloop_16(stored=True),
+  wl2_neighborhood=3, wl2_batch_size=loop_batch, name_suffix="_n3")
+hyperloop_32_3 = fy.partial(
+  syn.hyperloop_32(stored=True),
+  wl2_neighborhood=3, wl2_batch_size=loop_batch, name_suffix="_n3")
+hyperloop_64_3 = fy.partial(
+  syn.hyperloop_64(stored=True),
+  wl2_neighborhood=3, wl2_batch_size=loop_batch, name_suffix="_n3")
+hyperloop_128_3 = fy.partial(
+  syn.hyperloop_128(stored=True),
+  wl2_neighborhood=3, wl2_batch_size=loop_batch, name_suffix="_n3")
+hyperloop_256_3 = fy.partial(
+  syn.hyperloop_256(stored=True),
+  wl2_neighborhood=3, wl2_batch_size=loop_batch, name_suffix="_n3")
+hyperloop_512_3 = fy.partial(
+  syn.hyperloop_512(stored=True),
+  wl2_neighborhood=3, wl2_batch_size=loop_batch, name_suffix="_n3")
+hyperloop_1024_3 = fy.partial(
+  syn.hyperloop_1024(stored=True),
+  wl2_neighborhood=3, wl2_batch_size=loop_batch, name_suffix="_n3")
+hyperloop_2048_3 = fy.partial(
+  syn.hyperloop_2048(stored=True),
+  wl2_neighborhood=3, wl2_batch_size=loop_batch, name_suffix="_n3")
+hyperloop_4096_3 = fy.partial(
+  syn.hyperloop_4096(stored=True),
+  wl2_neighborhood=3, wl2_batch_size=loop_batch, name_suffix="_n3")
+hyperloop_8192_3 = fy.partial(
+  syn.hyperloop_8192(stored=True),
+  wl2_neighborhood=3, wl2_batch_size=loop_batch, name_suffix="_n3")
+
+hyperloop_512_2_3 = fy.partial(
+  syn.hyperloop_512_2(stored=True),
+  wl2_neighborhood=3, wl2_batch_size=loop_batch, name_suffix="_n3")
+hyperloop_256_2_2_3 = fy.partial(
+  syn.hyperloop_256_2_2(stored=True),
+  wl2_neighborhood=3, wl2_batch_size=loop_batch, name_suffix="_n3")
+hyperloop_128_2_2_2_3 = fy.partial(
+  syn.hyperloop_128_2_2_2(stored=True),
+  wl2_neighborhood=3, wl2_batch_size=loop_batch, name_suffix="_n3")
+hyperloop_64_2_2_2_2_3 = fy.partial(
+  syn.hyperloop_64_2_2_2_2(stored=True),
+  wl2_neighborhood=3, wl2_batch_size=loop_batch, name_suffix="_n3")
+
+timing = [
+  "hyperloop_16_1",
+  "hyperloop_32_1",
+  "hyperloop_64_1",
+  "hyperloop_128_1",
+  "hyperloop_256_1",
+  "hyperloop_512_1",
+  "hyperloop_1024_1",
+  "hyperloop_2048_1",
+  "hyperloop_4096_1",
+  "hyperloop_8192_1",
+  "hyperloop_512_2_1",
+  "hyperloop_256_2_2_1",
+  "hyperloop_128_2_2_2_1",
+  "hyperloop_64_2_2_2_2_1",
+
+  "hyperloop_16_2",
+  "hyperloop_32_2",
+  "hyperloop_64_2",
+  "hyperloop_128_2",
+  "hyperloop_256_2",
+  "hyperloop_512_2",
+  "hyperloop_1024_2",
+  "hyperloop_2048_2",
+  "hyperloop_4096_2",
+  "hyperloop_8192_2",
+  "hyperloop_512_2_2",
+  "hyperloop_256_2_2_2",
+  "hyperloop_128_2_2_2_2",
+  "hyperloop_64_2_2_2_2_2",
+
+  "hyperloop_16_3",
+  "hyperloop_32_3",
+  "hyperloop_64_3",
+  "hyperloop_128_3",
+  "hyperloop_256_3",
+  "hyperloop_512_3",
+  "hyperloop_1024_3",
+  "hyperloop_2048_3",
+  "hyperloop_4096_3",
+  "hyperloop_8192_3",
+  "hyperloop_512_2_3",
+  "hyperloop_256_2_2_3",
+  "hyperloop_128_2_2_2_3",
+  "hyperloop_64_2_2_2_2_3"]
+
 # Other categories:
 
 stored = stored_synthetic + chemical + social

@@ -82,7 +82,10 @@ if __name__ == "__main__":
     f = fy.partial(resume, dry=True)
 
   if args.dataset is None or len(args.dataset) == 0:
-    ds = datasets.stored
+    if args.time:
+      ds = datasets.timing
+    else:
+      ds = datasets.stored
   else:
     ds = args.dataset
 
