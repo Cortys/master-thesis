@@ -7,6 +7,7 @@
 (def include-lta true)
 
 (def default-radii {"balanced_triangle_classification_dataset" 2
+                    "hyperloop_dataset" 1
                     "NCI1" 8
                     "PROTEINS_full" 5
                     "DD" 2
@@ -107,11 +108,12 @@
 
 (defn eval-name->params
   [dataset name]
-  (let [[_ r n _ T] (re-find #"n?(\d?)_?(.+?)(_FC)?(_\d)?$" name)
+  (let [[_ r n _ T time-eval] (re-find #"n?(\d?)_?(.+?)(_FC)?(_\d)?(_time_eval)?$" name)
         ;_ (println "y" name dataset r n T)
         r (if (seq r) (Integer/parseInt r) (default-radii dataset))
         T (when (seq T) (Integer/parseInt (subs T 1)))
-        pool (extract-pool name)]
+        pool (extract-pool name)
+        time-eval (some? time-eval)]
     (condp #(str/includes? %2 %1) n
       "CWL2GCN"
       {:name "2-WL-GNN"
@@ -119,11 +121,13 @@
        :r r
        :is-default (= r (single-depth-radii dataset))
        :is-lta (not (str/ends-with? name "FC"))
+       :time-eval time-eval
        :pool pool}
       "K2GNN"
       {:name "2-GNN"
        :order [1 3 0 0]
        :is-default (= r (default-radii dataset))
+       :time-eval time-eval
        :pool pool}
       "WL_st"
       {:name wlst-model
@@ -154,6 +158,7 @@
       "GIN"
       {:name "GIN" :order [1 2 0 0]
        :pool "\\mathrm{sum}"
+       :time-eval time-eval
        :is-default true}
       "MolecularFingerprint"
       {:name "Baseline" :order [1 1 0 0]
@@ -169,10 +174,14 @@
   [x]
   (* 100 (or x 0)))
 
+(defn ls-dir
+  [dir]
+  (let [{out :out} (sh "ls" dir)]
+    (str/split out #"\n+")))
+
 (defn dataset-results
   [dataset & {:keys [only-default] :or {only-default true}}]
-  (let [{evals :out} (sh "ls" "./evaluations/")
-        evals (str/split evals #"\n+")
+  (let [evals (ls-dir "./evaluations/")
         summaries (into []
                         (comp (filter #(and (str/starts-with? % dataset) (not (str/ends-with? % "quick"))))
                               (map (juxt identity #(try
@@ -200,8 +209,7 @@
                                                        {:test-mean (to-proc (:mean test))})
                                                      folds)}))))
                         evals)
-        {comp-evals :out} (sh "ls" "./libs/gnn-comparison/RESULTS/")
-        comp-evals (str/split comp-evals #"\n+")
+        comp-evals (ls-dir "./libs/gnn-comparison/RESULTS/")
         summaries (into summaries
                         (comp (filter #(str/ends-with? % (str (if (= dataset "PROTEINS_full") "PROTEINS" dataset) "_assessment")))
                               (map (juxt identity
@@ -323,12 +331,12 @@
     (std test_diffs)))
 
 (defn fold-differences->tex
-  [{:keys [only-default no-lta] :or {no-lta include-lta}} file dataset]
+  [{:keys [only-default]} file dataset]
   (let [results (sort-by :order (dataset-results dataset :only-default only-default))
         results (if (> (count results) 12)
                   (remove :hide-diff results)
                   results)
-        results (if no-lta (remove #(and (:is-lta %) (= (:model %) "2-WL-GNN")) results) results)
+        results (if include-lta results (remove #(and (:is-lta %) (= (:model %) "2-WL-GNN")) results))
         diffs
         (for [{folds-a :folds test-a-mean :test-mean test-a-std :test-std} results
               {folds-b :folds test-b-mean :test-mean test-b-std :test-std} results
@@ -446,6 +454,53 @@
     (doseq [res results]
       (println "Duration for " (:model res) "-" (:dataset res) "-" (:params res) "-" (:duration (:config res))))))
 
+(defn time-eval-name->params
+  [name]
+  (let [[_ factor-str _ rest] (re-find #"hyperloop_dataset_((\d+_)+)(\D.*)" name)
+        factors (keep #(when-not (= % "") (Integer/parseInt %))
+                      (str/split factor-str #"_"))
+        N (apply * factors)
+        d (inc (count factors))
+        params (eval-name->params "hyperloop_dataset" rest)]
+    (when (:time-eval params)
+      (merge params {:full-name name :N N :d d :factors factors}))))
+
+(defn epoch-times
+  []
+  (let [evals (into []
+                    (comp (filter #(str/starts-with? % "hyperloop_dataset"))
+                          (keep time-eval-name->params)
+                          (keep #(try
+                                   (let [times
+                                         (json/parse-string (slurp (str "./evaluations/" (:full-name %) "/times.json"))
+                                                            true)]
+                                     (assoc % :epoch-mean (-> times :summary :mean (* 1000))))
+                                   (catch Exception))))
+                    (ls-dir "./evaluations/"))
+        N-evals (->> evals
+                     (filter #(= (:d %) 2))
+                     (group-by :N)
+                     (into (sorted-map)))
+        d-evals (->> evals
+                     (filter #(= (:N %) 1024))
+                     (group-by :d)
+                     (into (sorted-map)))
+        row-vals (fn [evals]
+                   [(some #(and (= (:name %) "GIN") (:epoch-mean %)) evals)
+                    (some #(and (= (:name %) "2-WL-GNN") (= (:r %) 1) (:epoch-mean %)) evals)
+                    (some #(and (= (:name %) "2-WL-GNN") (= (:r %) 2) (:epoch-mean %)) evals)
+                    (some #(and (= (:name %) "2-WL-GNN") (= (:r %) 3) (:epoch-mean %)) evals)])
+        N-head "N,gin,r1,r2,r3"
+        d-head "d,gin,r1,r2,r3"
+        N-rows (map (fn [[N evals]] (str/join "," (cons N (row-vals evals)))) N-evals)
+        d-rows (map (fn [[d evals]] (str/join "," (cons d (row-vals evals)))) d-evals)
+        N-csv (str N-head "\n" (str/join "\n" N-rows))
+        d-csv (str d-head "\n" (str/join "\n" d-rows))]
+    (println (str "Varying N:\n" N-csv "\n"))
+    (println (str "Varying d:\n" d-csv))
+    (spit (str "../thesis/data/epoch_times_N.csv") N-csv)
+    (spit (str "../thesis/data/epoch_times_d.csv") d-csv)))
+
 (defn default-action
   []
   (ds-stats->csv)
@@ -464,6 +519,7 @@
               "wl2_compare_sam" (partial wl-depth-compare {:use-gnn true :pool sam-pool})
               "wl2_compare_mean" (partial wl-depth-compare {:use-gnn true :pool mean-pool})
               "durations" durations
+              "epoch-times" epoch-times
               nil default-action})
 
 (println "LTAG Results Postprocessor.")
