@@ -215,6 +215,9 @@ hyperloop_4096_1 = fy.partial(
 hyperloop_8192_1 = fy.partial(
   syn.hyperloop_8192(stored=True),
   wl2_neighborhood=1, wl2_batch_size=loop_batch)
+hyperloop_16384_1 = fy.partial(
+  syn.hyperloop_16384(stored=True),
+  wl2_neighborhood=1, wl2_batch_size=loop_batch)
 
 hyperloop_512_2_1 = fy.partial(
   syn.hyperloop_512_2(stored=True),
@@ -258,6 +261,9 @@ hyperloop_4096_2 = fy.partial(
   wl2_neighborhood=2, wl2_batch_size=loop_batch, name_suffix="_n2")
 hyperloop_8192_2 = fy.partial(
   syn.hyperloop_8192(stored=True),
+  wl2_neighborhood=2, wl2_batch_size=loop_batch, name_suffix="_n2")
+hyperloop_16384_2 = fy.partial(
+  syn.hyperloop_16384(stored=True),
   wl2_neighborhood=2, wl2_batch_size=loop_batch, name_suffix="_n2")
 
 hyperloop_512_2_2 = fy.partial(
@@ -303,6 +309,9 @@ hyperloop_4096_3 = fy.partial(
 hyperloop_8192_3 = fy.partial(
   syn.hyperloop_8192(stored=True),
   wl2_neighborhood=3, wl2_batch_size=loop_batch, name_suffix="_n3")
+hyperloop_16384_3 = fy.partial(
+  syn.hyperloop_16384(stored=True),
+  wl2_neighborhood=3, wl2_batch_size=loop_batch, name_suffix="_n3")
 
 hyperloop_512_2_3 = fy.partial(
   syn.hyperloop_512_2(stored=True),
@@ -312,10 +321,12 @@ hyperloop_256_2_2_3 = fy.partial(
   wl2_neighborhood=3, wl2_batch_size=loop_batch, name_suffix="_n3")
 hyperloop_128_2_2_2_3 = fy.partial(
   syn.hyperloop_128_2_2_2(stored=True),
-  wl2_neighborhood=3, wl2_batch_size=loop_batch, name_suffix="_n3")
+  wl2_neighborhood=3, wl2_batch_size={**loop_batch, "batch_graph_count": 50},
+  name_suffix="_n3")
 hyperloop_64_2_2_2_2_3 = fy.partial(
   syn.hyperloop_64_2_2_2_2(stored=True),
-  wl2_neighborhood=3, wl2_batch_size=loop_batch, name_suffix="_n3")
+  wl2_neighborhood=3, wl2_batch_size={**loop_batch, "batch_graph_count": 20},
+  name_suffix="_n3")
 
 timing = [
   "hyperloop_16_1",
@@ -328,6 +339,7 @@ timing = [
   "hyperloop_2048_1",
   "hyperloop_4096_1",
   "hyperloop_8192_1",
+  "hyperloop_16384_1",
   "hyperloop_512_2_1",
   "hyperloop_256_2_2_1",
   "hyperloop_128_2_2_2_1",
@@ -343,6 +355,7 @@ timing = [
   "hyperloop_2048_2",
   "hyperloop_4096_2",
   "hyperloop_8192_2",
+  "hyperloop_16384_2",
   "hyperloop_512_2_2",
   "hyperloop_256_2_2_2",
   "hyperloop_128_2_2_2_2",
@@ -358,6 +371,7 @@ timing = [
   "hyperloop_2048_3",
   "hyperloop_4096_3",
   "hyperloop_8192_3",
+  "hyperloop_16384_3",
   "hyperloop_512_2_3",
   "hyperloop_256_2_2_3",
   "hyperloop_128_2_2_2_3",

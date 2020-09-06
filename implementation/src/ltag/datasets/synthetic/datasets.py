@@ -329,6 +329,7 @@ hyperloop_1024 = hyperloop_dataset_generator((1024,))
 hyperloop_2048 = hyperloop_dataset_generator((2048,))
 hyperloop_4096 = hyperloop_dataset_generator((4096,))
 hyperloop_8192 = hyperloop_dataset_generator((8192,))
+hyperloop_16384 = hyperloop_dataset_generator((16384,))
 
 # hyperloop_256_2 = hyperloop_dataset_generator((256, 2))
 # hyperloop_128_2_2 = hyperloop_dataset_generator((128, 2, 2))

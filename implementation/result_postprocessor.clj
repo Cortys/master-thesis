@@ -80,6 +80,7 @@
              (dim-str dim_edge_features num_edge_labels)
              (round (get node_degrees "min"))
              (round (get node_degrees "mean") 1)
+             (round (get node_degrees "std") 1)
              (round (get node_degrees "max"))
              (round (get radii "mean") 1)
              (round (get radii "std") 1)]))
@@ -92,7 +93,7 @@
                   "node_count_min,node_count_mean,node_count_max,"
                   "edge_count_min,edge_count_mean,edge_count_max,"
                   "dim_node_features,dim_edge_features,",
-                  "node_degree_min,node_degree_mean,node_degree_max,"
+                  "node_degree_min,node_degree_mean,node_degree_std,node_degree_max,"
                   "radius_mean,radius_std")
         stats (str head "\n" (str/join "\n" (map stats-dict->csv-line stats)) "\n")]
     (spit "../thesis/data/ds_stats.csv" stats)
@@ -474,9 +475,15 @@
                                    (let [times
                                          (json/parse-string (slurp (str "./evaluations/" (:full-name %) "/times.json"))
                                                             true)]
-                                     (assoc % :epoch-mean (-> times :summary :mean (* 1000))))
+                                     (assoc %
+                                            :epoch-mean (-> times :summary :mean (* 1000))
+                                            :epoch-std (-> times :summary :std (* 1000))))
                                    (catch Exception))))
                     (ls-dir "./evaluations/"))
+        var-coeffs (into []
+                         (comp (filter #(> (:N %) 200))
+                               (map (fn [{m :epoch-mean s :epoch-std}] (/ s m))))
+                         evals)
         N-evals (->> evals
                      (filter #(= (:d %) 2))
                      (group-by :N)
@@ -497,7 +504,9 @@
         N-csv (str N-head "\n" (str/join "\n" N-rows))
         d-csv (str d-head "\n" (str/join "\n" d-rows))]
     (println (str "Varying N:\n" N-csv "\n"))
-    (println (str "Varying d:\n" d-csv))
+    (println (str "Varying d:\n" d-csv "\n"))
+    (println (str "Coefficients of variation: min=" (apply min var-coeffs) ", max=" (apply max var-coeffs)
+                  ", mean,std=" (std var-coeffs)))
     (spit (str "../thesis/data/epoch_times_N.csv") N-csv)
     (spit (str "../thesis/data/epoch_times_d.csv") d-csv)))
 
